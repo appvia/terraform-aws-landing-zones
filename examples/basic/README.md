@@ -15,7 +15,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_shared_services"></a> [shared\_services](#module\_shared\_services) | ../../ | n/a |
+| <a name="module_dev_apps"></a> [dev\_apps](#module\_dev\_apps) | ../../ | n/a |
 
 ## Resources
 
