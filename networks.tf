@@ -25,5 +25,3 @@ module "networks" {
   vpc_cidr                               = each.value.vpc.cidr
   vpc_netmask                            = each.value.vpc.netmask
 }
-
-## Provision the transit gateway attachment if required 

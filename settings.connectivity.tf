@@ -3,9 +3,6 @@ locals {
   ## Enabled private hosted zone association - any private hosted zones declared will be automatically 
   ## associated with the central private dns solution 
   enable_central_dns_association = true
-  ## Indicates we need to attach the networks to the transit gateway - i.e. their is no auto association 
-  ## currently in place 
-  enable_transit_gateway_association = false
 
   ## Is a regex that is used to determine if a dns zone is permitted to be associated with the central 
   ## dns solution
@@ -62,18 +59,6 @@ locals {
     "us-west-1"      = ""
     "us-west-2"      = ""
   }
-
-  ## The following table is used to lookup the correct transit gateway route table for a given account 
-  transit_gateway_id_route_table_by_environment = {
-    "dev"  = "tgw-rtb-0b426df0244b5db84"
-    "prod" = "tgw-rtb-0b426df0244b5db84"
-  }
-
-  ## If you need to override the default bahaivour of the transit gateway route table association and 
-  ## associate to another route table, you can do so by updating the table below
-  transit_gateway_id_route_table_by_account = {
-  }
-
 
   ## We use the lookup table above to derive the transit gateway id to use 
   transit_gateway_id = local.transit_gateway_by_region[local.region]

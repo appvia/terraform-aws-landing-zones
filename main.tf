@@ -4,6 +4,7 @@ module "tagging" {
   source  = "appvia/tagging/null"
   version = "0.0.3"
 
+  cost_center = var.cost_center
   environment = var.environment
   git_repo    = local.git_repo
   owner       = var.owner

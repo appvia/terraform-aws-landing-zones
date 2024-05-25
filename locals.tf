@@ -36,9 +36,12 @@ locals {
 
   ### Cost and budgeting related locals 
 
+  ## The default cost anomaly detection monitor which should be configured in all accounts 
+  costs_anomaly_monitors_merged = concat(var.anomaly_detection.monitors, var.anomaly_detection.enable_default_monitors ? local.costs_default_anomaly_monitors : [])
+
   ## Here we construct the cost anomaly detection monitors from the configuration 
   costs_anomaly_monitors = [
-    for monitor in var.anomaly_detection.monitors : {
+    for monitor in local.costs_anomaly_monitors_merged : {
       name              = monitor.name
       monitor_type      = "DIMENSIONAL"
       monitor_dimension = "SERVICE"
@@ -50,16 +53,15 @@ locals {
     }
   ]
 
-  ## The default cost anomaly detection monitor which should be configured in all accounts 
-  costs_anomaly_monitors_merged = concat(var.anomaly_detection.monitors,
-  var.anomaly_detection.enable_default_monitors ? local.costs_default_anomaly_monitors : [])
-
   ### KMS and encryption related locals 
 
   ## The expiration window for the default kms key which will be used for the regional account key.
   kms_key_expiration_window_in_days = try(local.kms_key_expiration_windows_by_environment[var.environment], local.kms_default_key_deletion_window_in_days)
 
   ### IPAM and Connectivity related locals
+
+  ## A filtered list of the dns domains we are permitted to build
+  dns_zones = { for k, v in var.dns : k => v if regex(local.dns_permitted_regex, k) }
 
   ## Create a map of the ipam pools, using the Name tag as the key 
   ipam_pools_by_name = { for pool in data.aws_vpc_ipam_pools.current.ipam_pools : pool.tags.Name => pool.id }

@@ -11,8 +11,9 @@ locals {
   ## The expiration windows based on the environment, if the var.environment is not found in the map, 
   ## the default deletion window is used above
   kms_key_expiration_windows_by_environment = {
-    (local.environment_dev)  = 7
-    (local.environment_prod) = 30
-    (local.environment_test) = 7
+    (local.environment_dev)     = 7
+    (local.environment_prod)    = 30
+    (local.environment_staging) = 7
+    (local.environment_test)    = 7
   }
 }
