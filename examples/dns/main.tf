@@ -4,31 +4,7 @@
 # to build your own root module that invokes this module
 #####################################################################################
 
-## What would be nice to manage for a tenant 
-# - Networks and connectivity 
-# - DNS zones 
-# - Shared Private Endpoints 
-# - Private Link Services 
-# - Firewall rules 
-# - RBAC assignments 
-
-
-#module "shared_services_rbac" {
-#  source = "../../modules/sso_roles"
-#
-#  roles = {
-#    platform_engineer = {
-#      users  = ["my_user"]
-#      groups = ["my_group"]
-#    }
-#  }
-#
-#  providers = {
-#    aws = aws
-#  }
-#}
-
-module "dev_apps" {
+module "app1" {
   source = "../../"
 
   environment = "Development"
@@ -37,34 +13,18 @@ module "dev_apps" {
   region      = "eu-west-2"
   tags        = var.tags
 
-  notifications = {
-    email = {
-      addresses = [""]
-    }
-    slack = {
-      channel = ""
-    }
-  }
-
   anomaly_detection = {
-    enable_default_monitors = true
-    monitors                = []
+    enable_default_monitors = false
   }
 
   networks = {
-    dev = {
+    app1 = {
       vpc = {
         ipam_pool_name = "development"
         netmask        = 21
       }
       subnets = {
-        public = {
-          netmask = 24
-        }
         private = {
-          netmask = 24
-        }
-        database = {
           netmask = 24
         }
       }
@@ -72,13 +32,54 @@ module "dev_apps" {
   }
 
   dns = {
-    "team.aws.appvia.local" = {
+    "app1.aws.appvia.local" = {
       comment = "Managed by zone created by terraform"
       private = true
-      network = "dev"
+      network = "app1"
     },
   }
 
+  providers = {
+    aws          = aws
+    aws.identity = aws.identity
+    aws.network  = aws.network
+  }
+}
+
+module "app2" {
+  source = "../../"
+
+  environment = "Development"
+  owner       = "platform"
+  product     = "app2"
+  region      = "eu-west-2"
+  tags        = var.tags
+
+  anomaly_detection = {
+    enable_default_monitors = false
+  }
+
+  networks = {
+    app2 = {
+      vpc = {
+        ipam_pool_name = "development"
+        netmask        = 21
+      }
+      subnets = {
+        private = {
+          netmask = 24
+        }
+      }
+    },
+  }
+
+  dns = {
+    "app2.aws.appvia.local" = {
+      comment = "Managed by zone created by terraform"
+      private = true
+      network = "app2"
+    },
+  }
 
   providers = {
     aws          = aws
