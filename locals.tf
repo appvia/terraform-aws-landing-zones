@@ -14,13 +14,15 @@ locals {
   ### Feature related locals 
 
   ## Indicates if cost anomaly detection is enabled 
-  enable_anomaly_detection = local.enable_cost_anomaly_detection && length(var.anomaly_detection.monitors) > 0
+  enable_anomaly_detection = local.enable_cost_anomaly_detection && try(length(var.anomaly_detection.monitors), 0) > 0
   ## Indicate that slack is enabled and slack channel has been configured by the tenant. 
   enable_slack_notifications = (local.enable_slack && var.notifications.slack.channel != "")
   ## Indicates if the tenant should provision a default kms key within the region and account 
   enable_account_kms_key = local.enable_kms && var.kms.enable_default_kms
   ## Indicates if we should associate any private hosted zones with the central dns solution 
   enable_private_hosted_zone_association = local.enable_central_dns_association && local.dns_central_vpc_id != ""
+  ## Indicates if we should provision notiications for security hub events 
+  enable_security_hub_events = local.security_hub_notifications.enable
 
   ### Notifications related locals 
 
@@ -29,10 +31,33 @@ locals {
   ## The configuration for slack notifications 
   notifications_slack = local.enable_slack_notifications ? {
     channel     = var.notifications.slack.channel
-    lambda_name = "lza-notifications-slack"
+    lambda_name = "lza-slack-notifications"
     username    = ":aws: LZA Notifications"
     webhook_url = data.aws_secretsmanager_secret_version.slack[0].secret_string
   } : null
+
+  ## The name of the sns topic which if enabled will be used to absorb the security hub events 
+  security_hub_sns_topic_name = local.enable_security_hub_events ? local.security_hub_notifications.sns_topic_name : "lza-securityhub-notifications"
+  ## The name of the lambda which will be used to forward the security hub events to slack 
+  security_hub_lambda_name = "lza-securityhub-slack-forwarder"
+  ## The email addresses which should receive the security hub notifications 
+  security_hub_email_addresses = local.enable_security_hub_events ? {
+    addresses = local.security_hub_notifications.email_addresses
+  } : var.notifications.email
+
+  ## The slack channel which should receive the security hub notifications if nebaled 
+  security_hub_slack = local.enable_security_hub_events ? {
+    channel     = local.security_hub_notifications.slack_channel != "" ? local.security_hub_notifications.slack_channel : try(local.notifications_slack.channel, "")
+    lambda_name = "lza-slack-securityhub"
+    username    = ":aws: Security Event"
+    webhook_url = try(data.aws_secretsmanager_secret_version.slack[0].secret_string, "")
+  } : null
+  ## The name of the eventbridge rule which will be used to forward the security hub events to the lambda 
+  security_hub_eventbridge_rule_name = "lza-securityhub-eventbridge-rule"
+  ## The name of the iam role the lambda will assume to forward the security hub events 
+  security_hub_lambda_role_name = "lza-securityhub-lambda-role"
+  ## The severity we should notify on for security hub events 
+  security_hub_severity = local.security_hub_notifications.severity
 
   ### Cost and budgeting related locals 
 
@@ -45,9 +70,9 @@ locals {
       name              = monitor.name
       monitor_type      = "DIMENSIONAL"
       monitor_dimension = "SERVICE"
-      specification     = monitor.specification
+      specification     = try(monitor.specification, null)
       notify = {
-        frequency            = monitor.frequency
+        frequency            = try(monitor.frequency, "DAILY")
         threshold_expression = monitor.threshold_expression
       }
     }

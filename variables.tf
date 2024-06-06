@@ -86,12 +86,7 @@ variable "anomaly_detection" {
       # The frequency of you want to receive notifications 
     })), [])
   })
-  default = null
-
-  validation {
-    condition     = alltrue([for monitor in var.anomaly_detection.monitors : contains(["DAILY", "MONTHLY"], monitor.frequency)])
-    error_message = "The frequency must be one of DAILY or MONTHLY"
-  }
+  default = {}
 }
 
 variable "product" {
