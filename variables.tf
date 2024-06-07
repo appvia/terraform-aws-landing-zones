@@ -44,18 +44,26 @@ variable "kms" {
 variable "notifications" {
   description = "A collection of notifications to send to users"
   type = object({
-    email = object({
+    email = optional(object({
       addresses = list(string)
       # A list of email addresses to send notifications to 
+      }), {
+      addresses = []
     })
-    slack = object({
+    slack = optional(object({
       channel = string
       # The slack channel to send notifications to 
+      }), {
+      channel = ""
     })
   })
   default = {
-    email = { addresses = [] }
-    slack = { channel = "" }
+    email = {
+      addresses = []
+    }
+    slack = {
+      channel = ""
+    }
   }
 }
 

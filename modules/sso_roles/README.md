@@ -1,7 +1,10 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0.0 |
 
 ## Providers
 
@@ -9,10 +12,7 @@ No providers.
 
 ## Modules
 
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_sso_assignments_groups"></a> [sso\_assignments\_groups](#module\_sso\_assignments\_groups) | ./modules/sso_assignment | n/a |
-| <a name="module_sso_assignments_users"></a> [sso\_assignments\_users](#module\_sso\_assignments\_users) | ./modules/sso_assignment | n/a |
+No modules.
 
 ## Resources
 
