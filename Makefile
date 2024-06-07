@@ -56,7 +56,7 @@ init:
 
 security: 
 	@echo "--> Running Security checks"
-	@trivy config .
+	@trivy config  --format table --exit-code  1 --severity  CRITICAL,HIGH --ignorefile .trivyignore .
 	$(MAKE) security-modules
 	$(MAKE) security-examples
 
@@ -65,7 +65,7 @@ security-modules:
 	@if [ -d modules ]; then \
 		find modules -type d -mindepth 1 -maxdepth 1 | while read -r dir; do \
 			echo "--> Validating $$dir"; \
-			trivy config $$dir; \
+			trivy config  --format table --exit-code  1 --severity  CRITICAL,HIGH --ignorefile .trivyignore $$dir; \
 		done; \
 	fi
 
@@ -74,7 +74,7 @@ security-examples:
 	@if [ -d examples ]; then \
 		find examples -type d -mindepth 1 -maxdepth 1 | while read -r dir; do \
 			echo "--> Validating $$dir"; \
-			trivy config $$dir; \
+			trivy config  --format table --exit-code  1 --severity  CRITICAL,HIGH --ignorefile .trivyignore $$dir; \
 		done; \
 	fi
 

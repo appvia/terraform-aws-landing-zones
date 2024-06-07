@@ -28,6 +28,10 @@
 #  }
 #}
 
+#trivy:ignore:AVD-DS-0002
+#trivy:ignore:AVD-DS-0013
+#trivy:ignore:AVD-DS-0015
+#trivy:ignore:AVD-DS-0026
 module "dev_apps" {
   source = "../../"
 

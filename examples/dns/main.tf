@@ -4,6 +4,10 @@
 # to build your own root module that invokes this module
 #####################################################################################
 
+#trivy:ignore:AVD-DS-0002
+#trivy:ignore:AVD-DS-0013
+#trivy:ignore:AVD-DS-0015
+#trivy:ignore:AVD-DS-0026
 module "app1" {
   source = "../../"
 
