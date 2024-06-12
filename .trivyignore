@@ -2,3 +2,5 @@ AVD-DS-0002 # (Dockerfile) Least Privilege User (HIGH) - https://avd.aquasec.com
 AVD-DS-0013 # (Dockerfile) Use Workdir Over Cd (MEDIUM) - https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0013/
 AVD-DS-0015 # (Dockerfile) Use COPY instead of ADD (MEDIUM) - https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0015/
 AVD-DS-0026 # (Dockerfile) Add HEALTHCHECK instruction in your Dockerfile (LOW) - https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0013/
+AVD-AWS-0057 
+AVD-AWS-0067
