@@ -5,6 +5,22 @@ locals {
   ## lambda to access it. 
   enable_slack = false
 
+  security_hub_notifications = {
+    ## Indicates if the team should recieve notifications for securityhub events 
+    enable = true
+    ## The severity of the securityhub events which should be notified on 
+    severity = ["CRITICAL", "HIGH"]
+    ## The sns topic name which is created per region in the account, this is used 
+    ## to receive notifications, and forward them on via email or other means. 
+    sns_topic_name = "lza-securityhub-notifications"
+    ## Configuration of the securityhub notifications, this overrides the defaults 
+    ## if the tenant has enabled securityhub notifications.
+    ## The email addresses the notifications should be sent to  
+    email_addresses = []
+    ## The slack channel the notifications should be sent to 
+    slack_channel = ""
+  }
+
   ## The ARN for the secrets manager secret which contains the slack webhook 
   ## url. Note, this must be created beforehand. The secret must be 
   ## 

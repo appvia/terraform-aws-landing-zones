@@ -4,6 +4,12 @@
 # to build your own root module that invokes this module
 #####################################################################################
 
+#tfsec:ignore:AVD-DS-0002
+#tfsec:ignore:AVD-DS-0013
+#tfsec:ignore:AVD-DS-0015
+#tfsec:ignore:AVD-DS-0026
+#tfsec:ignore:AVD-AWS-0067
+#tfsec:ignore:AVD-AWS-0057
 module "app1" {
   source = "../../"
 

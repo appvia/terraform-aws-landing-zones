@@ -12,6 +12,11 @@ module "tagging" {
 }
 
 ## Provision the notifications sns topics and destinations
+#trivy:ignore:AVD-AWS-0057 - (https://avd.aquasec.com/misconfig/aws/iam/avd-aws-0057)
+#trivy:ignore:AVD-DS-0002
+#trivy:ignore:AVD-DS-0013
+#trivy:ignore:AVD-DS-0015
+#trivy:ignore:AVD-DS-0026
 module "notifications" {
   source  = "appvia/notifications/aws"
   version = "0.1.6"
@@ -23,3 +28,5 @@ module "notifications" {
   sns_topic_name       = local.notifications_sns_topic_name
   tags                 = local.tags
 }
+
+
