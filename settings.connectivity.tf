@@ -4,9 +4,6 @@ locals {
   ## associated with the central private dns solution 
   enable_central_dns_association = true
 
-  ## Is a regex that is used to determine if a dns zone is permitted to be associated with the central 
-  ## dns solution
-  dns_permitted_regex = ".*aws.appvia.local$"
   ## This is the vpc which contains the central dns solution. Private hosted zones within the tenants 
   ## account will be associated with this vpc, permitting dns resolution 
   dns_central_vpc_id = "vpc-0b426df0244b5db84"
