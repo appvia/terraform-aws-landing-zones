@@ -86,7 +86,7 @@ locals {
   ### IPAM and Connectivity related locals
 
   ## A filtered list of the dns domains we are permitted to build
-  dns_zones = { for k, v in var.dns : k => v if regex(local.dns_permitted_regex, k) }
+  dns_zones = { for k, v in var.dns : k => v if endswith(k, local.dns_permitted_regex) }
 
   ## Create a map of the ipam pools, using the Name tag as the key 
   ipam_pools_by_name = { for pool in data.aws_vpc_ipam_pools.current.ipam_pools : pool.tags.Name => pool.id }
