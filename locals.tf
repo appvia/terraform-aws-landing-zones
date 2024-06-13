@@ -11,10 +11,12 @@ locals {
   ## The tags associated with all resources within the account 
   tags = merge(var.tags, module.tagging.tags)
 
+  ##
   ### Feature related locals 
+  ##
 
   ## Indicates if cost anomaly detection is enabled 
-  enable_anomaly_detection = local.enable_cost_anomaly_detection && try(length(var.anomaly_detection.monitors), 0) > 0
+  enable_anomaly_detection = local.enable_cost_anomaly_detection && length(local.costs_anomaly_monitors) > 0
   ## Indicate that slack is enabled and slack channel has been configured by the tenant. 
   enable_slack_notifications = (local.enable_slack && var.notifications.slack.channel != "")
   ## Indicates if the tenant should provision a default kms key within the region and account 
@@ -28,7 +30,9 @@ locals {
   ## Indicates if we should provision notiications for security hub events 
   enable_security_hub_events = local.security_hub_notifications.enable && (local.enable_security_hub_email_notifications || local.enable_security_hub_slack_notifications)
 
+  ##
   ### Notifications related locals 
+  ##
 
   ## The configuration for email notifications 
   notifications_email = var.notifications.email
@@ -63,14 +67,16 @@ locals {
   ## The severity we should notify on for security hub events 
   security_hub_severity = local.security_hub_notifications.severity
 
+  ##
   ### Cost and budgeting related locals 
+  ##
 
   ## The default cost anomaly detection monitor which should be configured in all accounts 
-  costs_anomaly_monitors_merged = concat(var.anomaly_detection.monitors, var.anomaly_detection.enable_default_monitors ? local.costs_default_anomaly_monitors : [])
+  costs_anomaly_monitors = concat(local.costs_default_anomaly_monitors, try(var.anomaly_detection.monitors, []))
 
   ## Here we construct the cost anomaly detection monitors from the configuration 
-  costs_anomaly_monitors = [
-    for monitor in local.costs_anomaly_monitors_merged : {
+  costs_anomaly_monitors_merged = [
+    for monitor in local.costs_anomaly_monitors : {
       name              = monitor.name
       monitor_type      = "DIMENSIONAL"
       monitor_dimension = "SERVICE"
@@ -82,12 +88,16 @@ locals {
     }
   ]
 
+  ##
   ### KMS and encryption related locals 
+  ##
 
   ## The expiration window for the default kms key which will be used for the regional account key.
   kms_key_expiration_window_in_days = try(local.kms_key_expiration_windows_by_environment[var.environment], local.kms_default_key_deletion_window_in_days)
 
+  ##
   ### IPAM and Connectivity related locals
+  ##
 
   ## A filtered list of the dns domains we are permitted to build
   dns_zones = { for k, v in var.dns : k => v }
@@ -103,7 +113,9 @@ locals {
   #  ## Is the name of the domains whitelist generated from the tenant configuration 
   #  firewall_domain_whitelist_rule_name = "lza-${var.product}-${var.environment}-domain-whitelist"
 
+  ##
   ### Identity and Access management related locals
+  ##
 
   ## The instance ARN and identity store ID are required to create the permission set 
   sso_instance_arn = tolist(data.aws_ssoadmin_instances.current.arns)[0]
@@ -125,8 +137,9 @@ locals {
     "security_auditor"  = "SecurityAuditor"
   }
 
-
+  ##
   ### Output related locals 
+  ##
 
   ## A map of the private hosted zones created 
   private_hosted_zones = { for k, v in var.dns : k => aws_route53_zone.zones[k].zone_id }
