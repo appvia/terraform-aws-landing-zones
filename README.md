@@ -53,7 +53,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.0.0 |
 | <a name="module_networks"></a> [networks](#module\_networks) | appvia/network/aws | 0.3.0 |
 | <a name="module_notifications"></a> [notifications](#module\_notifications) | appvia/notifications/aws | 0.1.6 |
-| <a name="module_securityhub_notifications"></a> [securityhub\_notifications](#module\_securityhub\_notifications) | appvia/notifications/aws | 0.1.6 |
+| <a name="module_securityhub_notifications"></a> [securityhub\_notifications](#module\_securityhub\_notifications) | appvia/notifications/aws | 0.1.7 |
 | <a name="module_tagging"></a> [tagging](#module\_tagging) | appvia/tagging/null | 0.0.3 |
 
 ## Resources
