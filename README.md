@@ -1,23 +1,14 @@
 ![Github Actions](../../actions/workflows/terraform.yml/badge.svg)
 
-# Terraform <NAME>
+# Terraform AWS Appvia Landing Zone
 
 ## Description
 
-Add a description of the module here
+Note, this module is not intended to be used outside of the organization, as the template provides a consistent blueprint for the provisioning of accounts with the Appvia AWS estate.
 
 ## Usage
 
-Add example usage here
-
-```hcl
-module "example" {
-  source  = "appvia/<NAME>/aws"
-  version = "0.0.1"
-
-  # insert variables here
-}
-```
+Please refer to one of the application, platform or sandbox pipelines for an example of how to use this module.
 
 ## Update Documentation
 
