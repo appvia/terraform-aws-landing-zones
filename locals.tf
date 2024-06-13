@@ -21,8 +21,12 @@ locals {
   enable_account_kms_key = local.enable_kms && var.kms.enable_default_kms
   ## Indicates if we should associate any private hosted zones with the central dns solution 
   enable_private_hosted_zone_association = local.enable_central_dns_association && local.dns_central_vpc_id != ""
+  ## Indicates if we have email addresses to send notifications on security hub events 
+  enable_security_hub_email_notifications = local.security_hub_notifications.enable && length(local.security_hub_notifications.email_addresses) > 0
+  ## Indicates if we have a slack channel to send notifications on security hub events 
+  enable_security_hub_slack_notifications = local.security_hub_notifications.enable && local.security_hub_notifications.slack_channel != ""
   ## Indicates if we should provision notiications for security hub events 
-  enable_security_hub_events = local.security_hub_notifications.enable
+  enable_security_hub_events = local.security_hub_notifications.enable && (local.enable_security_hub_email_notifications || local.enable_security_hub_slack_notifications)
 
   ### Notifications related locals 
 

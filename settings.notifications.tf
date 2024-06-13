@@ -16,9 +16,9 @@ locals {
     ## Configuration of the securityhub notifications, this overrides the defaults 
     ## if the tenant has enabled securityhub notifications.
     ## The email addresses the notifications should be sent to  
-    email_addresses = []
+    email_addresses = var.notifications.email.addresses
     ## The slack channel the notifications should be sent to 
-    slack_channel = ""
+    slack_channel = var.notifications.slack.channel
   }
 
   ## The ARN for the secrets manager secret which contains the slack webhook 
