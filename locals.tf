@@ -71,12 +71,13 @@ locals {
   ### Cost and budgeting related locals 
   ##
 
-  ## The default cost anomaly detection monitor which should be configured in all accounts 
-  costs_anomaly_monitors = concat(local.costs_default_anomaly_monitors, try(var.anomaly_detection.monitors, []))
-
-  ## Here we construct the cost anomaly detection monitors from the configuration 
-  costs_anomaly_monitors_merged = [
-    for monitor in local.costs_anomaly_monitors : {
+  ## This the default cost anomaly detection monitors defined within the settings conbined with the 
+  ## additional monitors defined by the tenant.
+  costs_anomaly_monitors_merged = concat(local.costs_default_anomaly_monitors, try(var.anomaly_detection.monitors, []))
+  ## We need to convert the cost anomaly detection monitors into the format expected by the module, internally
+  ## iterate over the merged list and create a new list of the required format.
+  costs_anomaly_monitors = [
+    for monitor in local.costs_anomaly_monitors_merged : {
       name              = monitor.name
       monitor_type      = "DIMENSIONAL"
       monitor_dimension = "SERVICE"
