@@ -68,7 +68,7 @@ resource "aws_iam_role" "securityhub_lambda_role" {
 
   name               = local.security_hub_lambda_role_name
   tags               = local.tags
-  assume_role_policy = jsonencode(data.aws_iam_policy_document.lambda_assume_role_policy.json)
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 
   inline_policy {
     name   = "lza-securityhub-lambda-policy"
