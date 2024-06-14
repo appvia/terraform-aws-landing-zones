@@ -92,8 +92,8 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | Name | Description |
 |------|-------------|
 | <a name="output_environment"></a> [environment](#output\_environment) | The environment name for the tenant |
-| <a name="output_hosted_zone_ids"></a> [hosted\_zone\_ids](#output\_hosted\_zone\_ids) | A map of the hosted zone name to id |
 | <a name="output_networks"></a> [networks](#output\_networks) | A map of the network name to network details |
+| <a name="output_private_hosted_zones_by_id"></a> [private\_hosted\_zones\_by\_id](#output\_private\_hosted\_zones\_by\_id) | A map of the hosted zone name to id |
 | <a name="output_tags"></a> [tags](#output\_tags) | The tags to apply to all resources |
 | <a name="output_vpc_ids"></a> [vpc\_ids](#output\_vpc\_ids) | A map of the network name to vpc id |
 <!-- END_TF_DOCS -->

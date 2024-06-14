@@ -13,9 +13,6 @@ locals {
   ## The tags associated with all resources within the account 
   tags = merge(var.tags, module.tagging.tags)
 
-  ## A collection of private hosted zones which are automatically associated with the central dns solution 
-  private_hosted_zones = { for k, v in var.dns : k => v if v.private }
-
   ## Create a map of the ipam pools, using the Name tag as the key 
   ipam_pools_by_name = { for pool in data.aws_vpc_ipam_pools.current.ipam_pools : pool.tags.Name => pool.id }
   #  ## This is a merge list of all the ip sets from the firewall rules 

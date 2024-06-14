@@ -9,9 +9,9 @@ output "tags" {
   value       = local.tags
 }
 
-output "hosted_zone_ids" {
+output "private_hosted_zones_by_id" {
   description = "A map of the hosted zone name to id"
-  value       = local.private_hosted_zones
+  value       = local.private_hosted_zones_by_id
 }
 
 output "vpc_ids" {
