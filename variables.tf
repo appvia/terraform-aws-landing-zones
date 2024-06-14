@@ -89,7 +89,7 @@ variable "anomaly_detection" {
       }])
       # The expression to apply to the anomaly detection rule
       # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor
-      specification = string
+      specification = optional(string, "")
       # The specification to anomaly detection monitor 
       # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor
       frequency = optional(string, "DAILY")
