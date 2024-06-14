@@ -18,7 +18,7 @@ locals {
     for monitor in local.costs_anomaly_monitors_merged : {
       name              = monitor.name
       monitor_type      = "DIMENSIONAL"
-      monitor_dimension = try(monitor.dimension, "DEMENSIONAL")
+      monitor_dimension = try(monitor.dimension, "DIMENSIONAL")
       specification     = try(monitor.specification, null)
       notify = {
         frequency            = try(monitor.frequency, "DAILY")
