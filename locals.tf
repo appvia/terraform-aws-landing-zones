@@ -6,8 +6,10 @@
 locals {
   ## The current account id 
   account_id = data.aws_caller_identity.current.account_id
+
   ## The current region 
   region = var.region
+
   ## The tags associated with all resources within the account 
   tags = merge(var.tags, module.tagging.tags)
 
