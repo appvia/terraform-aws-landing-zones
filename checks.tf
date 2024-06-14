@@ -6,3 +6,10 @@
 #    error_message = "The domain name must end with aws.appvia.local"
 #  }
 #}
+
+check "private_domains" {
+  assert {
+    condition     = length(local.private_hosted_zones) == 0 && length(var.networks) == 0
+    error_message = "The private hosted zones should not be defined if no networks are defined"
+  }
+}
