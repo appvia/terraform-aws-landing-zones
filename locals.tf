@@ -11,98 +11,6 @@ locals {
   ## The tags associated with all resources within the account 
   tags = merge(var.tags, module.tagging.tags)
 
-  ##
-  ### Feature related locals 
-  ##
-
-  ## Indicates if cost anomaly detection is enabled 
-  enable_anomaly_detection = local.enable_cost_anomaly_detection && length(local.costs_anomaly_monitors) > 0
-  ## Indicate that slack is enabled and slack channel has been configured by the tenant. 
-  enable_slack_notifications = (local.enable_slack && var.notifications.slack.channel != "")
-  ## Indicates if the tenant should provision a default kms key within the region and account 
-  enable_account_kms_key = local.enable_kms && var.kms.enable_default_kms
-  ## Indicates if we should associate any private hosted zones with the central dns solution 
-  enable_private_hosted_zone_association = local.enable_central_dns_association && local.dns_central_vpc_id != ""
-  ## Indicates if we have email addresses to send notifications on security hub events 
-  enable_security_hub_email_notifications = local.security_hub_notifications.enable && length(local.security_hub_notifications.email_addresses) > 0
-  ## Indicates if we have a slack channel to send notifications on security hub events 
-  enable_security_hub_slack_notifications = local.security_hub_notifications.enable && local.security_hub_notifications.slack_channel != ""
-  ## Indicates if we should provision notiications for security hub events 
-  enable_security_hub_events = local.security_hub_notifications.enable && (local.enable_security_hub_email_notifications || local.enable_security_hub_slack_notifications)
-
-  ##
-  ### Notifications related locals 
-  ##
-
-  ## The configuration for email notifications 
-  notifications_email = var.notifications.email
-  ## The configuration for slack notifications 
-  notifications_slack = local.enable_slack_notifications ? {
-    channel     = var.notifications.slack.channel
-    lambda_name = "lza-slack-notifications"
-    username    = ":aws: LZA Notifications"
-    webhook_url = data.aws_secretsmanager_secret_version.slack[0].secret_string
-  } : null
-
-  ## The name of the sns topic which if enabled will be used to absorb the security hub events 
-  security_hub_sns_topic_name = local.enable_security_hub_events ? local.security_hub_notifications.sns_topic_name : "lza-securityhub-notifications"
-  ## The name of the lambda which will be used to forward the security hub events to slack 
-  security_hub_lambda_name = "lza-securityhub-slack-forwarder"
-  ## The email addresses which should receive the security hub notifications 
-  security_hub_email_addresses = local.enable_security_hub_events ? {
-    addresses = local.security_hub_notifications.email_addresses
-  } : var.notifications.email
-
-  ## The slack channel which should receive the security hub notifications if nebaled 
-  security_hub_slack = local.enable_security_hub_events ? {
-    channel     = local.security_hub_notifications.slack_channel != "" ? local.security_hub_notifications.slack_channel : try(local.notifications_slack.channel, "")
-    lambda_name = "lza-slack-securityhub"
-    username    = ":aws: Security Event"
-    webhook_url = try(data.aws_secretsmanager_secret_version.slack[0].secret_string, "")
-  } : null
-  ## The name of the eventbridge rule which will be used to forward the security hub events to the lambda 
-  security_hub_eventbridge_rule_name = "lza-securityhub-eventbridge-rule"
-  ## The name of the iam role the lambda will assume to forward the security hub events 
-  security_hub_lambda_role_name = "lza-securityhub-lambda-role"
-  ## The severity we should notify on for security hub events 
-  security_hub_severity = local.security_hub_notifications.severity
-
-  ##
-  ### Cost and budgeting related locals 
-  ##
-
-  ## This the default cost anomaly detection monitors defined within the settings conbined with the 
-  ## additional monitors defined by the tenant.
-  costs_anomaly_monitors_merged = concat(local.costs_default_anomaly_monitors, try(var.anomaly_detection.monitors, []))
-  ## We need to convert the cost anomaly detection monitors into the format expected by the module, internally
-  ## iterate over the merged list and create a new list of the required format.
-  costs_anomaly_monitors = [
-    for monitor in local.costs_anomaly_monitors_merged : {
-      name              = monitor.name
-      monitor_type      = "DIMENSIONAL"
-      monitor_dimension = "SERVICE"
-      specification     = try(monitor.specification, null)
-      notify = {
-        frequency            = try(monitor.frequency, "DAILY")
-        threshold_expression = monitor.threshold_expression
-      }
-    }
-  ]
-
-  ##
-  ### KMS and encryption related locals 
-  ##
-
-  ## The expiration window for the default kms key which will be used for the regional account key.
-  kms_key_expiration_window_in_days = try(local.kms_key_expiration_windows_by_environment[var.environment], local.kms_default_key_deletion_window_in_days)
-
-  ##
-  ### IPAM and Connectivity related locals
-  ##
-
-  ## A filtered list of the dns domains we are permitted to build
-  dns_zones = { for k, v in var.dns : k => v }
-
   ## Create a map of the ipam pools, using the Name tag as the key 
   ipam_pools_by_name = { for pool in data.aws_vpc_ipam_pools.current.ipam_pools : pool.tags.Name => pool.id }
   #  ## This is a merge list of all the ip sets from the firewall rules 
@@ -114,36 +22,6 @@ locals {
   #  ## Is the name of the domains whitelist generated from the tenant configuration 
   #  firewall_domain_whitelist_rule_name = "lza-${var.product}-${var.environment}-domain-whitelist"
 
-  ##
-  ### Identity and Access management related locals
-  ##
-
-  ## The instance ARN and identity store ID are required to create the permission set 
-  sso_instance_arn = tolist(data.aws_ssoadmin_instances.current.arns)[0]
-  ## The identity store ID is required to create the permission set 
-  sso_identity_store_id = tolist(data.aws_ssoadmin_instances.current.identity_store_ids)[0]
-  ## Create a map of all the sso groups, using the DisplayName as the key 
-  ###sso_groups_by_name = { for group in data.aws_identitystore_groups.groups : group.display_name => group.id }
-  ## Create a list of users from the rbac variable 
-  ###sso_users_referenced = flatten([for role, data in var.rbac : data.users])
-
-  ## The permitted permission sets that can be assigned to the account, and their corresponding permission set 
-  ## in identity center; unless the permissionset is mentioned here, it cannot be assigned to the account 
-  sso_permitted_permission_sets = {
-    "devops_engineer"   = "DevOpsEngineer"
-    "finops_engineer"   = "FinOpsEngineer"
-    "network_engineer"  = "NetworkEngineer"
-    "network_viewer"    = "NetworkViewer"
-    "platform_engineer" = "PlatformEngineer"
-    "security_auditor"  = "SecurityAuditor"
-  }
-
-  ##
-  ### Output related locals 
-  ##
-
-  ## A map of the private hosted zones created 
-  private_hosted_zones = { for k, v in var.dns : k => aws_route53_zone.zones[k].zone_id }
   ## A map the network and the corresponding vpc id 
   vpc_id_by_network_name = { for k, v in var.networks : k => module.networks[k].vpc_id }
 }

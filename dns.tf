@@ -1,7 +1,7 @@
 
 ## Provision the hosted zones if required 
 resource "aws_route53_zone" "zones" {
-  for_each = local.dns_zones
+  for_each = var.dns
 
   name          = each.key
   comment       = try(each.value.comment, "Managed by zone created by terraform")
@@ -32,7 +32,7 @@ resource "aws_route53_zone" "zones" {
 
 ## Authorize the spoke vpc to associate with the central dns solution if required 
 resource "aws_route53_vpc_association_authorization" "central_dns_authorization" {
-  for_each = local.enable_private_hosted_zone_association ? { for key, zone in local.dns_zones : key => zone if zone.private } : {}
+  for_each = local.enable_private_hosted_zone_association ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
   vpc_id     = local.dns_central_vpc_id
   vpc_region = var.region
@@ -46,7 +46,7 @@ resource "aws_route53_vpc_association_authorization" "central_dns_authorization"
 
 ## Associate the hosted zone with the central dns solution if required 
 resource "aws_route53_zone_association" "central_dns_association" {
-  for_each = local.enable_private_hosted_zone_association ? { for key, zone in local.dns_zones : key => zone if zone.private } : {}
+  for_each = local.enable_private_hosted_zone_association ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
   vpc_id     = local.dns_central_vpc_id
   vpc_region = var.region
