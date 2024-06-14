@@ -13,6 +13,26 @@ locals {
   ## The tags associated with all resources within the account 
   tags = merge(var.tags, module.tagging.tags)
 
+  ## Indicates if slack is enabled and slack channel has been configured by the tenant. 
+  enable_slack_notifications = (local.enable_slack && var.notifications.slack.channel != "")
+
+  ## Indicates if email notifications are enabled 
+  enable_email_notifications = length(var.notifications.email.addresses) > 0
+
+  ## The configuration for email notifications.
+  notifications_email = var.notifications.email
+
+  ## If enabled, this is the webhook_url for the slack notifications 
+  notifications_slack_webhook_url = local.enable_slack_notifications ? try(data.aws_secretsmanager_secret_version.slack[0].secret_string, "") : ""
+
+  ## The configuration for slack notifications 
+  notifications_slack = local.enable_slack_notifications ? {
+    channel     = var.notifications.slack.channel
+    lambda_name = "lza-slack-notifications"
+    username    = ":aws: LZA Notifications"
+    webhook_url = local.notifications_slack_webhook_url
+  } : null
+
   ## Create a map of the ipam pools, using the Name tag as the key 
   ipam_pools_by_name = { for pool in data.aws_vpc_ipam_pools.current.ipam_pools : pool.tags.Name => pool.id }
   #  ## This is a merge list of all the ip sets from the firewall rules 

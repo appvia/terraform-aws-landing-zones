@@ -75,6 +75,8 @@ variable "anomaly_detection" {
     monitors = optional(list(object({
       name = string
       # The name of the anomaly detection rule 
+      dimension = optional(string, "DIMENSIONAL")
+      # The dimension of the anomaly detection rule, either SERVICE or DIMENSIONAL
       threshold_expression = optional(any, [
         {
           and = {
