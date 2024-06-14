@@ -13,6 +13,15 @@ locals {
         {
           and = {
             dimension = {
+              key           = "ANOMALY_TOTAL_IMPACT_ABSOLUTE"
+              match_options = ["GREATER_THAN_OR_EQUAL"]
+              values        = ["100"]
+            }
+          }
+        },
+        {
+          and = {
+            dimension = {
               key           = "ANOMALY_TOTAL_IMPACT_PERCENTAGE"
               match_options = ["GREATER_THAN_OR_EQUAL"]
               values        = ["50"]
