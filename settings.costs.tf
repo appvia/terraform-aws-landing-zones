@@ -8,7 +8,7 @@ locals {
   ## They also have the permission to view, add and mark any anomalies as expected if required.
   costs_default_anomaly_monitors = [
     {
-      name      = "default-monitor-${local.region}"
+      name      = "lza-${local.resource_suffix}"
       frequency = "IMMEDIATE"
       threshold_expression = [
         {

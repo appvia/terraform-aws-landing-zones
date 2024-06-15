@@ -7,9 +7,24 @@
 #  }
 #}
 
-check "private_domains" {
+check "validate_tagging" {
   assert {
-    condition     = length(local.private_hosted_zones) > 0 && length(var.networks) > 0
-    error_message = "The private hosted zones should not be defined if no networks are defined"
+    condition     = length(var.tags) > 0
+    error_message = "The tags must be defined"
+  }
+
+  assert {
+    condition     = length(local.product) > 0 && length(local.product) <= 12
+    error_message = "The product name must be between 1 and 12 characters"
+  }
+
+  assert {
+    condition     = length(local.environment) > 0 && length(local.environment) <= 14
+    error_message = "The environment name must be between 1 and 14 characters"
+  }
+
+  assert {
+    condition     = length(local.owner) > 0 && length(local.owner) <= 14
+    error_message = "The owner name must be between 1 and 14 characters"
   }
 }

@@ -45,6 +45,8 @@ run "basic" {
     owner       = "Support"
     product     = "Test"
     region      = "eu-west-2"
-    tags        = {}
+    tags = {
+      "Component" = "Test"
+    }
   }
 }

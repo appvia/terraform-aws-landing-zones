@@ -10,6 +10,18 @@ locals {
   ## The current region 
   region = var.region
 
+  ## The owner in lower case
+  owner = lower(var.owner)
+
+  ## The current environment in lower case 
+  environment = lower(var.environment)
+
+  ## The current product in lower case 
+  product = lower(var.product)
+
+  ## Is the resource suffix to be used for the resources 
+  resource_suffix = "${var.environment}-${var.product}-${local.region}"
+
   ## The tags associated with all resources within the account 
   tags = merge(var.tags, module.tagging.tags)
 

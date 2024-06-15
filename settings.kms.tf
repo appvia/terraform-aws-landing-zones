@@ -4,7 +4,7 @@ locals {
   enable_kms = false
 
   ## Is the alias of the default kms key to be created 
-  kms_default_kms_key_alias = var.kms.key_alias != null ? var.kms.key_alias : "landing-zone/default"
+  kms_default_kms_key_alias = var.kms.key_alias != null ? var.kms.key_alias : "landing-zone/default-${local.resource_suffix}"
 
   ## Is the name of the key administrator iam role within the account
   kms_key_administrator_role_name = "lza-kms-admin"
