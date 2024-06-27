@@ -19,7 +19,7 @@ module "tagging" {
 #trivy:ignore:AVD-DS-0026
 module "notifications" {
   source  = "appvia/notifications/aws"
-  version = "0.1.6"
+  version = "0.1.7"
 
   allowed_aws_services = ["budgets.amazonaws.com", "lambda.amazonaws.com"]
   create_sns_topic     = true
