@@ -17,7 +17,7 @@ resource "aws_ssoadmin_account_assignment" "groups" {
 
   instance_arn       = var.instance_arn
   permission_set_arn = data.aws_ssoadmin_permission_set.current.arn
-  principal_id       = data.aws_identitystore_group.current[each.key].unique_id
+  principal_id       = data.aws_identitystore_group.current[each.key].group_id
   principal_type     = "GROUP"
   target_id          = var.account_id
   target_type        = "AWS_ACCOUNT"
