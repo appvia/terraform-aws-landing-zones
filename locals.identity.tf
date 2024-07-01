@@ -10,9 +10,6 @@ locals {
   ## The identity store ID is required to create the permission set 
   sso_identity_store_id = tolist(data.aws_ssoadmin_instances.current.identity_store_ids)[0]
 
-  ## Create a map of all the sso groups, using the DisplayName as the key 
-  ###sso_groups_by_name = { for group in data.aws_identitystore_groups.groups : group.display_name => group.id }
-  ## Create a list of users from the rbac variable 
-  ###sso_users_referenced = flatten([for role, data in var.rbac : data.users])
-
+  ## Filter out the sso roles, by removing those not permitted by the tenant 
+  sso_assignments = { for k, v in var.rbac : k => v if contains(keys(local.sso_permitted_permission_sets), k) }
 }

@@ -7,7 +7,7 @@ resource "aws_ssoadmin_account_assignment" "users" {
   permission_set_arn = data.aws_ssoadmin_permission_set.current.arn
   principal_id       = data.aws_identitystore_user.current[each.key].unique_id
   principal_type     = "USER"
-  target_id          = var.target
+  target_id          = var.account_id
   target_type        = "AWS_ACCOUNT"
 }
 
@@ -19,6 +19,6 @@ resource "aws_ssoadmin_account_assignment" "groups" {
   permission_set_arn = data.aws_ssoadmin_permission_set.current.arn
   principal_id       = data.aws_identitystore_group.current[each.key].unique_id
   principal_type     = "GROUP"
-  target_id          = var.target
+  target_id          = var.account_id
   target_type        = "AWS_ACCOUNT"
 }

@@ -41,6 +41,17 @@ variable "kms" {
   }
 }
 
+variable "rbac" {
+  description = "Provides the ability to associate one of more groups with a sso role in the account"
+  type = map(object({
+    users = optional(list(string), [])
+    # A list of users to associate with the developer role
+    groups = optional(list(string), [])
+    # A list of groups to associate with the developer role 
+  }))
+  default = {}
+}
+
 variable "notifications" {
   description = "A collection of notifications to send to users"
   type = object({
