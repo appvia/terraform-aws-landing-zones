@@ -11,6 +11,7 @@ module "sso_assignment" {
   users               = each.value.users
 
   providers = {
-    aws = aws.identity
+    aws          = aws
+    aws.identity = aws.identity
   }
 }
