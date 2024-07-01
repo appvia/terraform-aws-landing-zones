@@ -52,6 +52,12 @@ module "dev_apps" {
     }
   }
 
+  rbac = {
+    platform_engineer = {
+      groups = ["my_group"]
+    }
+  }
+
   anomaly_detection = {
     enable_default_monitors = true
     monitors                = []

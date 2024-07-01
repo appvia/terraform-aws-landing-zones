@@ -7,10 +7,12 @@ data "aws_identitystore_user" "current" {
 
   alternate_identifier {
     unique_attribute {
-      attribute_path  = "UserName"
+      attribute_path  = "DisplayName"
       attribute_value = each.key
     }
   }
+
+  provider = aws.identity
 }
 
 ## Get all the details on the sso groups referenced 
@@ -21,15 +23,18 @@ data "aws_identitystore_group" "current" {
 
   alternate_identifier {
     unique_attribute {
-      attribute_path  = "GroupName"
+      attribute_path  = "DisplayName"
       attribute_value = each.key
     }
   }
+
+  provider = aws.identity
 }
 
 ## Get all the details on the permissionset referenced 
 data "aws_ssoadmin_permission_set" "current" {
   instance_arn = var.instance_arn
-  name         = var.permissionset
-}
+  name         = var.permission_set_name
 
+  provider = aws.identity
+}
