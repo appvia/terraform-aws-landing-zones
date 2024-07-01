@@ -4,9 +4,8 @@ terraform {
 
   required_providers {
     aws = {
-      configuration_aliases = [aws.identity]
-      source                = "hashicorp/aws"
-      version               = "~> 5.0"
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
