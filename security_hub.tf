@@ -60,6 +60,10 @@ module "securityhub_notifications" {
   slack                = local.security_hub_slack
   sns_topic_name       = local.security_hub_sns_topic_name
   tags                 = local.tags
+
+  providers = {
+    aws = aws.tenant
+  }
 }
 
 ## Provision an IAM role for the lambda function to run under 
@@ -79,6 +83,8 @@ resource "aws_iam_role" "securityhub_lambda_role" {
     name   = "lza-securityhub-lambda-logs-policy"
     policy = data.aws_iam_policy_document.securityhub_lambda_cloudwatch_logs_policy.json
   }
+
+  provider = aws.tenant
 }
 
 ## Provision a cloudwatch log group to capture the logs from the lambda function 
@@ -90,6 +96,8 @@ resource "aws_cloudwatch_log_group" "securityhub_lambda_log_group" {
   name              = "/aws/lambda/${local.security_hub_lambda_name}"
   retention_in_days = 3
   tags              = local.tags
+
+  provider = aws.tenant
 }
 
 ## Provision the lamda function to forward the security hub findings to the messaging channel  
@@ -116,6 +124,8 @@ resource "aws_lambda_function" "securityhub_lambda_function" {
     data.archive_file.securityhub_lambda_package,
     aws_cloudwatch_log_group.securityhub_lambda_log_group,
   ]
+
+  provider = aws.tenant
 }
 
 ## Allow eventbridge to invoke the lambda function
@@ -127,6 +137,8 @@ resource "aws_lambda_permission" "securityhub_event_bridge" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.securityhub_findings[0].arn
   statement_id  = "AllowExecutionFromEventBridge"
+
+  provider = aws.tenant
 }
 
 ## Provision the event bridge rule to capture security hub findings, of a specific severities
@@ -155,8 +167,9 @@ resource "aws_cloudwatch_event_rule" "securityhub_findings" {
     detail-type = ["Security Hub Findings - Imported"],
     source      = ["aws.securityhub"]
   })
-}
 
+  provider = aws.tenant
+}
 
 ## Provision a target to the event bridge rule, to publish messages to the SNS topic 
 resource "aws_cloudwatch_event_target" "security_hub_findings_target" {
@@ -165,4 +178,6 @@ resource "aws_cloudwatch_event_target" "security_hub_findings_target" {
   arn       = aws_lambda_function.securityhub_lambda_function[0].arn
   rule      = aws_cloudwatch_event_rule.securityhub_findings[0].name
   target_id = "security_hub_findings_target"
+
+  provider = aws.tenant
 }

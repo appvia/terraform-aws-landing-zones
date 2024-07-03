@@ -96,5 +96,6 @@ module "dev_apps" {
     aws          = aws
     aws.identity = aws.identity
     aws.network  = aws.network
+    aws.tenant   = aws.tenant
   }
 }

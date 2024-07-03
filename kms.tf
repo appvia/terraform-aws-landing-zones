@@ -15,4 +15,8 @@ module "kms" {
   key_usage               = "ENCRYPT_DECRYPT"
   multi_region            = false
   tags                    = merge(local.tags, { "Name" = local.kms_default_kms_key_alias })
+
+  providers = {
+    aws = aws.tenant
+  }
 }

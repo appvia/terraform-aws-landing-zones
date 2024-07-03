@@ -11,8 +11,6 @@ data "aws_identitystore_user" "current" {
       attribute_value = each.key
     }
   }
-
-  provider = aws.identity
 }
 
 ## Get all the details on the sso groups referenced 
@@ -27,14 +25,10 @@ data "aws_identitystore_group" "current" {
       attribute_value = each.key
     }
   }
-
-  provider = aws.identity
 }
 
 ## Get all the details on the permissionset referenced 
 data "aws_ssoadmin_permission_set" "current" {
   instance_arn = var.instance_arn
   name         = var.permission_set_name
-
-  provider = aws.identity
 }

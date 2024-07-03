@@ -27,6 +27,10 @@ module "notifications" {
   slack                = local.notifications_slack
   sns_topic_name       = local.notifications_sns_topic_name
   tags                 = local.tags
+
+  providers = {
+    aws = aws.tenant
+  }
 }
 
 

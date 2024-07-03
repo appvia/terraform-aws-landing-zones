@@ -24,4 +24,8 @@ module "networks" {
   transit_gateway_routes                 = coalesce(each.value.vpc.transit_gateway_routes, local.transit_gateway_default_routes)
   vpc_cidr                               = each.value.vpc.cidr
   vpc_netmask                            = each.value.vpc.netmask
+
+  providers = {
+    aws = aws.tenant
+  }
 }

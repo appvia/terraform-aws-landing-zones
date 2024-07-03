@@ -49,6 +49,7 @@ module "app1" {
     aws          = aws
     aws.identity = aws.identity
     aws.network  = aws.network
+    aws.tenant   = aws.tenant
   }
 }
 
@@ -91,5 +92,6 @@ module "app2" {
     aws          = aws
     aws.identity = aws.identity
     aws.network  = aws.network
+    aws.tenant   = aws.tenant
   }
 }
