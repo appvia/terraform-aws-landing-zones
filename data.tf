@@ -28,6 +28,8 @@ data "aws_secretsmanager_secret" "slack" {
   count = local.enable_slack_notifications ? 1 : 0
 
   arn = local.notifications_slack_secret_arn
+
+  provider = aws.tenant
 }
 
 ## Find the latest version of the slack secret if required 
@@ -35,4 +37,6 @@ data "aws_secretsmanager_secret_version" "slack" {
   count = local.enable_slack_notifications ? 1 : 0
 
   secret_id = data.aws_secretsmanager_secret.slack[0].id
+
+  provider = aws.tenant
 }
