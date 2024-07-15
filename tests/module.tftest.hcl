@@ -1,4 +1,6 @@
 mock_provider "aws" {
+  alias = "tenant"
+
   mock_data "aws_availability_zones" {
     defaults = {
       names = [
