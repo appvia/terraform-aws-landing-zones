@@ -20,7 +20,7 @@ locals {
   product = lower(var.product)
 
   ## Is the resource suffix to be used for the resources 
-  resource_suffix = "${var.environment}-${var.product}-${local.region}"
+  resource_suffix = lower("${var.environment}-${var.product}-${local.region}")
 
   ## The tags associated with all resources within the account 
   tags = merge(var.tags, module.tagging.tags)
