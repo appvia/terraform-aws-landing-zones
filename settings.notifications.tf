@@ -3,7 +3,7 @@ locals {
   ## Indicates slack notifications are enabled, by default the notification 
   ## secret is kept in a central secret manager, with a policy to allow the 
   ## lambda to access it. 
-  enable_slack = false
+  enable_slack = true
 
   security_hub_notifications = {
     ## Indicates if the team should recieve notifications for securityhub events 
