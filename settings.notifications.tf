@@ -21,7 +21,7 @@ locals {
   ## - Using a CMK with a key policy that permits the organization to decrypt 
   ## - The secret must have a policy that allows the accounts access to GetSecretValue
   ##
-  notifications_slack_secret_arn = "arn:aws:secretsmanager:eu-west-2:182532283617:secret:organizational/notification/slack-AJbIRb"
+  notifications_slack_secret_arn = "arn:aws:secretsmanager:eu-west-2:182532283617:secret:organizational/notifications/slack-y9jQUr"
 
   ## The name of the sns topic which is create per region in the account, these are used 
   ## to receive notifications, and forward them on via email or other means. Used by the 
