@@ -12,7 +12,7 @@ locals {
     severity = ["CRITICAL", "HIGH"]
     ## The sns topic name which is created per region in the account, this is used 
     ## to receive notifications, and forward them on via email or other means. 
-    sns_topic_name = lower("lza-securityhub-${local.environment}-${local.region}-${local.product}")
+    sns_topic_name = lower("lza-securityhub-${local.environment}-${local.product}-${local.region}")
   }
 
   ## The ARN for the secrets manager secret which contains the slack webhook 

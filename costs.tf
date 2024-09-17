@@ -3,7 +3,7 @@
 module "anomaly_detection" {
   count   = local.enable_anomaly_detection ? 1 : 0
   source  = "appvia/anomaly-detection/aws"
-  version = "0.2.1"
+  version = "0.2.7"
 
   enable_notification_creation = false
   enable_sns_topic_creation    = false
