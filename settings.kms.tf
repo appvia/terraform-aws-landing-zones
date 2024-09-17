@@ -7,7 +7,7 @@ locals {
   kms_default_kms_key_alias = var.kms.key_alias != null ? format("landing-zone/%s", var.kms.key_alias) : "landing-zone/default-${local.resource_suffix}"
 
   ## Is the name of the key administrator iam role within the account
-  kms_key_administrator_role_name = "lza-kms-admin"
+  kms_key_administrator_role_name = "lza-kms-admin-${local.region}"
 
   ## The default deletion window for kms keys - this is used when the environment does not match 
   kms_default_key_deletion_window_in_days = 30
