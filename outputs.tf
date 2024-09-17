@@ -23,3 +23,18 @@ output "networks" {
   description = "A map of the network name to network details"
   value       = module.networks
 }
+
+output "account_id" {
+  description = "The account id where the pipeline is running"
+  value       = data.aws_caller_identity.current.account_id
+}
+
+output "tenant_account_id" {
+  description = "The region of the tenant account"
+  value       = data.aws_caller_identity.tenant.id
+}
+
+output "private_hosted_zones" {
+  description = "A map of the private hosted zones"
+  value       = local.private_hosted_zones
+}

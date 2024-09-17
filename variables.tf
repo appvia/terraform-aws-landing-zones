@@ -156,21 +156,21 @@ variable "cost_center" {
   default     = null
 }
 
-variable "firewall_rules" {
-  description = "A collection of firewall rules to apply to networks"
-  type = object({
-    capacity = optional(number, 100)
-    # The name of the firewall rule 
-    rules_source = optional(string, null)
-    # The content of the suracata rules
-    ip_sets = optional(map(list(string)), null)
-    # A map of IP sets to apply to the firewall rule, optional ie. WEBSERVERS = ["10.0.0.0/16"]
-    port_sets = optional(map(list(number)), null)
-    # A map of port sets to apply to the firewall rule, optional ie. WEBSERVERS = [80, 443] 
-    domains_whitelist = optional(list(string), [])
-  })
-  default = null
-}
+#variable "firewall_rules" {
+#  description = "A collection of firewall rules to apply to networks"
+#  type = object({
+#    capacity = optional(number, 100)
+#    # The name of the firewall rule 
+#    rules_source = optional(string, null)
+#    # The content of the suracata rules
+#    ip_sets = optional(map(list(string)), null)
+#    # A map of IP sets to apply to the firewall rule, optional ie. WEBSERVERS = ["10.0.0.0/16"]
+#    port_sets = optional(map(list(number)), null)
+#    # A map of port sets to apply to the firewall rule, optional ie. WEBSERVERS = [80, 443] 
+#    domains_whitelist = optional(list(string), [])
+#  })
+#  default = null
+#}
 
 variable "networks" {
   description = "A collection of networks to provision within the designated region"
