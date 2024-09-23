@@ -52,7 +52,7 @@ data "archive_file" "securityhub_lambda_package" {
 module "securityhub_notifications" {
   count   = local.enable_security_hub_events ? 1 : 0
   source  = "appvia/notifications/aws"
-  version = "0.1.7"
+  version = "1.0.4"
 
   allowed_aws_services = ["events.amazonaws.com", "lambda.amazonaws.com"]
   create_sns_topic     = true
