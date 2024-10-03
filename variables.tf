@@ -18,6 +18,29 @@ variable "dns" {
   }
 }
 
+variable "service_control_policies" {
+  description = "Provides the ability to associate one of more service control policies with an account"
+  type = map(object({
+    name = string
+    # The policy name to associate with the account 
+    policy = string
+    # The policy document to associate with the account 
+  }))
+  default = {}
+
+  ## The name must be less than or equal to 12 characters 
+  validation {
+    condition     = alltrue([for policy in values(var.service_control_policies) : length(policy.name) <= 12])
+    error_message = "The name must be less than or equal to 12 characters"
+  }
+
+  ## The policy must be less than or equal to 6,144 characters 
+  validation {
+    condition     = alltrue([for policy in values(var.service_control_policies) : length(policy.policy) <= 6144])
+    error_message = "The policy must be less than or equal to 6,144 characters"
+  }
+}
+
 variable "environment" {
   description = "The environment in which to provision resources"
   type        = string
