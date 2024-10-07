@@ -2,7 +2,7 @@
 ## Generate the tagging required for the resources
 module "tagging" {
   source  = "appvia/tagging/null"
-  version = "0.0.3"
+  version = "0.0.4"
 
   cost_center = var.cost_center
   environment = var.environment
