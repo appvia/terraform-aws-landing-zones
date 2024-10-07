@@ -237,7 +237,7 @@ variable "networks" {
       # The name of the IPAM pool to use for the network
       nat_gateway_mode = optional(string, "none")
       # The NAT gateway mode to use for the network, defaults to none 
-      netmask = optional(number, 0)
+      netmask = optional(number, null)
       # The netmask of the VPC network if using IPAM
       transit_gateway_routes = optional(map(string), null)
       # A list of routes to associate with the transit gateway, optional 
