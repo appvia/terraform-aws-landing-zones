@@ -32,5 +32,3 @@ module "notifications" {
     aws = aws.tenant
   }
 }
-
-
