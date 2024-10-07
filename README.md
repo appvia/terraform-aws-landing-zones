@@ -34,6 +34,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="provider_archive"></a> [archive](#provider\_archive) | ~> 2.0 |
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0.0 |
 | <a name="provider_aws.identity"></a> [aws.identity](#provider\_aws.identity) | >= 5.0.0 |
+| <a name="provider_aws.management"></a> [aws.management](#provider\_aws.management) | >= 5.0.0 |
 | <a name="provider_aws.network"></a> [aws.network](#provider\_aws.network) | >= 5.0.0 |
 | <a name="provider_aws.tenant"></a> [aws.tenant](#provider\_aws.tenant) | >= 5.0.0 |
 
