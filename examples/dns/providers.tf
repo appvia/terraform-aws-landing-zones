@@ -21,3 +21,9 @@ provider "aws" {
   region  = var.region
   profile = "appvia-io-support-dev"
 }
+
+provider "aws" {
+  alias   = "management"
+  region  = var.region
+  profile = "appvia-io-management"
+}

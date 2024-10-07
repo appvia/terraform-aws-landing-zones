@@ -26,6 +26,20 @@ mock_provider "aws" {
 }
 
 mock_provider "aws" {
+  alias = "management"
+
+  mock_data "aws_availability_zones" {
+    defaults = {
+      names = [
+        "eu-west-1a",
+        "eu-west-1b",
+        "eu-west-1c"
+      ]
+    }
+  }
+}
+
+mock_provider "aws" {
   alias = "identity"
 
   mock_data "aws_ssoadmin_instances" {

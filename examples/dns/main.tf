@@ -89,9 +89,10 @@ module "app2" {
   }
 
   providers = {
-    aws          = aws
-    aws.identity = aws.identity
-    aws.network  = aws.network
-    aws.tenant   = aws.tenant
+    aws            = aws
+    aws.identity   = aws.identity
+    aws.network    = aws.network
+    aws.tenant     = aws.tenant
+    aws.management = aws.management
   }
 }
