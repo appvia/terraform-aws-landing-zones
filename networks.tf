@@ -3,7 +3,7 @@
 module "networks" {
   for_each = var.networks
   source   = "appvia/network/aws"
-  version  = "0.3.1"
+  version  = "0.3.2"
 
   additional_subnets                     = { for k, v in each.value.subnets : k => v if !contains(["public", "private"], k) }
   availability_zones                     = each.value.vpc.availability_zones
@@ -19,7 +19,7 @@ module "networks" {
   nat_gateway_mode                       = each.value.vpc.nat_gateway_mode
   private_subnet_netmask                 = coalesce(try(each.value.subnets["private"].netmask, null), 0)
   public_subnet_netmask                  = coalesce(try(each.value.subnets["public"].netmask, null), 0)
-  tags                                   = local.tags
+  tags                                   = merge(local.tags, each.value.tags)
   transit_gateway_id                     = local.transit_gateway_id
   transit_gateway_routes                 = coalesce(each.value.vpc.transit_gateway_routes, local.transit_gateway_default_routes)
   vpc_cidr                               = each.value.vpc.cidr

@@ -4,3 +4,4 @@ AVD-DS-0015 # (Dockerfile) Use COPY instead of ADD (MEDIUM) - https://avd.aquase
 AVD-DS-0026 # (Dockerfile) Add HEALTHCHECK instruction in your Dockerfile (LOW) - https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0013/
 AVD-AWS-0057 
 AVD-AWS-0067
+AVD-AWS-0095 # https://avd.aquasec.com/misconfig/aws/sns/avd-aws-0095/

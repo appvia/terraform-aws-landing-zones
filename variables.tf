@@ -241,6 +241,8 @@ variable "networks" {
       # The netmask of the VPC network if using IPAM
       transit_gateway_routes = optional(map(string), null)
       # A list of routes to associate with the transit gateway, optional 
+      tags = optional(map(string), {})
+      # A collection of tags to apply to the network - these will be merged with the global tags
     })
   }))
   default = {}
