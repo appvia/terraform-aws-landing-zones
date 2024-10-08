@@ -216,6 +216,9 @@ variable "networks" {
       netmask = optional(number, 0)
     }))
 
+    tags = optional(map(string), {})
+    # A collection of tags to apply to the network - these will be merged with the global tags
+
     vpc = object({
       availability_zones = optional(string, 2)
       # The availability zone in which to provision the network, defaults to 2 
@@ -241,8 +244,6 @@ variable "networks" {
       # The netmask of the VPC network if using IPAM
       transit_gateway_routes = optional(map(string), null)
       # A list of routes to associate with the transit gateway, optional 
-      tags = optional(map(string), {})
-      # A collection of tags to apply to the network - these will be merged with the global tags
     })
   }))
   default = {}
