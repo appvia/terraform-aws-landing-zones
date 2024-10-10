@@ -48,7 +48,7 @@ module "dev_apps" {
       addresses = [""]
     }
     slack = {
-      channel = ""
+      webhook_url = ""
     }
   }
 

@@ -26,7 +26,7 @@ locals {
   tags = merge(var.tags, module.tagging.tags)
 
   ## Indicates if slack is enabled and slack channel has been configured by the tenant. 
-  enable_slack_notifications = (local.enable_slack && var.notifications.slack.channel != "")
+  enable_slack_notifications = local.enable_slack
 
   ## Indicates if email notifications are enabled 
   enable_email_notifications = length(var.notifications.email.addresses) > 0
@@ -35,14 +35,13 @@ locals {
   notifications_email = var.notifications.email
 
   ## If enabled, this is the webhook_url for the slack notifications 
-  notifications_slack_webhook_url = local.enable_slack_notifications ? try(data.aws_secretsmanager_secret_version.slack[0].secret_string, "") : ""
+  notifications_slack_webhook_url = var.notifications.slack.webhook_url != "" ? var.notifications.slack.webhook_url : try(data.aws_secretsmanager_secret_version.slack[0].secret_string, "")
 
   ## The configuration for slack notifications 
   notifications_slack = local.enable_slack_notifications ? {
-    channel     = var.notifications.slack.channel
-    lambda_name = "lza-slack-notifications"
-    username    = ":aws: LZA Notifications"
-    webhook_url = local.notifications_slack_webhook_url
+    lambda_name        = "lza-slack-notifications"
+    lambda_description = "Lambda function to send slack notifications"
+    webhook_url        = local.notifications_slack_webhook_url
   } : null
 
   ## Create a map of the ipam pools, using the Name tag as the key 

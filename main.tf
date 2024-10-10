@@ -19,11 +19,12 @@ module "tagging" {
 #trivy:ignore:AVD-DS-0026
 module "notifications" {
   source  = "appvia/notifications/aws"
-  version = "1.0.4"
+  version = "1.0.5"
 
   allowed_aws_services = ["budgets.amazonaws.com", "lambda.amazonaws.com"]
   create_sns_topic     = true
   email                = local.notifications_email
+  enable_slack         = local.notifications_slack != null
   slack                = local.notifications_slack
   sns_topic_name       = local.notifications_sns_topic_name
   tags                 = local.tags

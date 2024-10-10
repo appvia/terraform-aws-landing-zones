@@ -1,32 +1,4 @@
 
-## Craft an IAM policy document to allow the lambda function to assume the role 
-data "aws_iam_policy_document" "lambda_assume_role_policy" {
-  statement {
-    sid     = "AllowLambdaAssumeRole"
-    effect  = "Allow"
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-  }
-}
-
-## Craft an IAM policy to push logs to cloudwatch log group 
-# See also the following AWS managed policy: AWSLambdaBasicExecutionRole
-data "aws_iam_policy_document" "securityhub_lambda_cloudwatch_logs_policy" {
-  statement {
-    sid    = "AllowLogging"
-    effect = "Allow"
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-    ]
-    resources = ["arn:aws:logs:*:*:*"]
-  }
-}
-
 ## Craft an IAM polciy perform access to publish messages to the SNS topic 
 data "aws_iam_policy_document" "securityhub_notifications_policy" {
   count = local.enable_security_hub_events ? 1 : 0
@@ -70,9 +42,21 @@ module "securityhub_notifications" {
 resource "aws_iam_role" "securityhub_lambda_role" {
   count = local.enable_security_hub_events ? 1 : 0
 
-  name               = local.security_hub_lambda_role_name
-  tags               = local.tags
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
+  name = local.security_hub_lambda_role_name
+  tags = local.tags
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
 
   provider = aws.tenant
 }
@@ -92,9 +76,24 @@ resource "aws_iam_role_policy" "securityhub_lambda_role_policy" {
 resource "aws_iam_role_policy" "securityhub_lambda_logs_policy" {
   count = local.enable_security_hub_events ? 1 : 0
 
-  name   = "lza-securityhub-lambda-logs-policy"
-  policy = data.aws_iam_policy_document.securityhub_lambda_cloudwatch_logs_policy.json
-  role   = aws_iam_role.securityhub_lambda_role[0].name
+  name = "lza-securityhub-lambda-logs-policy"
+  role = aws_iam_role.securityhub_lambda_role[0].name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowLogging"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+        ]
+        Resource = ["arn:aws:logs:*:*:*"]
+      }
+    ]
+  })
 
   provider = aws.tenant
 }

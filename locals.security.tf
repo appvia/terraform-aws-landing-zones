@@ -25,9 +25,7 @@ locals {
 
   ## The slack channel which should receive the security hub notifications if nebaled 
   security_hub_slack = local.enable_slack_notifications ? {
-    channel     = var.notifications.slack.channel
     lambda_name = "lza-slack-securityhub-${local.resource_suffix}"
-    username    = ":aws: Security Event"
     webhook_url = local.notifications_slack_webhook_url
   } : null
 

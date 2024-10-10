@@ -85,10 +85,10 @@ variable "notifications" {
       addresses = []
     })
     slack = optional(object({
-      channel = string
-      # The slack channel to send notifications to 
+      webhook_url = string
+      # The slack webhook_url to send notifications to 
       }), {
-      channel = ""
+      webhook_url = ""
     })
   })
   default = {
@@ -96,7 +96,7 @@ variable "notifications" {
       addresses = []
     }
     slack = {
-      channel = ""
+      webhook_url = ""
     }
   }
 }
