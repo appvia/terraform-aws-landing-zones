@@ -74,15 +74,27 @@ resource "aws_iam_role" "securityhub_lambda_role" {
   tags               = local.tags
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 
-  inline_policy {
-    name   = "lza-securityhub-lambda-policy"
-    policy = data.aws_iam_policy_document.securityhub_notifications_policy[0].json
-  }
+  provider = aws.tenant
+}
 
-  inline_policy {
-    name   = "lza-securityhub-lambda-logs-policy"
-    policy = data.aws_iam_policy_document.securityhub_lambda_cloudwatch_logs_policy.json
-  }
+## Attach the inline policy to the lambda role 
+resource "aws_iam_role_policy" "securityhub_lambda_role_policy" {
+  count = local.enable_security_hub_events ? 1 : 0
+
+  name   = "lza-securityhub-lambda-policy"
+  policy = data.aws_iam_policy_document.securityhub_notifications_policy[0].json
+  role   = aws_iam_role.securityhub_lambda_role[0].name
+
+  provider = aws.tenant
+}
+
+## Attach the inline policy to the lambda role 
+resource "aws_iam_role_policy" "securityhub_lambda_logs_policy" {
+  count = local.enable_security_hub_events ? 1 : 0
+
+  name   = "lza-securityhub-lambda-logs-policy"
+  policy = data.aws_iam_policy_document.securityhub_lambda_cloudwatch_logs_policy.json
+  role   = aws_iam_role.securityhub_lambda_role[0].name
 
   provider = aws.tenant
 }

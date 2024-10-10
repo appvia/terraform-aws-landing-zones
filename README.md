@@ -1,6 +1,6 @@
 ![Github Actions](../../actions/workflows/terraform.yml/badge.svg)
 
-# Terraform AWS Appvia Landing Zone
+# Terraform AWS Landing Zone
 
 ## Description
 
@@ -9,6 +9,124 @@ Note, this module is not intended to be used outside of the organization, as the
 ## Usage
 
 Please refer to one of the application, platform or sandbox pipelines for an example of how to use this module.
+
+## Notification Features
+
+Tenants are able to provision notifications within the designated region. This first step to ensure notifications is enabled.
+
+```hcl
+notifications = {
+  email = {
+    addresses = ["MY_EMAIL_ADDRESS"]
+  }
+  slack = {
+    webhook = "MY_SLACK_WEBHOOK"
+  }
+}
+```
+
+## Security Features
+
+The notifications can used to send notifications to users via email or slack, for events related to costs, security and budgets.
+
+### Service Control Policies
+
+Additional service control policies can be applied to the account. This is useful for ensuring that the account is compliant with the organization's security policies, specific to the accounts requirements.
+
+You can configure additional service control policies using the `var.service_control_policies` variable, such as the below example
+
+```hcl
+data "aws_iam_policy_document" "deny_s3" {
+  statement {
+    effect    = "Deny"
+    actions = ["s3:*"]
+    resources = ["*"]
+  }
+}
+
+module "account" {
+  service_control_policies = {
+    "MY_POLICY_NAME" = {
+      name   = "deny-s3"
+      policy = data.aws_iam_policy_document.deny_s3.json
+    }
+  }
+}
+```
+
+### RBAC & Identity Center Assignment
+
+This module provides the ability for tenants to manage the assignment of prescribed roles to users and groups within the account. The `sso_assignment` module is used to manage the assignment of roles to users and groups within the account.
+
+Note, the roles permitted for assignment can be found within `local.sso_permitted_permission_sets`, an example of the permitted roles can be found below:
+
+```hcl
+sso_permitted_permission_sets = {
+  "devops_engineer"   = "DevOpsEngineer"
+  "finops_engineer"   = "FinOpsEngineer"
+  "network_engineer"  = "NetworkEngineer"
+  "network_viewer"    = "NetworkViewer"
+  "platform_engineer" = "PlatformEngineer"
+  "security_auditor"  = "SecurityAuditor"
+}
+```
+
+This maps the exposed name used in the `var.rbac` to the name of the role within the AWS Identity Center.
+
+Tenants can assign roles to users and groups by providing a map of users and groups to roles within the `var.rbac` variable. An example of this can be found below:
+
+```hcl
+rbac = {
+  "devops_engineer" = {
+    users  = ["MY_SSO_USER"]
+    groups = ["MY_SSO_GROUP"]
+  }
+}
+```
+
+## Cost Management Features
+
+Tenants are able to receive budgets notifications related to the services. Once notifications have been configured they will automatically receive daily, weekly or monthly reports and notifications on where they sit in the budget.
+
+## Networking Features
+
+Tenants are able to provision networks within the designated region, while allowing the platform to decide how these are wired up into the network topology of the organization i.e. ensuring the are using IPAM, connected to the transit gateway, egress via the central vpc and so forth.
+
+All networks are defined within the `var.networks` variable, an example of this can be found below:
+
+```hcl
+networks = {
+  my_vpc_name = {
+    subnets = {
+      private = {
+        netmask = 28
+      }
+      database = {
+        netmask = 22
+      }
+    }
+
+    vpc = {
+      availability_zones     = 2
+      enable_ipam            = true
+      enable_transit_gateway = true
+    }
+  }
+
+  my_second_vpc = {
+    subnets = {
+      private = {
+        netmask = 28
+      }
+    }
+
+    vpc = {
+      enable_ipam            = true
+      enable_transit_gateway = true
+    }
+  }
+}
+```
 
 ## Update Documentation
 
@@ -58,6 +176,8 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | [aws_cloudwatch_event_target.security_hub_findings_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_cloudwatch_log_group.securityhub_lambda_log_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_iam_role.securityhub_lambda_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.securityhub_lambda_logs_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.securityhub_lambda_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_lambda_function.securityhub_lambda_function](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function) | resource |
 | [aws_lambda_permission.securityhub_event_bridge](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_permission) | resource |
 | [aws_organizations_policy.service_control_policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/organizations_policy) | resource |
@@ -106,3 +226,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="output_tenant_account_id"></a> [tenant\_account\_id](#output\_tenant\_account\_id) | The region of the tenant account |
 | <a name="output_vpc_ids"></a> [vpc\_ids](#output\_vpc\_ids) | A map of the network name to vpc id |
 <!-- END_TF_DOCS -->
+
+```
+
+```
