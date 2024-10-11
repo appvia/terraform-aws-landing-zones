@@ -28,3 +28,10 @@ check "validate_tagging" {
     error_message = "The owner name must be between 1 and 14 characters"
   }
 }
+
+check "notifications" {
+  assert {
+    condition     = length(var.notifications.email.addresses) > 0 || length(var.notifications.slack.webhook_url) > 0
+    error_message = "Either email or slack must be configured"
+  }
+}

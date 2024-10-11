@@ -77,5 +77,10 @@ run "basic" {
     tags = {
       "Component" = "Test"
     }
+    notifications = {
+      email = {
+        addresses = ["john.doe@example.com"]
+      }
+    }
   }
 }
