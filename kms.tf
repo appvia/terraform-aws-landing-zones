@@ -3,7 +3,7 @@
 module "kms" {
   count   = local.enable_account_kms_key ? 1 : 0
   source  = "terraform-aws-modules/kms/aws"
-  version = "3.1.0"
+  version = "3.1.1"
 
   aliases                 = [local.kms_default_kms_key_alias]
   deletion_window_in_days = local.kms_key_expiration_window_in_days
