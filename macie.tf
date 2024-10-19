@@ -13,4 +13,6 @@ resource "aws_macie2_account" "macie_member" {
 
   finding_publishing_frequency = "FIFTEEN_MINUTES"
   status                       = var.macie.enabled ? "ENABLED" : "PAUSED"
+
+  provider = aws.tenant
 }

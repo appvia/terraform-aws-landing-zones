@@ -16,4 +16,6 @@ resource "aws_s3_account_public_access_block" "s3_account_public_access_block" {
   block_public_policy     = var.s3_block_public_access.enable_block_public_policy
   ignore_public_acls      = var.s3_block_public_access.enable_ignore_public_acls
   restrict_public_buckets = var.s3_block_public_access.enable_restrict_public_buckets
+
+  provider = aws.tenant
 }

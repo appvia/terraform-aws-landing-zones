@@ -94,11 +94,17 @@ module "ebs_kms" {
   multi_region            = false
   source_policy_documents = [data.aws_iam_policy_document.ebs_encryption_key.json]
   tags                    = local.tags
+
+  providers = {
+    aws = aws.tenant
+  }
 }
 
 ## Ensure all EBS volumes are encrypted 
 resource "aws_ebs_encryption_by_default" "default" {
   enabled = local.enable_ebs_encryption
+
+  provider = aws.tenant
 }
 
 ## Configure the key to be the default key for EBS encryption
@@ -106,4 +112,6 @@ resource "aws_ebs_default_kms_key" "default" {
   count = local.enable_ebs_encryption ? 1 : 0
 
   key_arn = local.ebs_encryption_key_arn
+
+  provider = aws.tenant
 }

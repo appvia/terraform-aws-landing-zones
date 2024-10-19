@@ -16,4 +16,8 @@
 #  enable_snapshot_retention    = var.guardduty.enable_snapshot_retention
 #  finding_publishing_frequency = var.guardduty.finding_publishing_frequency
 #  tags                         = var.tags
+#
+#  providers = { 
+#    aws = aws.tenant
+#  }
 #}

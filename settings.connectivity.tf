@@ -1,13 +1,5 @@
 
 locals {
-  ## Enabled private hosted zone association - any private hosted zones declared will be automatically 
-  ## associated with the central private dns solution 
-  enable_central_dns_association = false
-
-  ## This is the vpc which contains the central dns solution. Private hosted zones within the tenants 
-  ## account will be associated with this vpc, permitting dns resolution 
-  dns_central_vpc_id = "vpc-0daa451f2adc1902b"
-
   #  ## A collection of ipset which are automatically injected into all firewall rules 
   #  firewall_default_ipsets = {
   #    "HOME_NET" = ["10.0.0.0/8"]

@@ -20,6 +20,8 @@ resource "aws_iam_account_password_policy" "iam_account_password_policy" {
   require_numbers                = var.iam_password_policy.require_numbers
   require_symbols                = var.iam_password_policy.require_symbols
   require_uppercase_characters   = var.iam_password_policy.require_uppercase_characters
+
+  provider = aws.tenant
 }
 
 ## Configure the IAM Access Analyzer for the account 
@@ -29,6 +31,8 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   analyzer_name = var.iam_access_analyzer.analyzer_name
   tags          = var.tags
   type          = var.iam_access_analyzer.analyzer_type
+
+  provider = aws.tenant
 }
 
 ## Configure any IAM customer managed policies within the account 
@@ -41,6 +45,8 @@ resource "aws_iam_policy" "iam_policies" {
   path        = each.value.path
   policy      = each.value.policy
   tags        = var.tags
+
+  provider = aws.tenant
 }
 
 ## Configure any IAM roles required within the iam_account_password_policy
@@ -63,6 +69,10 @@ module "iam_roles" {
   tags                              = var.tags
   trusted_role_arns                 = concat(each.value.assume_roles, [for x in each.value.assume_accounts : format("arn:aws:iam::%s:root", x)])
   trusted_role_services             = each.value.assume_services
+
+  providers = {
+    aws = aws.tenant
+  }
 
   depends_on = [
     aws_iam_policy.iam_policies

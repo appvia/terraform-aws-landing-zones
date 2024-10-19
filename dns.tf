@@ -1,4 +1,20 @@
 
+locals {
+  ## Enabled private hosted zone association - any private hosted zones declared will be automatically 
+  ## associated with the central private dns solution 
+  central_dns_enabled = var.central_dns.enabled && var.central_dns.vpc_id != null && var.central_dns.vpc_id != ""
+
+  ## This is the vpc which contains the central dns solution. Private hosted zones within the tenants 
+  ## account will be associated with this vpc, permitting dns resolution 
+  central_dns_vpc_id = var.central_dns.vpc_id
+
+  ## A collection of private hosted zones which are automatically associated with the central dns solution 
+  private_hosted_zones = { for k, v in var.dns : k => v if v.private }
+
+  ## A map of the private hosted zones created 
+  private_hosted_zones_by_id = { for k, v in var.dns : k => aws_route53_zone.zones[k].zone_id }
+}
+
 ## Provision the hosted zones if required 
 resource "aws_route53_zone" "zones" {
   for_each = var.dns
@@ -34,9 +50,9 @@ resource "aws_route53_zone" "zones" {
 
 ## Authorize the spoke vpc to associate with the central dns solution if required 
 resource "aws_route53_vpc_association_authorization" "central_dns_authorization" {
-  for_each = local.enable_private_hosted_zone_association ? { for key, zone in var.dns : key => zone if zone.private } : {}
+  for_each = local.central_dns_enabled ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
-  vpc_id     = local.dns_central_vpc_id
+  vpc_id     = local.central_dns_vpc_id
   vpc_region = var.region
   zone_id    = aws_route53_zone.zones[each.key].zone_id
 
@@ -50,9 +66,9 @@ resource "aws_route53_vpc_association_authorization" "central_dns_authorization"
 
 ## Associate the hosted zone with the central dns solution if required 
 resource "aws_route53_zone_association" "central_dns_association" {
-  for_each = local.enable_private_hosted_zone_association ? { for key, zone in var.dns : key => zone if zone.private } : {}
+  for_each = local.central_dns_enabled ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
-  vpc_id     = local.dns_central_vpc_id
+  vpc_id     = local.central_dns_vpc_id
   vpc_region = var.region
   zone_id    = aws_route53_zone.zones[each.key].zone_id
 

@@ -20,10 +20,6 @@ module "app1" {
   tags        = var.tags
   home_region = "eu-west-2"
 
-  anomaly_detection = {
-    enable_default_monitors = false
-  }
-
   networks = {
     app1 = {
       vpc = {
@@ -64,10 +60,6 @@ module "app2" {
   region      = "eu-west-2"
   tags        = var.tags
   home_region = "eu-west-2"
-
-  anomaly_detection = {
-    enable_default_monitors = false
-  }
 
   networks = {
     app2 = {

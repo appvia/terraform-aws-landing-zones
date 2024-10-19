@@ -12,22 +12,6 @@
 # - Firewall rules 
 # - RBAC assignments 
 
-
-#module "shared_services_rbac" {
-#  source = "../../modules/sso_roles"
-#
-#  roles = {
-#    platform_engineer = {
-#      users  = ["my_user"]
-#      groups = ["my_group"]
-#    }
-#  }
-#
-#  providers = {
-#    aws = aws
-#  }
-#}
-
 #tfsec:ignore:AVD-DS-0002
 #tfsec:ignore:AVD-DS-0013
 #tfsec:ignore:AVD-DS-0015
@@ -59,9 +43,44 @@ module "dev_apps" {
     }
   }
 
-  anomaly_detection = {
-    enable_default_monitors = true
-    monitors                = []
+  cost_anomaly_detection = {
+    monitors = [
+      {
+        name      = lower("lza-eu-west-2-cost-anomaly-detection")
+        frequency = "IMMEDIATE"
+        threshold_expression = [
+          {
+            and = {
+              dimension = {
+                key           = "ANOMALY_TOTAL_IMPACT_ABSOLUTE"
+                match_options = ["GREATER_THAN_OR_EQUAL"]
+                values        = ["100"]
+              }
+            }
+          },
+          {
+            and = {
+              dimension = {
+                key           = "ANOMALY_TOTAL_IMPACT_PERCENTAGE"
+                match_options = ["GREATER_THAN_OR_EQUAL"]
+                values        = ["50"]
+              }
+            }
+          }
+        ]
+
+        specification = jsonencode({
+          "And" : [
+            {
+              "Dimensions" : {
+                "Key" : "REGION"
+                "Values" : ["eu-west-2"]
+              }
+            }
+          ]
+        })
+      }
+    ]
   }
 
   networks = {

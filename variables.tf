@@ -9,6 +9,55 @@ variable "home_region" {
   }
 }
 
+variable "cost_anomaly_detection" {
+  description = "A collection of cost anomaly detection monitors to apply to the account"
+  type = object({
+    enabled = optional(bool, true)
+    # A flag indicating if the default monitors should be enabled 
+    monitors = optional(list(object({
+      name = string
+      # The name of the anomaly detection rule 
+      frequency = optional(string, "IMMEDIATE")
+      # The dimension of the anomaly detection rule, either SERVICE or DIMENSIONAL
+      threshold_expression = optional(list(object({
+        and = object({
+          dimension = object({
+            key = string
+            # The key of the dimension 
+            match_options = list(string)
+            # The match options of the dimension 
+            values = list(string)
+            # The values of the dimension 
+          })
+        })
+        # The expression to apply to the cost anomaly detection monitor 
+      })), [])
+      # The expression to apply to the anomaly detection rule
+      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor
+      specification = optional(string, "")
+      # The specification to anomaly detection monitor 
+      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor
+    })), [])
+  })
+  default = {
+    enabled  = true
+    monitors = []
+  }
+}
+
+variable "central_dns" {
+  description = "Configuration for the hub used to centrally resolved dns requests"
+  type = object({
+    enabled = optional(bool, false)
+    # The domain name to use for the central DNS
+    vpc_id = optional(string, null)
+  })
+  default = {
+    enabled = false
+    vpc_id  = null
+  }
+}
+
 variable "dns" {
   description = "A collection of DNS zones to provision and associate with networks"
   type = map(object({
@@ -329,38 +378,6 @@ variable "notifications" {
       webhook_url = ""
     }
   }
-}
-
-variable "anomaly_detection" {
-  description = "A collection of anomaly detection rules to apply to the environment"
-  type = object({
-    enable_default_monitors = optional(bool, true)
-    # A flag indicating if the default monitors should be enabled 
-    monitors = optional(list(object({
-      name = string
-      # The name of the anomaly detection rule 
-      dimension = optional(string, "DIMENSIONAL")
-      # The dimension of the anomaly detection rule, either SERVICE or DIMENSIONAL
-      threshold_expression = optional(any, [
-        {
-          and = {
-            dimension = {
-              key           = "ANOMALY_TOTAL_IMPACT_PERCENTAGE"
-              match_options = ["GREATER_THAN_OR_EQUAL"]
-              values        = ["50"]
-            }
-          }
-      }])
-      # The expression to apply to the anomaly detection rule
-      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor
-      specification = optional(string, "")
-      # The specification to anomaly detection monitor 
-      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor
-      frequency = optional(string, "DAILY")
-      # The frequency of you want to receive notifications 
-    })), [])
-  })
-  default = {}
 }
 
 variable "product" {

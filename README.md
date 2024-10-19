@@ -213,6 +213,53 @@ rbac = {
 
 Tenants are able to receive budgets notifications related to the services. Once notifications have been configured they will automatically receive daily, weekly or monthly reports and notifications on where they sit in the budget.
 
+### Anomaly Detection
+
+Tenants are able to provision anomaly detection rules within the designated region. This is useful for ensure cost awareness and alerting on any unexpected costs.
+
+```hcl
+cost_anomaly_detection = {
+  enabled = true
+  monitors = [
+    {
+      name      = lower("lza-${local.region}")
+      frequency = "IMMEDIATE"
+      threshold_expression = [
+        {
+          and = {
+            dimension = {
+              key           = "ANOMALY_TOTAL_IMPACT_ABSOLUTE"
+              match_options = ["GREATER_THAN_OR_EQUAL"]
+              values        = ["100"]
+            }
+          }
+        },
+        {
+          and = {
+            dimension = {
+              key           = "ANOMALY_TOTAL_IMPACT_PERCENTAGE"
+              match_options = ["GREATER_THAN_OR_EQUAL"]
+              values        = ["50"]
+            }
+          }
+        }
+      ]
+
+      specification = jsonencode({
+        "And" : [
+          {
+            "Dimensions" : {
+              "Key" : "REGION"
+              "Values" : [local.region]
+            }
+          }
+        ]
+      })
+    }
+  ]
+}
+```
+
 ## Networking Features
 
 Tenants are able to provision networks within the designated region, while allowing the platform to decide how these are wired up into the network topology of the organization i.e. ensuring the are using IPAM, connected to the transit gateway, egress via the central vpc and so forth.
@@ -338,7 +385,8 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_product"></a> [product](#input\_product) | The name of the product to provision resources and inject into all resource tags | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | The region we are provisioning the resources for the landing zone | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | A collection of tags to apply to resources | `map(string)` | n/a | yes |
-| <a name="input_anomaly_detection"></a> [anomaly\_detection](#input\_anomaly\_detection) | A collection of anomaly detection rules to apply to the environment | <pre>object({<br/>    enable_default_monitors = optional(bool, true)<br/>    # A flag indicating if the default monitors should be enabled <br/>    monitors = optional(list(object({<br/>      name = string<br/>      # The name of the anomaly detection rule <br/>      dimension = optional(string, "DIMENSIONAL")<br/>      # The dimension of the anomaly detection rule, either SERVICE or DIMENSIONAL<br/>      threshold_expression = optional(any, [<br/>        {<br/>          and = {<br/>            dimension = {<br/>              key           = "ANOMALY_TOTAL_IMPACT_PERCENTAGE"<br/>              match_options = ["GREATER_THAN_OR_EQUAL"]<br/>              values        = ["50"]<br/>            }<br/>          }<br/>      }])<br/>      # The expression to apply to the anomaly detection rule<br/>      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor<br/>      specification = optional(string, "")<br/>      # The specification to anomaly detection monitor <br/>      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor<br/>      frequency = optional(string, "DAILY")<br/>      # The frequency of you want to receive notifications <br/>    })), [])<br/>  })</pre> | `{}` | no |
+| <a name="input_central_dns"></a> [central\_dns](#input\_central\_dns) | Configuration for the hub used to centrally resolved dns requests | <pre>object({<br/>    enabled = optional(bool, false)<br/>    # The domain name to use for the central DNS<br/>    vpc_id = optional(string, null)<br/>  })</pre> | <pre>{<br/>  "enabled": false,<br/>  "vpc_id": null<br/>}</pre> | no |
+| <a name="input_cost_anomaly_detection"></a> [cost\_anomaly\_detection](#input\_cost\_anomaly\_detection) | A collection of cost anomaly detection monitors to apply to the account | <pre>object({<br/>    enabled = optional(bool, true)<br/>    # A flag indicating if the default monitors should be enabled <br/>    monitors = optional(list(object({<br/>      name = string<br/>      # The name of the anomaly detection rule <br/>      frequency = optional(string, "IMMEDIATE")<br/>      # The dimension of the anomaly detection rule, either SERVICE or DIMENSIONAL<br/>      threshold_expression = optional(list(object({<br/>        and = object({<br/>          dimension = object({<br/>            key = string<br/>            # The key of the dimension <br/>            match_options = list(string)<br/>            # The match options of the dimension <br/>            values = list(string)<br/>            # The values of the dimension <br/>          })<br/>        })<br/>        # The expression to apply to the cost anomaly detection monitor <br/>      })), [])<br/>      # The expression to apply to the anomaly detection rule<br/>      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor<br/>      specification = optional(string, "")<br/>      # The specification to anomaly detection monitor <br/>      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor<br/>    })), [])<br/>  })</pre> | <pre>{<br/>  "enabled": true,<br/>  "monitors": []<br/>}</pre> | no |
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | The cost center of the product, and injected into all resource tags | `string` | `null` | no |
 | <a name="input_dns"></a> [dns](#input\_dns) | A collection of DNS zones to provision and associate with networks | <pre>map(object({<br/>    comment = optional(string, "Managed by zone created by terraform")<br/>    # A comment associated with the DNS zone <br/>    network = string<br/>    # A list of network names to associate with the DNS zone <br/>    private = optional(bool, true)<br/>    # A flag indicating if the DNS zone is private or public<br/>  }))</pre> | `{}` | no |
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | A collection of EBS encryption settings to apply to the account | <pre>object({<br/>    enabled = optional(bool, false)<br/>    # A flag indicating if EBS encryption should be enabled<br/>    create_kms_key = optional(bool, true)<br/>    # A flag indicating if an EBS encryption key should be created<br/>    key_deletion_window_in_days = optional(number, 10)<br/>    # The number of days to retain the key before deletion when the key is removed<br/>    key_alias = optional(string, "lza/ebs/default")<br/>    # The alias of the EBS encryption key when provisioning a new key<br/>    key_arn = optional(string, null)<br/>    # The ARN of an existing EBS encryption key to use for EBS encryption<br/>  })</pre> | <pre>{<br/>  "create_kms_key": true,<br/>  "enabled": false,<br/>  "key_alias": "lza/ebs/default",<br/>  "key_arn": null,<br/>  "key_deletion_window_in_days": 10<br/>}</pre> | no |
