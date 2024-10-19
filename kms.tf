@@ -22,7 +22,7 @@ locals {
   kms_key_administrator_role_arn = local.enable_kms_key_administrator ? module.kms_key_administrator[0].iam_role_arn : null
 
   ## A list of roles who should be able to administer the kms key
-  kms_key_owners = sort(coalesce(concat(var.kms_key.key_administrators, [local.kms_key_administrator_role_arn])))
+  kms_key_owners = sort(concat(var.kms_key.key_administrators, [local.kms_key_administrator_role_arn]))
 }
 
 ## Provision the key administrator role for the account if required 
