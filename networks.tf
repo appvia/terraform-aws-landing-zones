@@ -1,4 +1,11 @@
 
+locals {
+  ## A map of transit gateway asssociations which should be made 
+  transit_gateway_associations = {
+    for k, v in var.networks : k => v.transit_gateway.gateway_route_table_id if v.enable_transit_gateway && v.transit_gateway.gateway_id != null && v.transit_gateway.gateway_route_table_id != null
+  }
+}
+
 ## Provision the networks within the account
 module "networks" {
   for_each = var.networks
@@ -20,12 +27,25 @@ module "networks" {
   private_subnet_netmask                 = coalesce(try(each.value.subnets["private"].netmask, null), 0)
   public_subnet_netmask                  = coalesce(try(each.value.subnets["public"].netmask, null), 0)
   tags                                   = merge(local.tags, each.value.tags)
-  transit_gateway_id                     = each.value.vpc.enable_transit_gateway ? var.transit_gateway.gateway_id : null
-  transit_gateway_routes                 = each.value.vpc.enable_transit_gateway ? coalesce(each.value.vpc.transit_gateway_routes, var.transit_gateway.gateway_routes) : null
+  transit_gateway_id                     = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway.gateway_id : null
+  transit_gateway_routes                 = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway_routes : null
   vpc_cidr                               = each.value.vpc.cidr
   vpc_netmask                            = each.value.vpc.netmask
 
   providers = {
     aws = aws.tenant
   }
+}
+
+## For each of the networks, attach them to the appropriate transit gateway routing 
+## table if required 
+resource "aws_ec2_transit_gateway_route_table_association" "asssociation" {
+  for_each = local.transit_gateway_associations
+
+  transit_gateway_attachment_id  = module.networks[each.key].transit_gateway_attachment_id
+  transit_gateway_route_table_id = each.value
+
+  depends_on = [
+    module.networks
+  ]
 }

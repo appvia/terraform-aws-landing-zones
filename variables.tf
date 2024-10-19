@@ -58,21 +58,6 @@ variable "central_dns" {
   }
 }
 
-variable "transit_gateway" {
-  description = "Configuration for the transit gateway to use for the account"
-  type = object({
-    gateway_id = optional(string, null)
-    # The transit gateway ID to associate with the account 
-    gateway_routes = optional(map(string), null)
-    # A map used to associate routes with subnets provisioned by the module - i.e ensure 
-    # all private subnets push 10.0.0.0/8 to the transit gateway 
-  })
-  default = {
-    gateway_id     = null
-    gateway_routes = null
-  }
-}
-
 variable "kms_administrator" {
   description = "Configuration for the default kms administrator role to use for the account"
   type = object({
@@ -514,6 +499,21 @@ variable "networks" {
 
     tags = optional(map(string), {})
     # A collection of tags to apply to the network - these will be merged with the global tags
+
+    transit_gateway = optional(object({
+      gateway_id = optional(string, null)
+      # The transit gateway ID to associate with the network 
+      gateway_route_table_id = optional(string, null)
+      ## Optional id of the transit gateway route table to associate with the network 
+      gateway_routes = optional(map(string), null)
+      # A map used to associate routes with subnets provisioned by the module - i.e ensure 
+      # all private subnets push
+      }), {
+      gateway_id             = null
+      gateway_route_table_id = null
+      gateway_routes         = null
+    })
+    ## Configuration for the transit gateway for this network
 
     vpc = object({
       availability_zones = optional(string, 2)
