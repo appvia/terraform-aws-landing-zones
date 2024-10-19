@@ -245,7 +245,6 @@ variable "iam_access_analyzer" {
   }
 }
 
-
 variable "macie" {
   description = "A collection of Macie settings to apply to the account"
   type = object({
@@ -369,12 +368,6 @@ variable "service_control_policies" {
 variable "environment" {
   description = "The environment in which to provision resources"
   type        = string
-
-  ## The environment must be one of the following 
-  validation {
-    condition     = var.environment == "Production" || var.environment == "Staging" || var.environment == "Development" || var.environment == "Sandbox"
-    error_message = "The environment must be one of Production, Staging, Development or Sandbox"
-  }
 }
 
 variable "rbac" {
@@ -389,27 +382,56 @@ variable "rbac" {
 }
 
 variable "notifications" {
-  description = "A collection of notifications to send to users"
+  description = "Configuration for the notifications to the owner of the account"
   type = object({
     email = optional(object({
-      addresses = list(string)
+      addresses = optional(list(string), [])
       # A list of email addresses to send notifications to 
-      }), {
-      addresses = []
-    })
+    }), null)
+
     slack = optional(object({
-      webhook_url = string
+      webhook_url = optional(string, "")
       # The slack webhook_url to send notifications to 
-      }), {
-      webhook_url = ""
-    })
+    }), null)
+
+    teams = optional(object({
+      webhook_url = optional(string, "")
+      # The teams webhook_url to send notifications to 
+    }), null)
+
+    services = optional(object({
+      securityhub = object({
+        enable = optional(bool, false)
+        # A flag indicating if security hub notifications should be enabled
+        eventbridge_rule_name = optional(string, "lza-securityhub-eventbridge")
+        # The sns topic name which is created per region in the account, 
+        # this is used to receive notifications, and forward them on via email or other means.
+        lambda_name = optional(string, "lza-securityhub-slack-forwarder")
+        # The name of the lambda which will be used to forward the security hub events to slack
+        lambda_role_name = optional(string, "lza-securityhub-slack-forwarder")
+        # The name of the eventbridge rule which is used to forward the security hub events to the lambda 
+        severity = optional(list(string), ["CRITICAL"])
+      })
+    }), null)
   })
   default = {
     email = {
       addresses = []
     }
     slack = {
-      webhook_url = ""
+      webhook_url = null
+    }
+    teams = {
+      webhook_url = null
+    }
+    services = {
+      securityhub = {
+        enable                = false
+        eventbridge_rule_name = "lza-securityhub-eventbridge"
+        lambda_name           = "lza-securityhub-slack-forwarder"
+        lambda_role_name      = "lza-securityhub-slack-forwarder"
+        severity              = ["CRITICAL"]
+      }
     }
   }
 }

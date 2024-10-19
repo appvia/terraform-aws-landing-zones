@@ -1,14 +1,7 @@
 
-## Craft an IAM polciy perform access to publish messages to the SNS topic 
-data "aws_iam_policy_document" "securityhub_notifications_policy" {
-  count = local.enable_security_hub_events ? 1 : 0
-
-  statement {
-    sid       = "AllowPublish"
-    actions   = ["sns:Publish"]
-    effect    = "Allow"
-    resources = [module.securityhub_notifications[0].sns_topic_arn]
-  }
+locals {
+  ## Indicates if we should provision notiications for security hub events 
+  enable_security_hub_events = var.notifications.services.securityhub.enable
 }
 
 ## Create the lambda function package from the source code
@@ -20,29 +13,11 @@ data "archive_file" "securityhub_lambda_package" {
   output_path = "./builds/securityhub-findings-forwarder.zip"
 }
 
-## Provision the notifications to forward the security hub findings to the messaging channel 
-module "securityhub_notifications" {
-  count   = local.enable_security_hub_events ? 1 : 0
-  source  = "appvia/notifications/aws"
-  version = "1.0.5"
-
-  allowed_aws_services = ["events.amazonaws.com", "lambda.amazonaws.com"]
-  create_sns_topic     = true
-  email                = local.security_hub_email_addresses
-  slack                = local.security_hub_slack
-  sns_topic_name       = local.security_hub_sns_topic_name
-  tags                 = local.tags
-
-  providers = {
-    aws = aws.tenant
-  }
-}
-
-## Provision an IAM role for the lambda function to run under 
+## Provision an IAM role for the lambda function to use when running
 resource "aws_iam_role" "securityhub_lambda_role" {
   count = local.enable_security_hub_events ? 1 : 0
 
-  name = local.security_hub_lambda_role_name
+  name = var.notifications.services.securityhub.lambda_role_name
   tags = local.tags
 
   assume_role_policy = jsonencode({
@@ -65,23 +40,18 @@ resource "aws_iam_role" "securityhub_lambda_role" {
 resource "aws_iam_role_policy" "securityhub_lambda_role_policy" {
   count = local.enable_security_hub_events ? 1 : 0
 
-  name   = "lza-securityhub-lambda-policy"
-  policy = data.aws_iam_policy_document.securityhub_notifications_policy[0].json
-  role   = aws_iam_role.securityhub_lambda_role[0].name
-
-  provider = aws.tenant
-}
-
-## Attach the inline policy to the lambda role 
-resource "aws_iam_role_policy" "securityhub_lambda_logs_policy" {
-  count = local.enable_security_hub_events ? 1 : 0
-
-  name = "lza-securityhub-lambda-logs-policy"
+  name = "lza-securityhub-lambda-policy"
   role = aws_iam_role.securityhub_lambda_role[0].name
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
+      {
+        Sid      = "AllowPublish"
+        Effect   = "Allow"
+        Action   = ["sns:Publish"]
+        Resource = [module.notifications.sns_topic_arn]
+      },
       {
         Sid    = "AllowLogging"
         Effect = "Allow"
@@ -95,6 +65,11 @@ resource "aws_iam_role_policy" "securityhub_lambda_logs_policy" {
     ]
   })
 
+  depends_on = [
+    aws_iam_role.securityhub_lambda_role,
+    module.notifications,
+  ]
+
   provider = aws.tenant
 }
 
@@ -104,7 +79,7 @@ resource "aws_cloudwatch_log_group" "securityhub_lambda_log_group" {
   count = local.enable_security_hub_events ? 1 : 0
 
   log_group_class   = "STANDARD"
-  name              = "/aws/lambda/${local.security_hub_lambda_name}"
+  name              = "/aws/lambda/${var.notifications.services.securityhub.lambda_role_name}"
   retention_in_days = 3
   tags              = local.tags
 
@@ -117,7 +92,7 @@ resource "aws_lambda_function" "securityhub_lambda_function" {
   count = local.enable_security_hub_events ? 1 : 0
 
   filename         = "./builds/securityhub-findings-forwarder.zip"
-  function_name    = local.security_hub_lambda_name
+  function_name    = var.notifications.services.securityhub.lambda_role_name
   handler          = "lambda_function.lambda_handler"
   role             = aws_iam_role.securityhub_lambda_role[0].arn
   runtime          = "python3.12"
@@ -127,7 +102,8 @@ resource "aws_lambda_function" "securityhub_lambda_function" {
 
   environment {
     variables = {
-      "SNS_TOPIC_ARN" = module.securityhub_notifications[0].sns_topic_arn
+      "DEBUG"         = "false"
+      "SNS_TOPIC_ARN" = module.notifications.sns_topic_arn
     }
   }
 
@@ -139,7 +115,8 @@ resource "aws_lambda_function" "securityhub_lambda_function" {
   provider = aws.tenant
 }
 
-## Allow eventbridge to invoke the lambda function
+## Configure an eventbridge rule to invoke the lambda function when a security hub 
+## finding is detected
 resource "aws_lambda_permission" "securityhub_event_bridge" {
   count = local.enable_security_hub_events ? 1 : 0
 
@@ -156,7 +133,7 @@ resource "aws_lambda_permission" "securityhub_event_bridge" {
 resource "aws_cloudwatch_event_rule" "securityhub_findings" {
   count = local.enable_security_hub_events ? 1 : 0
 
-  name        = local.security_hub_eventbridge_rule_name
+  name        = var.notifications.services.securityhub.eventbridge_rule_name
   description = "Capture Security Hub findings of a specific severities and publish to the SNS topic (LZA)"
   tags        = local.tags
 
@@ -168,7 +145,7 @@ resource "aws_cloudwatch_event_rule" "securityhub_findings" {
         },
         RecordState = ["ACTIVE"],
         Severity = {
-          Label = local.security_hub_severity
+          Label = var.notifications.services.securityhub.severity
         },
         Workflow = {
           Status = ["NEW"]

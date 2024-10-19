@@ -30,10 +30,10 @@ module "dev_apps" {
 
   notifications = {
     email = {
-      addresses = [""]
+      addresses = ["EMAIL@ADDRESS.COM"]
     }
     slack = {
-      webhook_url = ""
+      webhook_url = "WEBHOOK_URL"
     }
   }
 

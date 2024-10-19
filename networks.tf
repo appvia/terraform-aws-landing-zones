@@ -2,7 +2,7 @@
 locals {
   ## A map of transit gateway asssociations which should be made 
   transit_gateway_associations = {
-    for k, v in var.networks : k => v.transit_gateway.gateway_route_table_id if v.enable_transit_gateway && v.transit_gateway.gateway_id != null && v.transit_gateway.gateway_route_table_id != null
+    for k, v in var.networks : k => v.transit_gateway.gateway_route_table_id if v.vpc.enable_transit_gateway && v.transit_gateway.gateway_id != null && v.transit_gateway.gateway_route_table_id != null
   }
 }
 
