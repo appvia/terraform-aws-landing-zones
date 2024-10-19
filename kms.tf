@@ -19,7 +19,7 @@ locals {
   kms_key_administrator_role_description = var.kms_administrator.description != null ? var.kms_administrator.description : "Provides access to administer the KMS keys for the account"
 
   ## This will have the create_kms_key_administrator role arn if required, else it will be an empty list 
-  kms_key_administrator_role_arn = local.enable_kms_key_administrator ? module.kms_key_administrator[0].arn : null
+  kms_key_administrator_role_arn = local.enable_kms_key_administrator ? module.kms_key_administrator[0].iam_role_arn : null
 
   ## A list of roles who should be able to administer the kms key
   kms_key_owners = sort(coalesce(concat(var.kms_key.key_administrators, [local.kms_key_administrator_role_arn])))
