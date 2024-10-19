@@ -30,3 +30,24 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   tags          = var.tags
   type          = var.iam_access_analyzer.analyzer_type
 }
+
+## Configure any IAM roles required within the iam_account_password_policy
+module "iam_roles" {
+  for_each = var.iam_roles
+  source   = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version  = "5.46.0"
+
+  create_role                       = true
+  custom_role_policy_arns           = each.value.permission_arns
+  force_detach_policies             = true
+  inline_policy_statements          = each.value.policies
+  number_of_custom_role_policy_arns = length(each.value.permission_arns)
+  role_description                  = each.value.description
+  role_name                         = each.value.role
+  role_path                         = each.value.path
+  role_permissions_boundary_arn     = each.value.permissions_boundary_arn
+  role_requires_mfa                 = false
+  tags                              = var.tags
+  trusted_role_arns                 = each.value.assume_roles
+  trusted_role_services             = each.value.assume_services
+}

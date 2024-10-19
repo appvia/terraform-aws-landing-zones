@@ -55,6 +55,28 @@ variable "iam_password_policy" {
   }
 }
 
+variable "iam_roles" {
+  description = "A collection of IAM roles to apply to the account"
+  type = map(object({
+    name = string
+    # The name of the IAM role 
+    assume_roles = optional(list(string), [])
+    # List of principals to assume the role
+    assume_services = optional(list(string), [])
+    # List of services to assume the role
+    description = string
+    # The description of the IAM role 
+    path = optional(string, "/")
+    # The path of the IAM role
+    permissions_boundary_arn = optional(string, "")
+    # A collection of tags to apply to the IAM role 
+    permissions_arns = optional(list(string), [])
+    # A list of additional permissions to apply to the IAM role 
+    policies = optional(any, [])
+  }))
+  default = {}
+}
+
 variable "iam_access_analyzer" {
   description = "The IAM access analyzer configuration to apply to the account"
   type = object({
