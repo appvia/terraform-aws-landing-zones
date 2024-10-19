@@ -11,5 +11,5 @@ locals {
   sso_identity_store_id = tolist(data.aws_ssoadmin_instances.current.identity_store_ids)[0]
 
   ## Filter out the sso roles, by removing those not permitted by the tenant 
-  sso_assignments = { for k, v in var.rbac : k => v if contains(keys(local.sso_permitted_permission_sets), k) }
+  sso_assignments = { for k, v in var.rbac : k => v if contains(keys(var.identity_center_permitted_roles), k) }
 }

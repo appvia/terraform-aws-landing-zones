@@ -26,5 +26,5 @@ locals {
   ## The name of the sns topic which is create per region in the account, these are used 
   ## to receive notifications, and forward them on via email or other means. Used by the 
   ## cost and budgeting alarms. 
-  notifications_sns_topic_name = lower("lza-notifications-${var.region}")
+  notifications_sns_topic_name = lower("lza-notifications-${local.region}")
 }

@@ -7,7 +7,7 @@ module "sso_assignment" {
   groups              = each.value.groups
   instance_arn        = local.sso_instance_arn
   identity_store_id   = local.sso_identity_store_id
-  permission_set_name = local.sso_permitted_permission_sets[each.key]
+  permission_set_name = var.identity_center_permitted_roles[each.key]
   users               = each.value.users
 
   providers = {

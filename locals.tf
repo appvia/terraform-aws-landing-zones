@@ -31,6 +31,9 @@ locals {
   ## The current product in lower case 
   product = lower(var.product)
 
+  ## The git repository to store the terraform code 
+  git_repo = var.git_repository
+
   ## Is the resource suffix to be used for the resources 
   resource_suffix = lower("${var.environment}-${var.product}-${local.region}")
 

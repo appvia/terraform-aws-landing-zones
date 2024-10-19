@@ -87,6 +87,28 @@ variable "iam_roles" {
   default = {}
 }
 
+variable "iam_policies" {
+  description = "A collection of IAM policies to apply to the account"
+  type = map(object({
+    name = optional(string, null)
+    # The name of the IAM policy 
+    name_prefix = optional(string, null)
+    # The name prefix of the IAM policy 
+    description = string
+    # The description of the IAM policy 
+    path = optional(string, "/")
+    # The path of the IAM policy
+    policy = string
+    # The policy document to apply to the IAM policy 
+  }))
+  default = {}
+
+  validation {
+    condition     = alltrue([for policy in values(var.iam_policies) : length(policy.name) > 0 || length(policy.name_prefix) > 0])
+    error_message = "The name or name prefix must be greater than 0"
+  }
+}
+
 variable "iam_access_analyzer" {
   description = "The IAM access analyzer configuration to apply to the account"
   type = object({
@@ -116,6 +138,32 @@ variable "iam_access_analyzer" {
   validation {
     condition     = length(var.iam_access_analyzer.analyzer_name) <= 32
     error_message = "The analyzer name must be less than or equal to 32"
+  }
+}
+
+
+variable "macie" {
+  description = "A collection of Macie settings to apply to the account"
+  type = object({
+    enabled = optional(bool, false)
+  })
+  default = {
+    enabled = false
+  }
+}
+
+variable "git_repository" {
+  description = "The git repository to use for the account"
+  type        = string
+  default     = "https://github.com/appvia/terraform-aws-landing-zones"
+}
+
+variable "identity_center_permitted_roles" {
+  description = "A map of permitted SSO roles, with the name of the permitted SSO role as the key, and value the permissionset"
+  type        = map(string)
+  default = {
+    "network_viewer"   = "NetworkViewer"
+    "security_auditor" = "SecurityAuditor"
   }
 }
 

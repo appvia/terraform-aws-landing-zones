@@ -31,6 +31,18 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   type          = var.iam_access_analyzer.analyzer_type
 }
 
+## Configure any IAM customer managed policies within the account 
+resource "aws_iam_policy" "iam_policies" {
+  for_each = local.home_region ? var.iam_policies : {}
+
+  description = each.value.description
+  name        = each.value.policy_name
+  name_prefix = each.value.policy_name_prefix
+  path        = each.value.path
+  policy      = each.value.policy
+  tags        = var.tags
+}
+
 ## Configure any IAM roles required within the iam_account_password_policy
 module "iam_roles" {
   for_each = local.home_region ? var.iam_roles : {}
@@ -50,4 +62,8 @@ module "iam_roles" {
   tags                              = var.tags
   trusted_role_arns                 = each.value.assume_roles
   trusted_role_services             = each.value.assume_services
+
+  depends_on = [
+    aws_iam_policy.iam_policies
+  ]
 }

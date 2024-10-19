@@ -111,9 +111,33 @@ s3_block_public_access = {
 }
 ```
 
+### IAM Customers Managed Policies
+
+This module can ensure a set of IAM policies are created within the account. This is useful for ensuring that the account is preloaded with any required policy sets.
+
+You can configure additional IAM policies using the `var.iam_policies` variable, such as the below example
+
+```hcl
+module "account" {
+  iam_policies = {
+    "deny_s3" = {
+      name = "deny-s3"
+      description = "Used to deny access to S3"
+      policy = data.aws_iam_policy_document.deny_s3.json
+    }
+    "deny_s3_with_prefix" = {
+      name_prefix = "deny-s3-"
+      policy = data.aws_iam_policy_document.deny_s3.json
+      description = "Used to deny access to S3"
+      path   = "/"
+    }
+  }
+}
+```
+
 ### IAM Account Roles
 
-This module can ensure a set of IAM roles are created within the account. This is useful for ensuring that the account is compliant with the organization's security policies, specific to the accounts requirements.
+This module can ensure a set of IAM roles are created within the account. This is useful for ensuring that the account is compliant with the organization's security policies, specific to the accounts requirements. Note, the IAM role have an automatic dependency on any IAM policies defined above to ensure ordering.
 
 You can configure additional IAM roles using the `var.iam_roles` variable, such as the below example
 
@@ -244,10 +268,10 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="module_anomaly_detection"></a> [anomaly\_detection](#module\_anomaly\_detection) | appvia/anomaly-detection/aws | 0.2.7 |
 | <a name="module_ebs_kms"></a> [ebs\_kms](#module\_ebs\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
 | <a name="module_iam_roles"></a> [iam\_roles](#module\_iam\_roles) | terraform-aws-modules/iam/aws//modules/iam-assumable-role | 5.46.0 |
-| <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.0 |
+| <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
 | <a name="module_networks"></a> [networks](#module\_networks) | appvia/network/aws | 0.3.2 |
 | <a name="module_notifications"></a> [notifications](#module\_notifications) | appvia/notifications/aws | 1.0.5 |
-| <a name="module_securityhub_notifications"></a> [securityhub\_notifications](#module\_securityhub\_notifications) | appvia/notifications/aws | 1.0.4 |
+| <a name="module_securityhub_notifications"></a> [securityhub\_notifications](#module\_securityhub\_notifications) | appvia/notifications/aws | 1.0.5 |
 | <a name="module_sso_assignment"></a> [sso\_assignment](#module\_sso\_assignment) | ./modules/sso_assignment | n/a |
 | <a name="module_tagging"></a> [tagging](#module\_tagging) | appvia/tagging/null | 0.0.5 |
 
@@ -262,11 +286,13 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | [aws_ebs_default_kms_key.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_default_kms_key) | resource |
 | [aws_ebs_encryption_by_default.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_encryption_by_default) | resource |
 | [aws_iam_account_password_policy.iam_account_password_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_account_password_policy) | resource |
+| [aws_iam_policy.iam_policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_role.securityhub_lambda_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy.securityhub_lambda_logs_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.securityhub_lambda_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_lambda_function.securityhub_lambda_function](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function) | resource |
 | [aws_lambda_permission.securityhub_event_bridge](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_permission) | resource |
+| [aws_macie2_account.macie_member](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/macie2_account) | resource |
 | [aws_organizations_policy.service_control_policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/organizations_policy) | resource |
 | [aws_route53_vpc_association_authorization.central_dns_authorization](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_vpc_association_authorization) | resource |
 | [aws_route53_zone.zones](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
@@ -296,10 +322,14 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | The cost center of the product, and injected into all resource tags | `string` | `null` | no |
 | <a name="input_dns"></a> [dns](#input\_dns) | A collection of DNS zones to provision and associate with networks | <pre>map(object({<br/>    comment = optional(string, "Managed by zone created by terraform")<br/>    # A comment associated with the DNS zone <br/>    network = string<br/>    # A list of network names to associate with the DNS zone <br/>    private = optional(bool, true)<br/>    # A flag indicating if the DNS zone is private or public<br/>  }))</pre> | `{}` | no |
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | A collection of EBS encryption settings to apply to the account | <pre>object({<br/>    enabled = optional(bool, false)<br/>    # A flag indicating if EBS encryption should be enabled<br/>    create_kms_key = optional(bool, true)<br/>    # A flag indicating if an EBS encryption key should be created<br/>    key_deletion_window_in_days = optional(number, 10)<br/>    # The number of days to retain the key before deletion when the key is removed<br/>    key_alias = optional(string, "lza/ebs/default")<br/>    # The alias of the EBS encryption key when provisioning a new key<br/>    key_arn = optional(string, null)<br/>    # The ARN of an existing EBS encryption key to use for EBS encryption<br/>  })</pre> | <pre>{<br/>  "create_kms_key": true,<br/>  "enabled": false,<br/>  "key_alias": "lza/ebs/default",<br/>  "key_arn": null,<br/>  "key_deletion_window_in_days": 10<br/>}</pre> | no |
+| <a name="input_git_repository"></a> [git\_repository](#input\_git\_repository) | The git repository to use for the account | `string` | `"https://github.com/appvia/terraform-aws-landing-zones"` | no |
 | <a name="input_iam_access_analyzer"></a> [iam\_access\_analyzer](#input\_iam\_access\_analyzer) | The IAM access analyzer configuration to apply to the account | <pre>object({<br/>    enabled = optional(bool, false)<br/>    # A flag indicating if IAM access analyzer should be enabled<br/>    analyzer_name = optional(string, "lza-iam-access-analyzer")<br/>    # The name of the IAM access analyzer <br/>    analyzer_type = optional(string, "ORGANIZATION")<br/>    # The type of the IAM access analyzer<br/>  })</pre> | <pre>{<br/>  "analyzer_name": "lza-iam-access-analyzer",<br/>  "analyzer_type": "ORGANIZATION",<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_iam_password_policy"></a> [iam\_password\_policy](#input\_iam\_password\_policy) | The IAM password policy to apply to the account | <pre>object({<br/>    enabled = optional(bool, false)<br/>    # A flag indicating if IAM password policy should be enabled<br/>    allow_users_to_change_password = optional(bool, true)<br/>    # A flag indicating if users can change their password <br/>    hard_expiry = optional(bool, false)<br/>    # A flag indicating if a hard expiry should be enforced <br/>    max_password_age = optional(number, 90)<br/>    # The maximum password age <br/>    minimum_password_length = optional(number, 8)<br/>    # The minimum password length <br/>    password_reuse_prevention = optional(number, 24)<br/>    # The number of passwords to prevent reuse <br/>    require_lowercase_characters = optional(bool, true)<br/>    # A flag indicating if lowercase characters are required <br/>    require_numbers = optional(bool, true)<br/>    # A flag indicating if numbers are required <br/>    require_symbols = optional(bool, true)<br/>    # A flag indicating if symbols are required <br/>    require_uppercase_characters = optional(bool, true)<br/>    # A flag indicating if uppercase characters are required <br/>  })</pre> | <pre>{<br/>  "allow_users_to_change_password": true,<br/>  "hard_expiry": false,<br/>  "max_password_age": 90,<br/>  "minimum_password_length": 8,<br/>  "password_reuse_prevention": 24,<br/>  "require_lowercase_characters": true,<br/>  "require_numbers": true,<br/>  "require_symbols": true,<br/>  "require_uppercase_characters": true<br/>}</pre> | no |
+| <a name="input_iam_policies"></a> [iam\_policies](#input\_iam\_policies) | A collection of IAM policies to apply to the account | <pre>map(object({<br/>    name = optional(string, null)<br/>    # The name of the IAM policy <br/>    name_prefix = optional(string, null)<br/>    # The name prefix of the IAM policy <br/>    description = string<br/>    # The description of the IAM policy <br/>    path = optional(string, "/")<br/>    # The path of the IAM policy<br/>    policy = string<br/>    # The policy document to apply to the IAM policy <br/>  }))</pre> | `{}` | no |
 | <a name="input_iam_roles"></a> [iam\_roles](#input\_iam\_roles) | A collection of IAM roles to apply to the account | <pre>map(object({<br/>    name = string<br/>    # The name of the IAM role <br/>    assume_roles = optional(list(string), [])<br/>    # List of principals to assume the role<br/>    assume_services = optional(list(string), [])<br/>    # List of services to assume the role<br/>    description = string<br/>    # The description of the IAM role <br/>    path = optional(string, "/")<br/>    # The path of the IAM role<br/>    permissions_boundary_arn = optional(string, "")<br/>    # A collection of tags to apply to the IAM role <br/>    permissions_arns = optional(list(string), [])<br/>    # A list of additional permissions to apply to the IAM role <br/>    policies = optional(any, [])<br/>  }))</pre> | `{}` | no |
+| <a name="input_identity_center_permitted_roles"></a> [identity\_center\_permitted\_roles](#input\_identity\_center\_permitted\_roles) | A map of permitted SSO roles, with the name of the permitted SSO role as the key, and value the permissionset | `map(string)` | <pre>{<br/>  "network_viewer": "NetworkViewer",<br/>  "security_auditor": "SecurityAuditor"<br/>}</pre> | no |
 | <a name="input_kms"></a> [kms](#input\_kms) | Configuration for the KMS key to use for encryption | <pre>object({<br/>    enable_default_kms = optional(bool, true)<br/>    # A flag indicating if the default KMS key should be enabled <br/>    key_alias = optional(string, "landing-zone/default")<br/>  })</pre> | <pre>{<br/>  "enable_default_kms": true<br/>}</pre> | no |
+| <a name="input_macie"></a> [macie](#input\_macie) | A collection of Macie settings to apply to the account | <pre>object({<br/>    enabled = optional(bool, false)<br/>  })</pre> | <pre>{<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_networks"></a> [networks](#input\_networks) | A collection of networks to provision within the designated region | <pre>map(object({<br/>    firewall = optional(object({<br/>      capacity = number<br/>      # The capacity of the firewall rule group <br/>      rules_source = string<br/>      # The content of the suracata rules<br/>      ip_sets = map(list(string))<br/>      # A map of IP sets to apply to the firewall rule ie. WEBSERVERS = ["100.0.0.0/16"]<br/>      port_sets = map(list(number))<br/>      # A map of port sets to apply to the firewall rule ie. WEBSERVERS = [80, 443] <br/>      domains_whitelist = list(string)<br/>    }), null)<br/><br/>    subnets = map(object({<br/>      cidr = optional(string, null)<br/>      # The CIDR block of the subnet <br/>      netmask = optional(number, 0)<br/>    }))<br/><br/>    tags = optional(map(string), {})<br/>    # A collection of tags to apply to the network - these will be merged with the global tags<br/><br/>    vpc = object({<br/>      availability_zones = optional(string, 2)<br/>      # The availability zone in which to provision the network, defaults to 2 <br/>      cidr = optional(string, null)<br/>      # The CIDR block of the VPC network if not using IPAM<br/>      enable_private_endpoints = optional(list(string), [])<br/>      # An optional list of private endpoints to associate with the network i.e ["s3", "dynamodb"]<br/>      enable_shared_endpoints = optional(bool, true)<br/>      # Indicates if the network should accept shared endpoints <br/>      enable_transit_gateway = optional(bool, true)<br/>      # A flag indicating if the network should be associated with the transit gateway <br/>      enable_transit_gateway_appliance_mode = optional(bool, false)<br/>      # A flag indicating if the transit gateway should be in appliance mode<br/>      enable_default_route_table_association = optional(bool, true)<br/>      # A flag indicating if the default route table should be associated with the network <br/>      enable_default_route_table_propagation = optional(bool, true)<br/>      # A flag indicating if the default route table should be propagated to the network<br/>      ipam_pool_name = optional(string, null)<br/>      # The name of the IPAM pool to use for the network<br/>      nat_gateway_mode = optional(string, "none")<br/>      # The NAT gateway mode to use for the network, defaults to none <br/>      netmask = optional(number, null)<br/>      # The netmask of the VPC network if using IPAM<br/>      transit_gateway_routes = optional(map(string), null)<br/>      # A list of routes to associate with the transit gateway, optional <br/>    })<br/>  }))</pre> | `{}` | no |
 | <a name="input_notifications"></a> [notifications](#input\_notifications) | A collection of notifications to send to users | <pre>object({<br/>    email = optional(object({<br/>      addresses = list(string)<br/>      # A list of email addresses to send notifications to <br/>      }), {<br/>      addresses = []<br/>    })<br/>    slack = optional(object({<br/>      webhook_url = string<br/>      # The slack webhook_url to send notifications to <br/>      }), {<br/>      webhook_url = ""<br/>    })<br/>  })</pre> | <pre>{<br/>  "email": {<br/>    "addresses": []<br/>  },<br/>  "slack": {<br/>    "webhook_url": ""<br/>  }<br/>}</pre> | no |
 | <a name="input_rbac"></a> [rbac](#input\_rbac) | Provides the ability to associate one of more groups with a sso role in the account | <pre>map(object({<br/>    users = optional(list(string), [])<br/>    # A list of users to associate with the developer role<br/>    groups = optional(list(string), [])<br/>    # A list of groups to associate with the developer role <br/>  }))</pre> | `{}` | no |
