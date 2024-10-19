@@ -111,6 +111,30 @@ s3_block_public_access = {
 }
 ```
 
+### IAM Account Roles
+
+This module can ensure a set of IAM roles are created within the account. This is useful for ensuring that the account is compliant with the organization's security policies, specific to the accounts requirements.
+
+You can configure additional IAM roles using the `var.iam_roles` variable, such as the below example
+
+```hcl
+module "account" {
+  iam_roles = {
+    "s3_administrator" = {
+      name = "MY_ROLE_NAME"
+      assume_roles = ["arn:aws:iam::123456789012:role/role-name"]
+      description = "Administrator role for S3"
+      path = "/"
+      permissions_boundary_arn = null
+      permissions_arns = [
+        "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+      ]
+      #policies = [data.aws_iam_policy_document.deny_s3.json]
+    }
+  }
+}
+```
+
 ### RBAC & Identity Center Assignment
 
 This module provides the ability for tenants to manage the assignment of prescribed roles to users and groups within the account. The `sso_assignment` module is used to manage the assignment of roles to users and groups within the account.
