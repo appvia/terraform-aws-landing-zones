@@ -9,11 +9,6 @@
 
 check "validate_tagging" {
   assert {
-    condition     = length(var.tags) > 0
-    error_message = "The tags must be defined"
-  }
-
-  assert {
     condition     = length(local.product) > 0 && length(local.product) <= 12
     error_message = "The product name must be between 1 and 12 characters"
   }

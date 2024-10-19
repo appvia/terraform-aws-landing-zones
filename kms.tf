@@ -32,14 +32,24 @@ module "kms_key_administrator" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
   version = "5.46.0"
 
-  create_role           = true
-  force_detach_policies = true
-  role_description      = local.kms_key_administrator_role_description
-  role_name             = local.kms_key_administrator_role_name
-  role_requires_mfa     = false
-  tags                  = var.tags
-  trusted_role_arns     = local.kms_key_administrator_roles
-  trusted_role_services = var.kms_administrator.assume_services
+  allow_self_assume_role = true
+  create_role            = true
+  force_detach_policies  = true
+  role_description       = local.kms_key_administrator_role_description
+  role_name              = local.kms_key_administrator_role_name
+  role_requires_mfa      = false
+  tags                   = var.tags
+  trusted_role_arns      = local.kms_key_administrator_roles
+  trusted_role_services  = var.kms_administrator.assume_services
+
+  inline_policy_statements = [
+    {
+      sid       = "AllowKMSKeyActions"
+      effect    = "Allow"
+      actions   = ["kms:*"]
+      resources = ["*"]
+    }
+  ]
 
   providers = {
     aws = aws.tenant

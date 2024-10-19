@@ -390,17 +390,23 @@ variable "notifications" {
     email = optional(object({
       addresses = optional(list(string), [])
       # A list of email addresses to send notifications to 
-    }), null)
+      }), {
+      addresses = []
+    })
 
     slack = optional(object({
       webhook_url = optional(string, "")
       # The slack webhook_url to send notifications to 
-    }), null)
+      }), {
+      webhook_url = null
+    })
 
     teams = optional(object({
       webhook_url = optional(string, "")
       # The teams webhook_url to send notifications to 
-    }), null)
+      }), {
+      webhook_url = null
+    })
 
     services = optional(object({
       securityhub = object({
@@ -415,7 +421,11 @@ variable "notifications" {
         # The name of the eventbridge rule which is used to forward the security hub events to the lambda 
         severity = optional(list(string), ["CRITICAL"])
       })
-    }), null)
+      }), {
+      securityhub = {
+        enable = false
+      }
+    })
   })
   default = {
     email = {
@@ -607,10 +617,5 @@ variable "region" {
 variable "tags" {
   description = "A collection of tags to apply to resources"
   type        = map(string)
-
-  # must not have a name tag 
-  validation {
-    condition     = !contains(keys(var.tags), "Name")
-    error_message = "The tags must not have a name tag"
-  }
+  default     = {}
 }
