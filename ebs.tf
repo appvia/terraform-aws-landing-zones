@@ -4,13 +4,13 @@
 
 locals {
   ## Indicates if we should provision a default kms key for the account (per region)
-  ebs_create_kms_key = var.enable_ebs_encryption && var.ebs_create_encryption_key
+  ebs_create_kms_key = var.ebs_encryption.enabled && var.ebs_encryption.create_kms_key
 
   ## The ARN for the default EBS encryption key 
-  ebs_encryption_key_arn = local.ebs_create_kms_key ? module.ebs_kms[0].key_arn : var.ebs_encryption_key_arn
+  ebs_encryption_key_arn = local.ebs_create_kms_key ? module.ebs_kms[0].key_arn : var.ebs_encryption.key_arn
 
   ## Indicates if EBS encryption is enabled 
-  enable_ebs_encryption = var.enable_ebs_encryption && local.ebs_encryption_key_arn != null
+  enable_ebs_encryption = var.ebs_encryption.enabled && local.ebs_encryption_key_arn != null
 }
 
 ## Additional IAM policy document for EBS encryption kms key
@@ -83,8 +83,8 @@ module "ebs_kms" {
   source  = "terraform-aws-modules/kms/aws"
   version = "3.1.1"
 
-  aliases                 = [var.ebs_encryption_key_alias]
-  deletion_window_in_days = var.ebs_encryption_key_deletion_window_in_days
+  aliases                 = [var.ebs_encryption.key_alias]
+  deletion_window_in_days = var.ebs_encryption.key_deletion_window_in_days
   description             = format("Used as the default key for EBS encryption in the %s region", local.region)
   enable_key_rotation     = true
   is_enabled              = true
@@ -98,7 +98,7 @@ module "ebs_kms" {
 
 ## Ensure all EBS volumes are encrypted 
 resource "aws_ebs_encryption_by_default" "default" {
-  enabled = var.enable_ebs_encryption
+  enabled = local.enable_ebs_encryption
 }
 
 ## Configure the key to be the default key for EBS encryption

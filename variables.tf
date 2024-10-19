@@ -18,64 +18,87 @@ variable "dns" {
   }
 }
 
-variable "enable_s3_block_public_access" {
-  description = "A flag indicating if S3 block public access should be enabled"
-  type        = bool
-  default     = false
+variable "iam_password_policy" {
+  description = "The IAM password policy to apply to the account"
+  type = object({
+    enable_iam_password_policy = optional(bool, false)
+    # A flag indicating if IAM password policy should be enabled
+    allow_users_to_change_password = optional(bool, true)
+    # A flag indicating if users can change their password 
+    hard_expiry = optional(bool, false)
+    # A flag indicating if a hard expiry should be enforced 
+    max_password_age = optional(number, 90)
+    # The maximum password age 
+    minimum_password_length = optional(number, 8)
+    # The minimum password length 
+    password_reuse_prevention = optional(number, 24)
+    # The number of passwords to prevent reuse 
+    require_lowercase_characters = optional(bool, true)
+    # A flag indicating if lowercase characters are required 
+    require_numbers = optional(bool, true)
+    # A flag indicating if numbers are required 
+    require_symbols = optional(bool, true)
+    # A flag indicating if symbols are required 
+    require_uppercase_characters = optional(bool, true)
+    # A flag indicating if uppercase characters are required 
+  })
+  default = {
+    allow_users_to_change_password = true
+    hard_expiry                    = false
+    max_password_age               = 90
+    minimum_password_length        = 8
+    password_reuse_prevention      = 24
+    require_lowercase_characters   = true
+    require_numbers                = true
+    require_symbols                = true
+    require_uppercase_characters   = true
+  }
 }
 
-variable "enable_s3_block_public_policy" {
-  description = "A flag indicating if S3 block public policy should be enabled"
-  type        = bool
-  default     = true
+variable "s3_block_public_access" {
+  description = "A collection of S3 public block access settings to apply to the account"
+  type = object({
+    enabled = optional(bool, false)
+    # A flag indicating if S3 block public access should be enabled
+    enable_block_public_policy = optional(bool, true)
+    # A flag indicating if S3 block public policy should be enabled
+    enable_block_public_acls = optional(bool, true)
+    # A flag indicating if S3 block public ACLs should be enabled
+    enable_ignore_public_acls = optional(bool, true)
+    # A flag indicating if S3 ignore public ACLs should be enabled
+    enable_restrict_public_buckets = optional(bool, true)
+    # A flag indicating if S3 restrict public buckets should be enabled
+  })
+  default = {
+    enabled                        = false
+    enable_block_public_policy     = true
+    enable_block_public_acls       = true
+    enable_ignore_public_acls      = true
+    enable_restrict_public_buckets = true
+  }
 }
 
-variable "enable_s3_block_public_acls" {
-  description = "A flag indicating if S3 block public ACLs should be enabled"
-  type        = bool
-  default     = true
-}
-
-variable "enable_s3_ignore_public_acls" {
-  description = "A flag indicating if S3 ignore public ACLs should be enabled"
-  type        = bool
-  default     = true
-}
-
-variable "enable_s3_restrict_public_buckets" {
-  description = "A flag indicating if S3 restrict public buckets should be enabled"
-  type        = bool
-  default     = true
-}
-
-variable "enable_ebs_encryption" {
-  description = "A flag indicating if EBS encryption should be enabled"
-  type        = bool
-  default     = false
-}
-
-variable "ebs_create_encryption_key" {
-  description = "A flag indicating if an EBS encryption key should be created"
-  type        = bool
-  default     = true
-}
-
-variable "ebs_encryption_key_deletion_window_in_days" {
-  description = "The number of days to retain the key before deletion when the key is removed"
-  type        = number
-  default     = 10
-}
-
-variable "ebs_encryption_key_alias" {
-  description = "The alias of the EBS encryption key when provisioning a new key"
-  type        = string
-  default     = "lza/ebs/default"
-}
-
-variable "ebs_encryption_key_arn" {
-  description = "The ARN of an existing EBS encryption key to use for EBS encryption"
-  type        = string
-  default     = null
+variable "ebs_encryption" {
+  description = "A collection of EBS encryption settings to apply to the account"
+  type = object({
+    enabled = optional(bool, false)
+    # A flag indicating if EBS encryption should be enabled
+    create_kms_key = optional(bool, true)
+    # A flag indicating if an EBS encryption key should be created
+    key_deletion_window_in_days = optional(number, 10)
+    # The number of days to retain the key before deletion when the key is removed
+    key_alias = optional(string, "lza/ebs/default")
+    # The alias of the EBS encryption key when provisioning a new key
+    key_arn = optional(string, null)
+    # The ARN of an existing EBS encryption key to use for EBS encryption
+  })
+  default = {
+    enabled                     = false
+    create_kms_key              = true
+    key_deletion_window_in_days = 10
+    key_alias                   = "lza/ebs/default"
+    key_arn                     = null
+  }
 }
 
 variable "service_control_policies" {
