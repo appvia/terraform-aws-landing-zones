@@ -72,6 +72,8 @@ variable "iam_roles" {
     # The name of the IAM role 
     name_prefix = optional(string, null)
     # The name prefix of the IAM role 
+    assume_accounts = optional(list(string), [])
+    # List of accounts to assume the role
     assume_roles = optional(list(string), [])
     # List of principals to assume the role
     assume_services = optional(list(string), [])

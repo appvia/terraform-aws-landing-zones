@@ -61,7 +61,7 @@ module "iam_roles" {
   role_permissions_boundary_arn     = each.value.permissions_boundary_arn
   role_requires_mfa                 = false
   tags                              = var.tags
-  trusted_role_arns                 = each.value.assume_roles
+  trusted_role_arns                 = concat(each.value.assume_roles, [for x in each.value.assume_accounts : format("arn:aws:iam::%s:root", x)])
   trusted_role_services             = each.value.assume_services
 
   depends_on = [
