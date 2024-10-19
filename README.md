@@ -54,6 +54,63 @@ module "account" {
 }
 ```
 
+### IAM Password Policy
+
+The IAM password policy can be configured to enforce password policies on the account. This is useful for ensuring that the account is compliant with the organization's security policies, specific to the accounts requirements.
+
+```hcl
+iam_password_policy = {
+  enabled = true
+  allow_users_to_change_password = true
+  hard_expiry = false
+  max_password_age = 90
+  minimum_password_length = 8
+  password_reuse_prevention = 24
+  require_lowercase_characters = true
+  require_numbers = true
+  require_symbols = true
+  require_uppercase_characters = true
+}
+```
+
+### IAM Access Analyzer
+
+The IAM access analyzer can be configured to analyze access to resources within your account and produce findings related to excessive permissions and or permissions which carry a high risk.
+
+```hcl
+iam_access_analyzer = {
+  enabled = true
+  analyzer_name = "lza-iam-access-analyzer" # optional
+  analyzer_type = "ORGANIZATION" # optional but default
+}
+```
+
+### EBS Encryption
+
+The EBS encryption can be configured to encrypt all EBS volumes within the account. The feature ensures all volumes are automatically encrypted.
+
+```hcl
+ebs_encryption = {
+  enabled = true
+  create_kms_key = true
+  key_alias = "lza/ebs/default"
+}
+```
+
+### S3 Block Public Access
+
+The S3 block public access can be configured to block public access to S3 buckets within the account. The feature ensures all buckets are automatically blocked from public access.
+
+```hcl
+s3_block_public_access = {
+  enabled = true
+  enable_block_public_policy = true
+  enable_block_public_acls = true
+  enable_ignore_public_acls = true
+  enable_restrict_public_buckets = true
+}
+```
+
 ### RBAC & Identity Center Assignment
 
 This module provides the ability for tenants to manage the assignment of prescribed roles to users and groups within the account. The `sso_assignment` module is used to manage the assignment of roles to users and groups within the account.
