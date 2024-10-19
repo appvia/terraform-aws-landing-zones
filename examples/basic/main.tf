@@ -103,6 +103,13 @@ module "dev_apps" {
     },
   }
 
+  transit_gateway = {
+    gateway_id = "tgw-0b1b2c3d4e5f6g7h8"
+    gateway_routes = {
+      "private" = "10.0.0.0/8"
+    }
+  }
+
   dns = {
     "team.aws.appvia.local" = {
       comment = "Managed by zone created by terraform"

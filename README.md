@@ -300,6 +300,47 @@ networks = {
 }
 ```
 
+### Transit Gateway
+
+When network have defined the `enable_transit_gateway` boolean it is the responsibility of the consumer of this module to have defined the correct transit gateway id and any default routing requirements.
+
+Assuming the following configuration
+
+```hcl
+module "my_account" {
+  ...
+  networks = {
+    dev = {
+      vpc = {
+        enable_transit_gateway = true
+        ipam_pool_name = "development"
+        netmask        = 21
+      }
+      subnets = {
+        private = {
+          netmask = 24
+        }
+      }
+    },
+  }
+```
+
+The caller must have passed the transit gateway configuration to this module as follows:
+
+```hcl
+module "my_account" {
+  ...
+  transit_gateway = {
+    gateway_id = "tgw-1234567890"
+    gateway_routes = {
+      private = "10.0.0.0/8"
+    }
+  }
+}
+```
+
+For all `var.networks` whom have enabled the transit gateway, the above settings will be used to configure transit gateway attachments.
+
 ## Update Documentation
 
 The `terraform-docs` utility is used to generate this README. Follow the below steps to update:
@@ -335,7 +376,8 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="module_anomaly_detection"></a> [anomaly\_detection](#module\_anomaly\_detection) | appvia/anomaly-detection/aws | 0.2.7 |
 | <a name="module_ebs_kms"></a> [ebs\_kms](#module\_ebs\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
 | <a name="module_iam_roles"></a> [iam\_roles](#module\_iam\_roles) | terraform-aws-modules/iam/aws//modules/iam-assumable-role | 5.46.0 |
-| <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
+| <a name="module_kms_key"></a> [kms\_key](#module\_kms\_key) | terraform-aws-modules/kms/aws | 3.1.1 |
+| <a name="module_kms_key_administrator"></a> [kms\_key\_administrator](#module\_kms\_key\_administrator) | terraform-aws-modules/iam/aws//modules/iam-assumable-role | 5.46.0 |
 | <a name="module_networks"></a> [networks](#module\_networks) | appvia/network/aws | 0.3.2 |
 | <a name="module_notifications"></a> [notifications](#module\_notifications) | appvia/notifications/aws | 1.0.5 |
 | <a name="module_securityhub_notifications"></a> [securityhub\_notifications](#module\_securityhub\_notifications) | appvia/notifications/aws | 1.0.5 |
@@ -396,13 +438,15 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_iam_policies"></a> [iam\_policies](#input\_iam\_policies) | A collection of IAM policies to apply to the account | <pre>map(object({<br/>    name = optional(string, null)<br/>    # The name of the IAM policy <br/>    name_prefix = optional(string, null)<br/>    # The name prefix of the IAM policy <br/>    description = string<br/>    # The description of the IAM policy <br/>    path = optional(string, "/")<br/>    # The path of the IAM policy<br/>    policy = string<br/>    # The policy document to apply to the IAM policy <br/>  }))</pre> | `{}` | no |
 | <a name="input_iam_roles"></a> [iam\_roles](#input\_iam\_roles) | A collection of IAM roles to apply to the account | <pre>map(object({<br/>    name = optional(string, null)<br/>    # The name of the IAM role <br/>    name_prefix = optional(string, null)<br/>    # The name prefix of the IAM role <br/>    assume_accounts = optional(list(string), [])<br/>    # List of accounts to assume the role<br/>    assume_roles = optional(list(string), [])<br/>    # List of principals to assume the role<br/>    assume_services = optional(list(string), [])<br/>    # List of services to assume the role<br/>    description = string<br/>    # The description of the IAM role <br/>    path = optional(string, "/")<br/>    # The path of the IAM role<br/>    permissions_boundary_arn = optional(string, "")<br/>    # A collection of tags to apply to the IAM role <br/>    permissions_arns = optional(list(string), [])<br/>    # A list of additional permissions to apply to the IAM role <br/>    policies = optional(any, [])<br/>  }))</pre> | `{}` | no |
 | <a name="input_identity_center_permitted_roles"></a> [identity\_center\_permitted\_roles](#input\_identity\_center\_permitted\_roles) | A map of permitted SSO roles, with the name of the permitted SSO role as the key, and value the permissionset | `map(string)` | <pre>{<br/>  "network_viewer": "NetworkViewer",<br/>  "security_auditor": "SecurityAuditor"<br/>}</pre> | no |
-| <a name="input_kms"></a> [kms](#input\_kms) | Configuration for the KMS key to use for encryption | <pre>object({<br/>    enable_default_kms = optional(bool, true)<br/>    # A flag indicating if the default KMS key should be enabled <br/>    key_alias = optional(string, "landing-zone/default")<br/>  })</pre> | <pre>{<br/>  "enable_default_kms": true<br/>}</pre> | no |
+| <a name="input_kms_administrator"></a> [kms\_administrator](#input\_kms\_administrator) | Configuration for the default kms administrator role to use for the account | <pre>object({<br/>    # The domain name to use for the central DNS<br/>    assume_accounts = optional(list(string), [])<br/>    # A list of roles to assume the kms administrator role <br/>    assume_roles = optional(list(string), [])<br/>    # A list of roles to assume the kms administrator role <br/>    assume_services = optional(list(string), [])<br/>    # A list of services to assume the kms administrator role<br/>    description = optional(string, null)<br/>    # The description of the default kms administrator role<br/>    enabled = optional(bool, false)<br/>    # A flag indicating if the default kms administrator role should be enabled <br/>    name = string<br/>    # The name of the default kms administrator role<br/>  })</pre> | <pre>{<br/>  "assume_accounts": [],<br/>  "assume_roles": [],<br/>  "assume_services": [],<br/>  "enabled": false,<br/>  "name": "lza-kms-admin"<br/>}</pre> | no |
+| <a name="input_kms_key"></a> [kms\_key](#input\_kms\_key) | Configuration for the default kms encryption key to use for the account (per region) | <pre>object({<br/>    enabled = optional(bool, false)<br/>    # A flag indicating if account encryption should be enabled<br/>    key_deletion_window_in_days = optional(number, 7)<br/>    # The number of days to retain the key before deletion when the key is removed<br/>    key_alias = optional(string, null)<br/>    # The alias of the account encryption key when provisioning a new key<br/>    key_administrators = optional(list(string), [])<br/>    # A list of ARN of the key administrators<br/>  })</pre> | <pre>{<br/>  "enabled": false,<br/>  "key_administrators": [],<br/>  "key_alias": "lza/account/default",<br/>  "key_deletion_window_in_days": 10<br/>}</pre> | no |
 | <a name="input_macie"></a> [macie](#input\_macie) | A collection of Macie settings to apply to the account | <pre>object({<br/>    enabled = optional(bool, false)<br/>  })</pre> | <pre>{<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_networks"></a> [networks](#input\_networks) | A collection of networks to provision within the designated region | <pre>map(object({<br/>    firewall = optional(object({<br/>      capacity = number<br/>      # The capacity of the firewall rule group <br/>      rules_source = string<br/>      # The content of the suracata rules<br/>      ip_sets = map(list(string))<br/>      # A map of IP sets to apply to the firewall rule ie. WEBSERVERS = ["100.0.0.0/16"]<br/>      port_sets = map(list(number))<br/>      # A map of port sets to apply to the firewall rule ie. WEBSERVERS = [80, 443] <br/>      domains_whitelist = list(string)<br/>    }), null)<br/><br/>    subnets = map(object({<br/>      cidr = optional(string, null)<br/>      # The CIDR block of the subnet <br/>      netmask = optional(number, 0)<br/>    }))<br/><br/>    tags = optional(map(string), {})<br/>    # A collection of tags to apply to the network - these will be merged with the global tags<br/><br/>    vpc = object({<br/>      availability_zones = optional(string, 2)<br/>      # The availability zone in which to provision the network, defaults to 2 <br/>      cidr = optional(string, null)<br/>      # The CIDR block of the VPC network if not using IPAM<br/>      enable_private_endpoints = optional(list(string), [])<br/>      # An optional list of private endpoints to associate with the network i.e ["s3", "dynamodb"]<br/>      enable_shared_endpoints = optional(bool, true)<br/>      # Indicates if the network should accept shared endpoints <br/>      enable_transit_gateway = optional(bool, true)<br/>      # A flag indicating if the network should be associated with the transit gateway <br/>      enable_transit_gateway_appliance_mode = optional(bool, false)<br/>      # A flag indicating if the transit gateway should be in appliance mode<br/>      enable_default_route_table_association = optional(bool, true)<br/>      # A flag indicating if the default route table should be associated with the network <br/>      enable_default_route_table_propagation = optional(bool, true)<br/>      # A flag indicating if the default route table should be propagated to the network<br/>      ipam_pool_name = optional(string, null)<br/>      # The name of the IPAM pool to use for the network<br/>      nat_gateway_mode = optional(string, "none")<br/>      # The NAT gateway mode to use for the network, defaults to none <br/>      netmask = optional(number, null)<br/>      # The netmask of the VPC network if using IPAM<br/>      transit_gateway_routes = optional(map(string), null)<br/>      # A list of routes to associate with the transit gateway, optional <br/>    })<br/>  }))</pre> | `{}` | no |
 | <a name="input_notifications"></a> [notifications](#input\_notifications) | A collection of notifications to send to users | <pre>object({<br/>    email = optional(object({<br/>      addresses = list(string)<br/>      # A list of email addresses to send notifications to <br/>      }), {<br/>      addresses = []<br/>    })<br/>    slack = optional(object({<br/>      webhook_url = string<br/>      # The slack webhook_url to send notifications to <br/>      }), {<br/>      webhook_url = ""<br/>    })<br/>  })</pre> | <pre>{<br/>  "email": {<br/>    "addresses": []<br/>  },<br/>  "slack": {<br/>    "webhook_url": ""<br/>  }<br/>}</pre> | no |
 | <a name="input_rbac"></a> [rbac](#input\_rbac) | Provides the ability to associate one of more groups with a sso role in the account | <pre>map(object({<br/>    users = optional(list(string), [])<br/>    # A list of users to associate with the developer role<br/>    groups = optional(list(string), [])<br/>    # A list of groups to associate with the developer role <br/>  }))</pre> | `{}` | no |
 | <a name="input_s3_block_public_access"></a> [s3\_block\_public\_access](#input\_s3\_block\_public\_access) | A collection of S3 public block access settings to apply to the account | <pre>object({<br/>    enabled = optional(bool, false)<br/>    # A flag indicating if S3 block public access should be enabled<br/>    enable_block_public_policy = optional(bool, true)<br/>    # A flag indicating if S3 block public policy should be enabled<br/>    enable_block_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 block public ACLs should be enabled<br/>    enable_ignore_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 ignore public ACLs should be enabled<br/>    enable_restrict_public_buckets = optional(bool, true)<br/>    # A flag indicating if S3 restrict public buckets should be enabled<br/>  })</pre> | <pre>{<br/>  "enable_block_public_acls": true,<br/>  "enable_block_public_policy": true,<br/>  "enable_ignore_public_acls": true,<br/>  "enable_restrict_public_buckets": true,<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_service_control_policies"></a> [service\_control\_policies](#input\_service\_control\_policies) | Provides the ability to associate one of more service control policies with an account | <pre>map(object({<br/>    name = string<br/>    # The policy name to associate with the account <br/>    policy = string<br/>    # The policy document to associate with the account <br/>  }))</pre> | `{}` | no |
+| <a name="input_transit_gateway"></a> [transit\_gateway](#input\_transit\_gateway) | Configuration for the transit gateway to use for the account | <pre>object({<br/>    gateway_id = optional(string, null)<br/>    # The transit gateway ID to associate with the account <br/>    gateway_routes = optional(map(string), null)<br/>    # A map used to associate routes with subnets provisioned by the module - i.e ensure <br/>    # all private subnets push 10.0.0.0/8 to the transit gateway <br/>  })</pre> | <pre>{<br/>  "gateway_id": null,<br/>  "gateway_routes": null<br/>}</pre> | no |
 
 ## Outputs
 

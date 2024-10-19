@@ -23,8 +23,9 @@ module "app1" {
   networks = {
     app1 = {
       vpc = {
-        ipam_pool_name = "development"
-        netmask        = 21
+        enable_transit_gateway = true
+        ipam_pool_name         = "development"
+        netmask                = 21
       }
       subnets = {
         private = {
@@ -40,6 +41,13 @@ module "app1" {
       private = true
       network = "app1"
     },
+  }
+
+  transit_gateway = {
+    gateway_id = "tgw-0b1b2c3d4e5f6g7h8"
+    gateway_routes = {
+      "private" = "10.0.0.0/8"
+    }
   }
 
   providers = {

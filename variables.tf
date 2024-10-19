@@ -73,6 +73,52 @@ variable "transit_gateway" {
   }
 }
 
+variable "kms_administrator" {
+  description = "Configuration for the default kms administrator role to use for the account"
+  type = object({
+    # The domain name to use for the central DNS
+    assume_accounts = optional(list(string), [])
+    # A list of roles to assume the kms administrator role 
+    assume_roles = optional(list(string), [])
+    # A list of roles to assume the kms administrator role 
+    assume_services = optional(list(string), [])
+    # A list of services to assume the kms administrator role
+    description = optional(string, null)
+    # The description of the default kms administrator role
+    enabled = optional(bool, false)
+    # A flag indicating if the default kms administrator role should be enabled 
+    name = string
+    # The name of the default kms administrator role
+  })
+  default = {
+    enabled         = false
+    name            = "lza-kms-admin"
+    assume_accounts = []
+    assume_roles    = []
+    assume_services = []
+  }
+}
+
+variable "kms_key" {
+  description = "Configuration for the default kms encryption key to use for the account (per region)"
+  type = object({
+    enabled = optional(bool, false)
+    # A flag indicating if account encryption should be enabled
+    key_deletion_window_in_days = optional(number, 7)
+    # The number of days to retain the key before deletion when the key is removed
+    key_alias = optional(string, null)
+    # The alias of the account encryption key when provisioning a new key
+    key_administrators = optional(list(string), [])
+    # A list of ARN of the key administrators
+  })
+  default = {
+    enabled                     = false
+    key_administrators          = []
+    key_alias                   = "lza/account/default"
+    key_deletion_window_in_days = 10
+  }
+}
+
 variable "dns" {
   description = "A collection of DNS zones to provision and associate with networks"
   type = map(object({
@@ -343,18 +389,6 @@ variable "environment" {
   validation {
     condition     = var.environment == "Production" || var.environment == "Staging" || var.environment == "Development" || var.environment == "Sandbox"
     error_message = "The environment must be one of Production, Staging, Development or Sandbox"
-  }
-}
-
-variable "kms" {
-  description = "Configuration for the KMS key to use for encryption"
-  type = object({
-    enable_default_kms = optional(bool, true)
-    # A flag indicating if the default KMS key should be enabled 
-    key_alias = optional(string, "landing-zone/default")
-  })
-  default = {
-    enable_default_kms = true
   }
 }
 
