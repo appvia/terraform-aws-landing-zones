@@ -1,10 +1,10 @@
 
 locals {
   ## Indicates if we should provision a default kms key for the account (per region)
-  enable_kms_key = var.kms_key.enabled
+  enable_kms_key = var.kms_key.enable
 
   ## Should we create a default kms key administrator role for the account 
-  enable_kms_key_administrator = var.kms_administrator.enabled
+  enable_kms_key_administrator = var.kms_administrator.enable
 
   ## List of roles or accounts whom can assume the kms key administrator role 
   kms_key_administrator_roles = concat(

@@ -4,7 +4,7 @@
 
 locals {
   ## Indicates if we should enable the s3 account settings
-  enable_s3_block_public_access = var.s3_block_public_access.enabled
+  enable_s3_block_public_access = var.s3_block_public_access.enable
 }
 
 ## Configure public access block settings for the account 

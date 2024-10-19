@@ -4,13 +4,13 @@
 
 locals {
   ## Indicates if we should provision a default kms key for the account (per region)
-  ebs_create_kms_key = var.ebs_encryption.enabled && var.ebs_encryption.create_kms_key
+  ebs_create_kms_key = var.ebs_encryption.enable && var.ebs_encryption.create_kms_key
 
   ## The ARN for the default EBS encryption key 
   ebs_encryption_key_arn = local.ebs_create_kms_key ? module.ebs_kms[0].key_arn : var.ebs_encryption.key_arn
 
   ## Indicates if EBS encryption is enabled 
-  enable_ebs_encryption = var.ebs_encryption.enabled && local.ebs_encryption_key_arn != null
+  enable_ebs_encryption = var.ebs_encryption.enable && local.ebs_encryption_key_arn != null
 }
 
 ## Additional IAM policy document for EBS encryption kms key

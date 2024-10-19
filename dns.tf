@@ -1,8 +1,8 @@
 
 locals {
-  ## Enabled private hosted zone association - any private hosted zones declared will be automatically 
+  ## Enable private hosted zone association - any private hosted zones declared will be automatically 
   ## associated with the central private dns solution 
-  central_dns_enabled = var.central_dns.enabled && var.central_dns.vpc_id != null && var.central_dns.vpc_id != ""
+  central_dns_enable = var.central_dns.enable && var.central_dns.vpc_id != null && var.central_dns.vpc_id != ""
 
   ## This is the vpc which contains the central dns solution. Private hosted zones within the tenants 
   ## account will be associated with this vpc, permitting dns resolution 
@@ -50,7 +50,7 @@ resource "aws_route53_zone" "zones" {
 
 ## Authorize the spoke vpc to associate with the central dns solution if required 
 resource "aws_route53_vpc_association_authorization" "central_dns_authorization" {
-  for_each = local.central_dns_enabled ? { for key, zone in var.dns : key => zone if zone.private } : {}
+  for_each = local.central_dns_enable ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
   vpc_id     = local.central_dns_vpc_id
   vpc_region = var.region
@@ -66,7 +66,7 @@ resource "aws_route53_vpc_association_authorization" "central_dns_authorization"
 
 ## Associate the hosted zone with the central dns solution if required 
 resource "aws_route53_zone_association" "central_dns_association" {
-  for_each = local.central_dns_enabled ? { for key, zone in var.dns : key => zone if zone.private } : {}
+  for_each = local.central_dns_enable ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
   vpc_id     = local.central_dns_vpc_id
   vpc_region = var.region

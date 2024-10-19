@@ -1,7 +1,7 @@
 
 locals {
   ## Indicates if we should enable the cost anomaly detection monitors
-  enable_anomaly_detection = var.cost_anomaly_detection.enabled && length(var.cost_anomaly_detection.monitors) > 0
+  enable_anomaly_detection = var.cost_anomaly_detection.enable && length(var.cost_anomaly_detection.monitors) > 0
 
   ## List of cost anomaly detection monitors
   cost_anomaly_monitors = [

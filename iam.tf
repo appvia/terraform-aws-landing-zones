@@ -4,7 +4,7 @@
 
 locals {
   ## Indicates if we should enable the default IAM account settings
-  enable_iam_password_policy = local.home_region && var.iam_password_policy.enabled
+  enable_iam_password_policy = local.home_region && var.iam_password_policy.enable
 }
 
 ## Configure the default IAM password policy for the account 
@@ -26,7 +26,7 @@ resource "aws_iam_account_password_policy" "iam_account_password_policy" {
 
 ## Configure the IAM Access Analyzer for the account 
 resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
-  count = var.iam_access_analyzer.enabled ? 1 : 0
+  count = var.iam_access_analyzer.enable ? 1 : 0
 
   analyzer_name = var.iam_access_analyzer.analyzer_name
   tags          = var.tags
