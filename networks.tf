@@ -28,7 +28,7 @@ module "networks" {
   public_subnet_netmask                  = coalesce(try(each.value.subnets["public"].netmask, null), 0)
   tags                                   = merge(local.tags, each.value.tags)
   transit_gateway_id                     = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway.gateway_id : null
-  transit_gateway_routes                 = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway_routes : null
+  transit_gateway_routes                 = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway_routes : {}
   vpc_cidr                               = each.value.vpc.cidr
   vpc_netmask                            = each.value.vpc.netmask
 
