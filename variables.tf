@@ -18,6 +18,36 @@ variable "dns" {
   }
 }
 
+variable "enable_s3_block_public_access" {
+  description = "A flag indicating if S3 block public access should be enabled"
+  type        = bool
+  default     = false
+}
+
+variable "enable_s3_block_public_policy" {
+  description = "A flag indicating if S3 block public policy should be enabled"
+  type        = bool
+  default     = true
+}
+
+variable "enable_s3_block_public_acls" {
+  description = "A flag indicating if S3 block public ACLs should be enabled"
+  type        = bool
+  default     = true
+}
+
+variable "enable_s3_ignore_public_acls" {
+  description = "A flag indicating if S3 ignore public ACLs should be enabled"
+  type        = bool
+  default     = true
+}
+
+variable "enable_s3_restrict_public_buckets" {
+  description = "A flag indicating if S3 restrict public buckets should be enabled"
+  type        = bool
+  default     = true
+}
+
 variable "enable_ebs_encryption" {
   description = "A flag indicating if EBS encryption should be enabled"
   type        = bool
