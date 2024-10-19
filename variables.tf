@@ -72,14 +72,14 @@ variable "kms_administrator" {
     # The description of the default kms administrator role
     enable = optional(bool, false)
     # A flag indicating if the default kms administrator role should be enabled
-    enable_account_root = optional(bool, true)
+    enable_account_root = optional(bool, false)
     # A flag indicating if the account root should be enabled 
     name = optional(string, "lza-kms-adminstrator")
     # The name of the default kms administrator role
   })
   default = {
     enable              = false
-    enable_account_root = true
+    enable_account_root = false
     name                = "lza-kms-adminstrator"
     assume_accounts     = []
     assume_roles        = []
