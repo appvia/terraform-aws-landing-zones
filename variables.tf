@@ -180,9 +180,9 @@ variable "iam_roles" {
     # The description of the IAM role 
     path = optional(string, "/")
     # The path of the IAM role
-    permissions_boundary_arn = optional(string, "")
+    permission_boundary_arn = optional(string, "")
     # A collection of tags to apply to the IAM role 
-    permissions_arns = optional(list(string), [])
+    permission_arns = optional(list(string), [])
     # A list of additional permissions to apply to the IAM role 
     policies = optional(any, [])
   }))
