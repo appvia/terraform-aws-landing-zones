@@ -4,7 +4,7 @@
 
 locals {
   ## Indicates if we should enable the default IAM account settings
-  enable_iam_password_policy = var.iam_password_policy.enable_iam_password_policy
+  enable_iam_password_policy = local.home_region && var.iam_password_policy.enabled
 }
 
 ## Configure the default IAM password policy for the account 
@@ -33,7 +33,7 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
 
 ## Configure any IAM roles required within the iam_account_password_policy
 module "iam_roles" {
-  for_each = var.iam_roles
+  for_each = local.home_region ? var.iam_roles : {}
   source   = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
   version  = "5.46.0"
 

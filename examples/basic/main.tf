@@ -42,6 +42,7 @@ module "dev_apps" {
   product     = "app1"
   region      = "eu-west-2"
   tags        = var.tags
+  home_region = "eu-west-2"
 
   notifications = {
     email = {

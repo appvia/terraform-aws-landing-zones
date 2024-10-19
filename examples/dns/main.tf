@@ -18,6 +18,7 @@ module "app1" {
   product     = "app1"
   region      = "eu-west-2"
   tags        = var.tags
+  home_region = "eu-west-2"
 
   anomaly_detection = {
     enable_default_monitors = false
@@ -62,6 +63,7 @@ module "app2" {
   product     = "app2"
   region      = "eu-west-2"
   tags        = var.tags
+  home_region = "eu-west-2"
 
   anomaly_detection = {
     enable_default_monitors = false

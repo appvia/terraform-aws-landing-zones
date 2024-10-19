@@ -19,6 +19,9 @@ locals {
   ## The current region 
   region = var.region
 
+  ## is_home_region is true if the current region is the home region for the tenant
+  home_region = local.region == var.home_region
+
   ## The owner in lower case
   owner = lower(var.owner)
 

@@ -1,4 +1,14 @@
 
+variable "home_region" {
+  description = "The home region in which to provision global resources"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]$", var.home_region))
+    error_message = "The home region must be in the format of a valid AWS region"
+  }
+}
+
 variable "dns" {
   description = "A collection of DNS zones to provision and associate with networks"
   type = map(object({
@@ -21,7 +31,7 @@ variable "dns" {
 variable "iam_password_policy" {
   description = "The IAM password policy to apply to the account"
   type = object({
-    enable_iam_password_policy = optional(bool, false)
+    enabled = optional(bool, false)
     # A flag indicating if IAM password policy should be enabled
     allow_users_to_change_password = optional(bool, true)
     # A flag indicating if users can change their password 
