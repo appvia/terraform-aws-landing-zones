@@ -8,8 +8,9 @@ locals {
 
   ## List of roles or accounts whom can assume the kms key administrator role 
   kms_key_administrator_roles = concat(
+    var.kms_administrator.enable_account_root ? [format("arn:aws:iam::%s:root", local.account_id)] : [],
     var.kms_key.key_administrators,
-    [for x in var.kms_administrator.assume_accounts : format("arn:aws:iam::%s:root", x)]
+    [for x in var.kms_administrator.assume_accounts : format("arn:aws:iam::%s:root", x)],
   )
 
   ## Is the name of the key administrator iam role within the account
@@ -35,7 +36,6 @@ module "kms_key_administrator" {
   force_detach_policies = true
   role_description      = local.kms_key_administrator_role_description
   role_name             = local.kms_key_administrator_role_name
-  role_path             = "/"
   role_requires_mfa     = false
   tags                  = var.tags
   trusted_role_arns     = local.kms_key_administrator_roles

@@ -63,24 +63,27 @@ variable "kms_administrator" {
   type = object({
     # The domain name to use for the central DNS
     assume_accounts = optional(list(string), [])
-    # A list of roles to assume the kms administrator role 
+    # A list of roles to assume the kms administrator role
     assume_roles = optional(list(string), [])
-    # A list of roles to assume the kms administrator role 
+    # A list of roles to assume the kms administrator role
     assume_services = optional(list(string), [])
     # A list of services to assume the kms administrator role
     description = optional(string, null)
     # The description of the default kms administrator role
     enable = optional(bool, false)
-    # A flag indicating if the default kms administrator role should be enabled 
+    # A flag indicating if the default kms administrator role should be enabled
+    enable_account_root = optional(bool, true)
+    # A flag indicating if the account root should be enabled 
     name = optional(string, "lza-kms-adminstrator")
     # The name of the default kms administrator role
   })
   default = {
-    enabled         = false
-    name            = "lza-kms-adminstrator"
-    assume_accounts = []
-    assume_roles    = []
-    assume_services = []
+    enable              = false
+    enable_account_root = true
+    name                = "lza-kms-adminstrator"
+    assume_accounts     = []
+    assume_roles        = []
+    assume_services     = []
   }
 }
 
