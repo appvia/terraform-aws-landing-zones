@@ -56,6 +56,7 @@ module "iam_roles" {
   number_of_custom_role_policy_arns = length(each.value.permission_arns)
   role_description                  = each.value.description
   role_name                         = each.value.role
+  role_name_prefix                  = each.value.role_prefix
   role_path                         = each.value.path
   role_permissions_boundary_arn     = each.value.permissions_boundary_arn
   role_requires_mfa                 = false

@@ -68,8 +68,10 @@ variable "iam_password_policy" {
 variable "iam_roles" {
   description = "A collection of IAM roles to apply to the account"
   type = map(object({
-    name = string
+    name = optional(string, null)
     # The name of the IAM role 
+    name_prefix = optional(string, null)
+    # The name prefix of the IAM role 
     assume_roles = optional(list(string), [])
     # List of principals to assume the role
     assume_services = optional(list(string), [])
@@ -85,6 +87,11 @@ variable "iam_roles" {
     policies = optional(any, [])
   }))
   default = {}
+
+  validation {
+    condition     = alltrue([for role in values(var.iam_roles) : length(role.name) > 0 || length(role.name_prefix) > 0])
+    error_message = "The name or name prefix must be greater than 0"
+  }
 }
 
 variable "iam_policies" {
