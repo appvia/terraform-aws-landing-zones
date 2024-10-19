@@ -21,7 +21,7 @@ variable "dns" {
 variable "enable_ebs_encryption" {
   description = "A flag indicating if EBS encryption should be enabled"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "ebs_create_encryption_key" {
