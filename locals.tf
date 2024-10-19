@@ -7,6 +7,15 @@ locals {
   ## The account id for the tenant we are provisioning resources for
   account_id = data.aws_caller_identity.tenant.account_id
 
+  ## The ARN for the account root 
+  account_root_arn = format("arn:aws:iam::%s:root", local.account_id)
+
+  ## Autoscale service linked role name 
+  autoscale_service_linked_role_name = format("arn:aws:iam::%s:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling", local.account_id)
+
+  ## Cloud9 service linked role name 
+  cloud9_service_linked_role_name = format("arn:aws:iam::%s:role/aws-service-role/cloud9.amazonaws.com/AWSServiceRoleForAWSCloud9", local.account_id)
+
   ## The current region 
   region = var.region
 

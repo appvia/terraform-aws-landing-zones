@@ -18,6 +18,36 @@ variable "dns" {
   }
 }
 
+variable "enable_ebs_encryption" {
+  description = "A flag indicating if EBS encryption should be enabled"
+  type        = bool
+  default     = true
+}
+
+variable "ebs_create_encryption_key" {
+  description = "A flag indicating if an EBS encryption key should be created"
+  type        = bool
+  default     = true
+}
+
+variable "ebs_encryption_key_deletion_window_in_days" {
+  description = "The number of days to retain the key before deletion when the key is removed"
+  type        = number
+  default     = 10
+}
+
+variable "ebs_encryption_key_alias" {
+  description = "The alias of the EBS encryption key when provisioning a new key"
+  type        = string
+  default     = "lza/ebs/default"
+}
+
+variable "ebs_encryption_key_arn" {
+  description = "The ARN of an existing EBS encryption key to use for EBS encryption"
+  type        = string
+  default     = null
+}
+
 variable "service_control_policies" {
   description = "Provides the ability to associate one of more service control policies with an account"
   type = map(object({
