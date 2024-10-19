@@ -89,6 +89,14 @@ module "dev_apps" {
         ipam_pool_name = "development"
         netmask        = 21
       }
+
+      transit_gateway = {
+        gateway_id = "tgw-0b1b2c3d4e5f6g7h8"
+        gateway_routes = {
+          "private" = "10.0.0.0/8"
+        }
+      }
+
       subnets = {
         public = {
           netmask = 24
@@ -101,13 +109,6 @@ module "dev_apps" {
         }
       }
     },
-  }
-
-  transit_gateway = {
-    gateway_id = "tgw-0b1b2c3d4e5f6g7h8"
-    gateway_routes = {
-      "private" = "10.0.0.0/8"
-    }
   }
 
   dns = {
