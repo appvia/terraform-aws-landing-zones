@@ -12,7 +12,7 @@ variable "home_region" {
 variable "cost_anomaly_detection" {
   description = "A collection of cost anomaly detection monitors to apply to the account"
   type = object({
-    enabled = optional(bool, true)
+    enable = optional(bool, true)
     # A flag indicating if the default monitors should be enabled 
     monitors = optional(list(object({
       name = string
@@ -48,13 +48,13 @@ variable "cost_anomaly_detection" {
 variable "central_dns" {
   description = "Configuration for the hub used to centrally resolved dns requests"
   type = object({
-    enabled = optional(bool, false)
+    enable = optional(bool, false)
     # The domain name to use for the central DNS
     vpc_id = optional(string, null)
   })
   default = {
-    enabled = false
-    vpc_id  = null
+    enable = false
+    vpc_id = null
   }
 }
 
@@ -70,7 +70,7 @@ variable "kms_administrator" {
     # A list of services to assume the kms administrator role
     description = optional(string, null)
     # The description of the default kms administrator role
-    enabled = optional(bool, false)
+    enable = optional(bool, false)
     # A flag indicating if the default kms administrator role should be enabled 
     name = optional(string, "lza-kms-adminstrator")
     # The name of the default kms administrator role
@@ -87,7 +87,7 @@ variable "kms_administrator" {
 variable "kms_key" {
   description = "Configuration for the default kms encryption key to use for the account (per region)"
   type = object({
-    enabled = optional(bool, false)
+    enable = optional(bool, false)
     # A flag indicating if account encryption should be enabled
     key_deletion_window_in_days = optional(number, 7)
     # The number of days to retain the key before deletion when the key is removed
@@ -126,7 +126,7 @@ variable "dns" {
 variable "iam_password_policy" {
   description = "The IAM password policy to apply to the account"
   type = object({
-    enabled = optional(bool, false)
+    enable = optional(bool, false)
     # A flag indicating if IAM password policy should be enabled
     allow_users_to_change_password = optional(bool, true)
     # A flag indicating if users can change their password 
@@ -216,7 +216,7 @@ variable "iam_policies" {
 variable "iam_access_analyzer" {
   description = "The IAM access analyzer configuration to apply to the account"
   type = object({
-    enabled = optional(bool, false)
+    enable = optional(bool, false)
     # A flag indicating if IAM access analyzer should be enabled
     analyzer_name = optional(string, "lza-iam-access-analyzer")
     # The name of the IAM access analyzer 
@@ -248,10 +248,10 @@ variable "iam_access_analyzer" {
 variable "macie" {
   description = "A collection of Macie settings to apply to the account"
   type = object({
-    enabled = optional(bool, false)
+    enable = optional(bool, false)
   })
   default = {
-    enabled = false
+    enable = false
   }
 }
 
@@ -273,7 +273,7 @@ variable "identity_center_permitted_roles" {
 #variable "guardduty" {
 #  description = "A collection of GuardDuty settings to apply to the account"
 #  type = object({
-#    enabled = optional(bool, false)
+#    enable = optional(bool, false)
 #    # A flag indicating if GuardDuty should be enabled 
 #    enable_s3_protection = optional(bool, true)
 #    # A flag indicating if S3 protection should be enabled 
@@ -299,7 +299,7 @@ variable "identity_center_permitted_roles" {
 variable "s3_block_public_access" {
   description = "A collection of S3 public block access settings to apply to the account"
   type = object({
-    enabled = optional(bool, false)
+    enable = optional(bool, false)
     # A flag indicating if S3 block public access should be enabled
     enable_block_public_policy = optional(bool, true)
     # A flag indicating if S3 block public policy should be enabled
@@ -322,7 +322,7 @@ variable "s3_block_public_access" {
 variable "ebs_encryption" {
   description = "A collection of EBS encryption settings to apply to the account"
   type = object({
-    enabled = optional(bool, false)
+    enable = optional(bool, false)
     # A flag indicating if EBS encryption should be enabled
     create_kms_key = optional(bool, true)
     # A flag indicating if an EBS encryption key should be created
