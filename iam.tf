@@ -21,3 +21,12 @@ resource "aws_iam_account_password_policy" "iam_account_password_policy" {
   require_symbols                = var.iam_password_policy.require_symbols
   require_uppercase_characters   = var.iam_password_policy.require_uppercase_characters
 }
+
+## Configure the IAM Access Analyzer for the account 
+resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
+  count = var.iam_access_analyzer.enabled ? 1 : 0
+
+  analyzer_name = var.iam_access_analyzer.analyzer_name
+  tags          = var.tags
+  type          = var.iam_access_analyzer.analyzer_type
+}

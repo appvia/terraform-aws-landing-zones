@@ -55,6 +55,38 @@ variable "iam_password_policy" {
   }
 }
 
+variable "iam_access_analyzer" {
+  description = "The IAM access analyzer configuration to apply to the account"
+  type = object({
+    enabled = optional(bool, false)
+    # A flag indicating if IAM access analyzer should be enabled
+    analyzer_name = optional(string, "lza-iam-access-analyzer")
+    # The name of the IAM access analyzer 
+    analyzer_type = optional(string, "ORGANIZATION")
+    # The type of the IAM access analyzer
+  })
+  default = {
+    analyzer_name = "lza-iam-access-analyzer"
+    analyzer_type = "ORGANIZATION"
+    enabled       = false
+  }
+
+  validation {
+    condition     = var.iam_access_analyzer.analyzer_type == "ORGANIZATION" || var.iam_access_analyzer.analyzer_type == "ACCOUNT"
+    error_message = "The analyzer type must be ORGANIZATION or ACCOUNT"
+  }
+
+  validation {
+    condition     = length(var.iam_access_analyzer.analyzer_name) > 0
+    error_message = "The analyzer name must be greater than 0"
+  }
+
+  validation {
+    condition     = length(var.iam_access_analyzer.analyzer_name) <= 32
+    error_message = "The analyzer name must be less than or equal to 32"
+  }
+}
+
 #variable "guardduty" {
 #  description = "A collection of GuardDuty settings to apply to the account"
 #  type = object({
