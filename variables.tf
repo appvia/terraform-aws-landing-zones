@@ -189,7 +189,7 @@ variable "iam_roles" {
   default = {}
 
   validation {
-    condition     = alltrue([for role in values(var.iam_roles) : length(role.name) > 0 || length(role.name_prefix) > 0])
+    condition     = alltrue([for role in values(var.iam_roles) : role.name != null || role.name_prefix != null])
     error_message = "The name or name prefix must be greater than 0"
   }
 }
