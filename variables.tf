@@ -253,9 +253,7 @@ variable "macie" {
   type = object({
     enable = optional(bool, false)
   })
-  default = {
-    enable = false
-  }
+  default = null
 }
 
 variable "git_repository" {
@@ -336,13 +334,7 @@ variable "ebs_encryption" {
     key_arn = optional(string, null)
     # The ARN of an existing EBS encryption key to use for EBS encryption
   })
-  default = {
-    enabled                     = false
-    create_kms_key              = true
-    key_deletion_window_in_days = 10
-    key_alias                   = "lza/ebs/default"
-    key_arn                     = null
-  }
+  default = null
 }
 
 variable "service_control_policies" {

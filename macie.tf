@@ -3,16 +3,19 @@
 # 
 
 locals {
+  ## Indicates if macie is configured 
+  macie_managed = var.macie != null
+
   ## Indicates if we should enable the macie account settings
-  enable_macie = var.macie.enable
+  enable_macie = local.macie_managed && try(var.macie.enable, false)
 }
 
 ## Configure the macie service for the account 
 resource "aws_macie2_account" "macie_member" {
-  count = local.enable_macie ? 1 : 0
+  count = local.macie_managed ? 1 : 0
 
   finding_publishing_frequency = "FIFTEEN_MINUTES"
-  status                       = var.macie.enable ? "ENABLED" : "PAUSED"
+  status                       = local.enable_macie ? "ENABLED" : "PAUSED"
 
   provider = aws.tenant
 }
