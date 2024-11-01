@@ -53,7 +53,7 @@ resource "aws_iam_policy" "iam_policies" {
 module "iam_roles" {
   for_each = local.home_region ? var.iam_roles : {}
   source   = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version  = "5.46.0"
+  version  = "5.47.1"
 
   create_role                       = true
   custom_role_policy_arns           = each.value.permission_arns
