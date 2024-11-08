@@ -259,7 +259,6 @@ variable "macie" {
 variable "git_repository" {
   description = "The git repository to use for the account"
   type        = string
-  default     = "https://github.com/appvia/terraform-aws-landing-zones"
 }
 
 variable "identity_center_permitted_roles" {
@@ -609,5 +608,4 @@ variable "region" {
 variable "tags" {
   description = "A collection of tags to apply to resources"
   type        = map(string)
-  default     = {}
 }
