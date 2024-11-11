@@ -38,3 +38,8 @@ output "private_hosted_zones" {
   description = "A map of the private hosted zones"
   value       = local.private_hosted_zones
 }
+
+output "sns_notification_arn" {
+  description = "The SNS topic ARN for notifications"
+  value       = module.notifications.sns_topic_arn
+}
