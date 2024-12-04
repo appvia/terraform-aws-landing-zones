@@ -4,13 +4,13 @@
 # to build your own root module that invokes this module
 #####################################################################################
 
-## What would be nice to manage for a tenant 
-# - Networks and connectivity 
-# - DNS zones 
-# - Shared Private Endpoints 
-# - Private Link Services 
-# - Firewall rules 
-# - RBAC assignments 
+## What would be nice to manage for a tenant
+# - Networks and connectivity
+# - DNS zones
+# - Shared Private Endpoints
+# - Private Link Services
+# - Firewall rules
+# - RBAC assignments
 
 #tfsec:ignore:AVD-DS-0002
 #tfsec:ignore:AVD-DS-0013
@@ -21,12 +21,13 @@
 module "dev_apps" {
   source = "../../"
 
-  environment = "Development"
-  owner       = "platform"
-  product     = "app1"
-  region      = "eu-west-2"
-  tags        = var.tags
-  home_region = "eu-west-2"
+  environment    = "Development"
+  owner          = "platform"
+  product        = "app1"
+  region         = "eu-west-2"
+  tags           = var.tags
+  home_region    = "eu-west-2"
+  git_repository = "https://github.com/appvia/example-app.git"
 
   notifications = {
     email = {
@@ -40,6 +41,18 @@ module "dev_apps" {
   rbac = {
     platform_engineer = {
       groups = ["my_group"]
+    }
+  }
+
+  aws_config = {
+    enable = true
+    compliance_packs = {
+      hipaa = {
+        template_body = file("${path.module}/assets/hippa.yml")
+        parameter_overrides = {
+          AccessKeysRotatedParamMaxAccessKeyAge = "45"
+        }
+      }
     }
   }
 

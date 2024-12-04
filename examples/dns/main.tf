@@ -13,12 +13,13 @@
 module "app1" {
   source = "../../"
 
-  environment = "Development"
-  owner       = "platform"
-  product     = "app1"
-  region      = "eu-west-2"
-  tags        = var.tags
-  home_region = "eu-west-2"
+  environment    = "Development"
+  owner          = "platform"
+  product        = "app1"
+  region         = "eu-west-2"
+  tags           = var.tags
+  home_region    = "eu-west-2"
+  git_repository = "test"
 
   networks = {
     app1 = {
@@ -63,12 +64,13 @@ module "app1" {
 module "app2" {
   source = "../../"
 
-  environment = "Development"
-  owner       = "platform"
-  product     = "app2"
-  region      = "eu-west-2"
-  tags        = var.tags
-  home_region = "eu-west-2"
+  environment    = "Development"
+  owner          = "platform"
+  product        = "app2"
+  region         = "eu-west-2"
+  tags           = var.tags
+  home_region    = "eu-west-2"
+  git_repository = "test"
 
   networks = {
     app2 = {
