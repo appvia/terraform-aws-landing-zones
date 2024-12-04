@@ -2,7 +2,8 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.terraform.io/hashicorp/archive" {
-  version = "2.4.2"
+  version     = "2.4.2"
+  constraints = "~> 2.0"
   hashes = [
     "h1:1eOz9vM/55vnQjxk23RhnYga7PZq8n2rGxG+2Vx2s6w=",
     "zh:08faed7c9f42d82bc3d406d0d9d4971e2d1c2d34eae268ad211b8aca57b7f758",
@@ -22,7 +23,7 @@ provider "registry.terraform.io/hashicorp/archive" {
 
 provider "registry.terraform.io/hashicorp/aws" {
   version     = "5.50.0"
-  constraints = ">= 3.29.0, >= 3.68.0, >= 3.72.0, >= 4.0.0, >= 4.8.0, >= 4.9.0, >= 5.0.0, ~> 5.0, >= 5.25.0, >= 5.49.0"
+  constraints = ">= 3.29.0, >= 3.68.0, >= 3.72.0, >= 4.0.0, >= 4.8.0, >= 4.9.0, >= 5.0.0, ~> 5.0, >= 5.25.0, >= 5.32.0, >= 5.49.0"
   hashes = [
     "h1:LevuTzPS4S7t+Vh6Kpz77pBNDAwChaos91/6+CVnD4w=",
     "zh:19be42f5a545d6712dee4bdb704b018d23bacf5d902ac3cb061eb1750dfe6a20",
@@ -45,7 +46,7 @@ provider "registry.terraform.io/hashicorp/aws" {
 
 provider "registry.terraform.io/hashicorp/awscc" {
   version     = "0.77.0"
-  constraints = "~> 0.9, >= 0.11.0, >= 0.15.0, >= 0.24.0"
+  constraints = "~> 0.9, >= 0.11.0, >= 0.15.0"
   hashes = [
     "h1:4QdPPPGRI6jApaqtzX2LsDqxm6Eu3wQ4f74CRFEBq4Q=",
     "zh:10bb62b5302d133ade64232eeece145af78cc5d51cebe12c9873a0968c4aff03",
@@ -88,7 +89,7 @@ provider "registry.terraform.io/hashicorp/external" {
 
 provider "registry.terraform.io/hashicorp/local" {
   version     = "2.5.1"
-  constraints = ">= 1.0.0"
+  constraints = ">= 1.0.0, >= 2.5.0"
   hashes = [
     "h1:/GAVA/xheGQcbOZEq0qxANOg+KVLCA7Wv8qluxhTjhU=",
     "zh:0af29ce2b7b5712319bf6424cb58d13b852bf9a777011a545fac99c7fdcdf561",
