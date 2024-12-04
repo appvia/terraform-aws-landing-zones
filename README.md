@@ -54,6 +54,30 @@ module "account" {
 }
 ```
 
+### AWS Config Compliance Packs
+
+You can configure additional compliance packs using the `var.aws_config` variable, such as the below example
+
+```hcl
+data "http" "security_hub_enabled" {
+  url = "https://s3.amazonaws.com/aws-service-catalog-reference-architectures/AWS_Config_Rules/Security/SecurityHub/SecurityHub-Enabled.json"
+}
+
+module "account" {
+  aws_config = {
+    enable = true
+    compliance_packs = {
+      "MY_COMPLIANCE_PACK" = {
+        parameter_overrides = {
+          "MY_PARAMETER" = "MY_VALUE"
+        }
+        template_url = data.http.security_hub_enabled.body
+      }
+    }
+  }
+}
+```
+
 ### IAM Password Policy
 
 The IAM password policy can be configured to enforce password policies on the account. This is useful for ensuring that the account is compliant with the organization's security policies, specific to the accounts requirements.
