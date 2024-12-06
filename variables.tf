@@ -290,31 +290,31 @@ variable "identity_center_permitted_roles" {
   }
 }
 
-variable "guardduty" {
-  description = "A collection of GuardDuty settings to apply to the account"
-  type = object({
-    enable = optional(bool, false)
-    # A flag indicating if GuardDuty should be enabled
-    enable_s3_protection = optional(bool, true)
-    # A flag indicating if S3 protection should be enabled
-    enable_kubernetes_protection = optional(bool, true)
-    # A flag indicating if Kubernetes protection should be enabled
-    enable_malware_protection = optional(bool, true)
-    # A flag indicating if malware protection should be enabled
-    enable_snapshot_retention = optional(bool, true)
-    # A flag indicating if snapshot retention should be enabled
-    finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")
-    # The frequency of finding publishing
-  })
-  default = {
-    enabled                      = false
-    enable_s3_protection         = true
-    enable_kubernetes_protection = true
-    enable_malware_protection    = true
-    enable_snapshot_retention    = true
-    finding_publishing_frequency = "FIFTEEN_MINUTES"
-  }
-}
+#variable "guardduty" {
+#  description = "A collection of GuardDuty settings to apply to the account"
+#  type = object({
+#    enable = optional(bool, false)
+#    # A flag indicating if GuardDuty should be enabled
+#    enable_s3_protection = optional(bool, true)
+#    # A flag indicating if S3 protection should be enabled
+#    enable_kubernetes_protection = optional(bool, true)
+#    # A flag indicating if Kubernetes protection should be enabled
+#    enable_malware_protection = optional(bool, true)
+#    # A flag indicating if malware protection should be enabled
+#    enable_snapshot_retention = optional(bool, true)
+#    # A flag indicating if snapshot retention should be enabled
+#    finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")
+#    # The frequency of finding publishing
+#  })
+#  default = {
+#    enabled                      = false
+#    enable_s3_protection         = true
+#    enable_kubernetes_protection = true
+#    enable_malware_protection    = true
+#    enable_snapshot_retention    = true
+#    finding_publishing_frequency = "FIFTEEN_MINUTES"
+#  }
+#}
 
 variable "s3_block_public_access" {
   description = "A collection of S3 public block access settings to apply to the account"
