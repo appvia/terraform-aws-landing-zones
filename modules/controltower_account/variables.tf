@@ -55,8 +55,8 @@ variable "service_catalog_product_name" {
   default     = "AWS Control Tower Account Factory"
 
   validation {
-    condition     = length(var.service_catalog_product_id) > 0
-    error_message = "The service_catalog_product_id must be a non-empty string"
+    condition     = length(var.service_catalog_product_name) > 0
+    error_message = "The service_catalog_product_name must be a non-empty string"
   }
 }
 
