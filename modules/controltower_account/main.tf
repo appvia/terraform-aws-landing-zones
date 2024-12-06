@@ -3,7 +3,7 @@
 resource "aws_servicecatalog_provisioned_product" "control_tower_account" {
   name                     = var.account_name
   product_id               = var.service_catalog_product_name
-  provisioned_product_name = var.account_name
+  product_name             = var.account_name
   provisioning_artifact_id = var.service_catalog_provisioning_artifact_id
   tags                     = var.tags
 
