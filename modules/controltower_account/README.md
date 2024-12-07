@@ -16,7 +16,8 @@
 | <a name="input_sso_user_first_name"></a> [sso\_user\_first\_name](#input\_sso\_user\_first\_name) | The first name of the SSO user to create | `string` | n/a | yes |
 | <a name="input_sso_user_last_name"></a> [sso\_user\_last\_name](#input\_sso\_user\_last\_name) | The last name of the SSO user to create | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | A map of tags to apply to all resources | `map(string)` | n/a | yes |
-| <a name="input_service_catalog_product_name"></a> [service\_catalog\_product\_name](#input\_service\_catalog\_product\_name) | The name of the Service Catalog product to use for account creation | `string` | `"AWS Control Tower Account Factory"` | no |
+| <a name="input_service_catalog_product_id"></a> [service\_catalog\_product\_id](#input\_service\_catalog\_product\_id) | The ID of the Service Catalog provisioning artifact to use for account creation | `string` | `null` | no |
+| <a name="input_service_catalog_product_name"></a> [service\_catalog\_product\_name](#input\_service\_catalog\_product\_name) | The name of the Service Catalog product to use for account creation | `string` | `null` | no |
 
 ## Outputs
 

@@ -52,12 +52,13 @@ variable "sso_user_last_name" {
 variable "service_catalog_product_name" {
   description = "The name of the Service Catalog product to use for account creation"
   type        = string
-  default     = "AWS Control Tower Account Factory"
+  default     = null
+}
 
-  validation {
-    condition     = length(var.service_catalog_product_name) > 0
-    error_message = "The service_catalog_product_name must be a non-empty string"
-  }
+variable "service_catalog_product_id" {
+  description = "The ID of the Service Catalog provisioning artifact to use for account creation"
+  type        = string
+  default     = null
 }
 
 variable "service_catalog_provisioning_artifact_id" {

@@ -2,6 +2,7 @@
 # Provision the account via the Service Catalog product
 resource "aws_servicecatalog_provisioned_product" "control_tower_account" {
   name                     = var.account_name
+  product_id               = var.service_catalog_product_id
   product_name             = var.service_catalog_product_name
   provisioning_artifact_id = var.service_catalog_provisioning_artifact_id
   tags                     = var.tags
