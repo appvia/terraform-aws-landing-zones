@@ -274,6 +274,9 @@ variable "macie" {
     enable = optional(bool, false)
     # A flag indicating if Macie should be enabled
     frequency = optional(string, "FIFTEEN_MINUTES")
+    # The frequency of Macie findings
+    admin_account_id = optional(string, null)
+    # Is defined the member account will accept any invitations from the management account
   })
   default = null
 }
