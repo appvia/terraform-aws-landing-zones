@@ -272,6 +272,8 @@ variable "macie" {
   description = "A collection of Macie settings to apply to the account"
   type = object({
     enable = optional(bool, false)
+    # A flag indicating if Macie should be enabled
+    frequency = optional(string, "FIFTEEN_MINUTES")
   })
   default = null
 }
