@@ -1,7 +1,7 @@
 
 module "sso_assignment" {
   for_each = local.sso_assignments
-  source   = "./modules/sso_assignment"
+  source   = "./modules/sso"
 
   account_id          = local.account_id
   groups              = each.value.groups
