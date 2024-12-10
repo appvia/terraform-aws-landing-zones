@@ -101,7 +101,7 @@ module "security_auditor_iam_role" {
 
 ## Provision a ssm automation role if required
 module "ssm_automation_iam_role" {
-  count   = local.home_region && (var.include_iam_roles.ssm_instance.enable, false) ? 1 : 0
+  count   = local.home_region && try(var.include_iam_roles.ssm_instance.enable, false) ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
   version = "5.48.0"
 
