@@ -81,8 +81,7 @@ data "aws_iam_policy_document" "ebs_encryption_key" {
 
 ## Provision am EBS encrytions key
 module "ebs_kms" {
-  count = local.ebs_create_kms_key ? 1 : 0
-
+  count   = local.ebs_create_kms_key ? 1 : 0
   source  = "terraform-aws-modules/kms/aws"
   version = "3.1.1"
 
