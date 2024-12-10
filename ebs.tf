@@ -3,16 +3,16 @@
 #
 
 locals {
-  ## Indicates if EBS encryption is configured 
+  ## Indicates if EBS encryption is configured
   ebs_managed = var.ebs_encryption != null
 
   ## Indicates if we should provision a default kms key for the account (per region)
   ebs_create_kms_key = local.ebs_managed && try(var.ebs_encryption.enable, false) && try(var.ebs_encryption.create_kms_key, false) != false
 
-  ## The ARN for the default EBS encryption key 
+  ## The ARN for the default EBS encryption key
   ebs_encryption_key_arn = local.ebs_managed && local.ebs_create_kms_key ? module.ebs_kms[0].key_arn : try(var.ebs_encryption.key_arn, null)
 
-  ## Indicates if EBS encryption is enabled 
+  ## Indicates if EBS encryption is enabled
   enable_ebs_encryption = local.ebs_managed ? try(var.ebs_encryption.enable, null) : null
 }
 
@@ -79,7 +79,7 @@ data "aws_iam_policy_document" "ebs_encryption_key" {
   }
 }
 
-## Provision am EBS encrytions key 
+## Provision am EBS encrytions key
 module "ebs_kms" {
   count = local.ebs_create_kms_key ? 1 : 0
 
@@ -103,7 +103,7 @@ module "ebs_kms" {
   }
 }
 
-## Ensure all EBS volumes are encrypted 
+## Ensure all EBS volumes are encrypted
 resource "aws_ebs_encryption_by_default" "default" {
   count = local.enable_ebs_encryption != null ? 1 : 0
 
@@ -114,7 +114,7 @@ resource "aws_ebs_encryption_by_default" "default" {
 
 ## Configure the key to be the default key for EBS encryption
 resource "aws_ebs_default_kms_key" "default" {
-  count = local.enable_ebs_encryption != null && local.ebs_encryption_key_arn != "" ? 1 : 0
+  count = local.enable_ebs_encryption != null ? 1 : 0
 
   key_arn = local.ebs_encryption_key_arn
 
