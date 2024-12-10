@@ -1,5 +1,5 @@
 #
-## Used to configure the default IAM account settings 
+## Used to configure the default IAM account settings
 #
 
 locals {
@@ -7,7 +7,7 @@ locals {
   enable_iam_password_policy = local.home_region && var.iam_password_policy.enable
 }
 
-## Configure the default IAM password policy for the account 
+## Configure the default IAM password policy for the account
 resource "aws_iam_account_password_policy" "iam_account_password_policy" {
   count = local.enable_iam_password_policy ? 1 : 0
 
@@ -24,7 +24,7 @@ resource "aws_iam_account_password_policy" "iam_account_password_policy" {
   provider = aws.tenant
 }
 
-## Configure the IAM Access Analyzer for the account 
+## Configure the IAM Access Analyzer for the account
 resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   count = var.iam_access_analyzer.enable ? 1 : 0
 
@@ -35,7 +35,7 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   provider = aws.tenant
 }
 
-## Configure any IAM customer managed policies within the account 
+## Configure any IAM customer managed policies within the account
 resource "aws_iam_policy" "iam_policies" {
   for_each = local.home_region ? var.iam_policies : {}
 
@@ -77,4 +77,45 @@ module "iam_roles" {
   depends_on = [
     aws_iam_policy.iam_policies
   ]
+}
+
+## Provision a security auditor role if required
+module "security_auditor_iam_role" {
+  count   = try(var.include_iam_roles.security_auditor.enable, false) ? 1 : 0
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version = "5.48.0"
+
+  create_role             = true
+  custom_role_policy_arns = ["arn:aws:iam::aws:policy/SecurityAudit"]
+  force_detach_policies   = true
+  role_description        = "Used by the security team to audit the accounts"
+  role_name               = var.include_iam_roles.security_auditor.name
+  trusted_role_arns       = [format("arn:aws:iam::%s:root", local.audit_account_id)]
+
+  providers = {
+    aws = aws.tenant
+  }
+}
+
+## Provision a ssm automation role if required
+module "ssm_automation_iam_role" {
+  count   = try(var.include_iam_roles.ssm_instance.enable, false) ? 1 : 0
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version = "5.48.0"
+
+  create_role           = true
+  force_detach_policies = true
+  role_description      = "Used by instances to access the ssm service"
+  role_name             = var.include_iam_roles.ssm_instance.name
+  trusted_role_services = ["ec2.amazonaws.com"]
+
+  custom_role_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess",
+    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
+  ]
+
+  providers = {
+    aws = aws.tenant
+  }
 }

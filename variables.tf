@@ -183,6 +183,30 @@ variable "iam_password_policy" {
   }
 }
 
+variable "include_iam_roles" {
+  description = "Collection of IAM roles to include in the account"
+  type = object({
+    security_auditor = object({
+      enable = optional(bool, false)
+      name   = optional(string, "lza-security-auditor")
+    })
+    ssm_instance = object({
+      enable = optional(bool, false)
+      name   = optional(string, "lza-ssm-instance")
+    })
+  })
+  default = {
+    security_auditor = {
+      enable = false
+      name   = "lza-security-auditor"
+    }
+    ssm_instance = {
+      enable = false
+      name   = "lza-ssm-instance"
+    }
+  }
+}
+
 variable "iam_roles" {
   description = "A collection of IAM roles to apply to the account"
   type = map(object({

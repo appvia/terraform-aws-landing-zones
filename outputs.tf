@@ -43,3 +43,13 @@ output "sns_notification_arn" {
   description = "The SNS topic ARN for notifications"
   value       = module.notifications.sns_topic_arn
 }
+
+output "auditor_account_id" {
+  description = "The account id for the audit account"
+  value       = local.audit_account_id
+}
+
+output "log_archive_account_id" {
+  description = "The account id for the log archive account"
+  value       = local.log_archive_account_id
+}
