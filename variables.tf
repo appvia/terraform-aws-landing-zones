@@ -98,12 +98,13 @@ variable "kms_administrator" {
     # The name of the default kms administrator role
   })
   default = {
-    enable              = false
-    enable_account_root = false
-    name                = "lza-kms-adminstrator"
     assume_accounts     = []
     assume_roles        = []
     assume_services     = []
+    description         = "Provides access to administer the KMS keys for the account"
+    enable              = false
+    enable_account_root = false
+    name                = "lza-kms-adminstrator"
   }
 }
 
