@@ -79,8 +79,6 @@ module "iam_roles" {
   ]
 }
 
-
-
 ## Provision a security auditor role if required
 module "security_auditor_iam_role" {
   count   = local.home_region && try(var.include_iam_roles.security_auditor.enable, false) ? 1 : 0
