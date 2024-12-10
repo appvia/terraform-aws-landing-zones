@@ -1,6 +1,6 @@
 
 locals {
-  ## Indicates if we should provision notiications for security hub events 
+  ## Indicates if we should provision notiications for security hub events
   enable_security_hub_events = var.notifications.services.securityhub.enable
 }
 
@@ -17,7 +17,7 @@ data "archive_file" "securityhub_lambda_package" {
 resource "aws_iam_role" "securityhub_lambda_role" {
   count = local.enable_security_hub_events ? 1 : 0
 
-  name = var.notifications.services.securityhub.lambda_role_name
+  name = format("%s-%s", var.notifications.services.securityhub.lambda_role_name, local.region)
   tags = local.tags
 
   assume_role_policy = jsonencode({
@@ -36,11 +36,11 @@ resource "aws_iam_role" "securityhub_lambda_role" {
   provider = aws.tenant
 }
 
-## Attach the inline policy to the lambda role 
+## Attach the inline policy to the lambda role
 resource "aws_iam_role_policy" "securityhub_lambda_role_policy" {
   count = local.enable_security_hub_events ? 1 : 0
 
-  name = "lza-securityhub-lambda-policy"
+  name = format("%s-%s", var.notifications.services.securityhub.lambda_role_name, local.region)
   role = aws_iam_role.securityhub_lambda_role[0].name
 
   policy = jsonencode({
@@ -73,7 +73,7 @@ resource "aws_iam_role_policy" "securityhub_lambda_role_policy" {
   provider = aws.tenant
 }
 
-## Provision a cloudwatch log group to capture the logs from the lambda function 
+## Provision a cloudwatch log group to capture the logs from the lambda function
 # tfsec:ignore:AVD-AWS-0017 (Log Group Customer Key)
 resource "aws_cloudwatch_log_group" "securityhub_lambda_log_group" {
   count = local.enable_security_hub_events ? 1 : 0
@@ -86,7 +86,7 @@ resource "aws_cloudwatch_log_group" "securityhub_lambda_log_group" {
   provider = aws.tenant
 }
 
-## Provision the lamda function to forward the security hub findings to the messaging channel  
+## Provision the lamda function to forward the security hub findings to the messaging channel
 # tfsec:ignore:aws-lambda-enable-tracing
 resource "aws_lambda_function" "securityhub_lambda_function" {
   count = local.enable_security_hub_events ? 1 : 0
@@ -115,7 +115,7 @@ resource "aws_lambda_function" "securityhub_lambda_function" {
   provider = aws.tenant
 }
 
-## Configure an eventbridge rule to invoke the lambda function when a security hub 
+## Configure an eventbridge rule to invoke the lambda function when a security hub
 ## finding is detected
 resource "aws_lambda_permission" "securityhub_event_bridge" {
   count = local.enable_security_hub_events ? 1 : 0
@@ -159,7 +159,7 @@ resource "aws_cloudwatch_event_rule" "securityhub_findings" {
   provider = aws.tenant
 }
 
-## Provision a target to the event bridge rule, to publish messages to the SNS topic 
+## Provision a target to the event bridge rule, to publish messages to the SNS topic
 resource "aws_cloudwatch_event_target" "security_hub_findings_target" {
   count = local.enable_security_hub_events ? 1 : 0
 
