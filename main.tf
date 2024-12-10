@@ -1,18 +1,18 @@
 
 locals {
-  ## The configuration for slack notifications 
+  ## The configuration for slack notifications
   notifications_slack = var.notifications.slack.webhook_url != null ? {
     lambda_name        = "lza-slack-notifications"
     lambda_description = "Lambda function to forward notifications to slack to an SNS topic"
     webhook_url        = var.notifications.slack.webhook_url
   } : null
 
-  ## The configuration for email notifications 
+  ## The configuration for email notifications
   notifications_email = var.notifications.email.addresses != null ? {
     addresses = var.notifications.email.addresses
   } : null
 
-  ## Name of the sns topic for notifications for budget and cost alerts 
+  ## Name of the sns topic for notifications for budget and cost alerts
   notifications_sns_topic_name = "lza-general-notifications"
 }
 
@@ -36,7 +36,7 @@ module "tagging" {
 #trivy:ignore:AVD-DS-0026
 module "notifications" {
   source  = "appvia/notifications/aws"
-  version = "1.0.7"
+  version = "1.0.8"
 
   allowed_aws_services = ["budgets.amazonaws.com", "lambda.amazonaws.com", "events.amazonaws.com"]
   create_sns_topic     = true
