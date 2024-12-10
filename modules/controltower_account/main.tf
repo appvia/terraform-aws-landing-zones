@@ -36,4 +36,8 @@ resource "aws_servicecatalog_provisioned_product" "control_tower_account" {
     key   = "SSOUserLastName"
     value = var.sso_user_last_name
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
