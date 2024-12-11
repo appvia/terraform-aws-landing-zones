@@ -43,6 +43,24 @@ data "aws_iam_policy_document" "ebs_encryption_key" {
   }
 
   statement {
+    sid    = "AllowAutoscaling"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:ReEncrypt*"
+    ]
+    resources = ["*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [local.autoscale_service_linked_role_arn]
+    }
+  }
+
+  statement {
     sid       = "AllowAutoscalingToCreateGrant"
     effect    = "Allow"
     actions   = ["kms:CreateGrant"]
@@ -50,25 +68,7 @@ data "aws_iam_policy_document" "ebs_encryption_key" {
 
     principals {
       type        = "AWS"
-      identifiers = [local.autoscale_service_linked_role_name]
-    }
-
-    condition {
-      test     = "Bool"
-      variable = "kms:GrantIsForAWSResource"
-      values   = ["true"]
-    }
-  }
-
-  statement {
-    sid       = "AllowCloud9ToCreateGrant"
-    effect    = "Allow"
-    actions   = ["kms:CreateGrant"]
-    resources = ["*"]
-
-    principals {
-      type        = "AWS"
-      identifiers = [local.cloud9_service_linked_role_name]
+      identifiers = [local.autoscale_service_linked_role_arn]
     }
 
     condition {

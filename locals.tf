@@ -22,10 +22,7 @@ locals {
   log_archive_account_id = try(local.account_id_by_name["LogArchive"], null)
 
   ## Autoscale service linked role name
-  autoscale_service_linked_role_name = format("arn:aws:iam::%s:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling", local.account_id)
-
-  ## Cloud9 service linked role name
-  cloud9_service_linked_role_name = format("arn:aws:iam::%s:role/aws-service-role/cloud9.amazonaws.com/AWSServiceRoleForAWSCloud9", local.account_id)
+  autoscale_service_linked_role_arn = format("arn:aws:iam::%s:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling", local.account_id)
 
   ## The current region
   region = data.aws_region.tenant.name
