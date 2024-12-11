@@ -133,7 +133,7 @@ resource "aws_lambda_permission" "securityhub_event_bridge" {
 resource "aws_cloudwatch_event_rule" "securityhub_findings" {
   count = local.enable_security_hub_events ? 1 : 0
 
-  name        = var.notifications.services.securityhub.eventbridge_rule_name
+  name        = format("%s-%s", var.notifications.services.securityhub.eventbridge_rule_name, local.region)
   description = "Capture Security Hub findings of a specific severities and publish to the SNS topic (LZA)"
   tags        = local.tags
 
