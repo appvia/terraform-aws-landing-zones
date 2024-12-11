@@ -552,6 +552,12 @@ variable "cost_center" {
 #  default = null
 #}
 
+variable "iam_service_linked_roles" {
+  description = "A collection of service linked roles to apply to the account"
+  type        = list(string)
+  default     = []
+}
+
 variable "networks" {
   description = "A collection of networks to provision within the designated region"
   type = map(object({

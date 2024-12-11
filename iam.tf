@@ -7,6 +7,15 @@ locals {
   enable_iam_password_policy = local.home_region && var.iam_password_policy.enable
 }
 
+## Configure the service linked role for autoscaling
+resource "aws_iam_service_linked_role" "service_linked_roles" {
+  for_each = toset(var.iam_service_linked_roles)
+
+  aws_service_name = each.key
+  description      = "Enabling the service linked role for ${each.key}"
+  tags             = var.tags
+}
+
 ## Configure the default IAM password policy for the account
 resource "aws_iam_account_password_policy" "iam_account_password_policy" {
   count = local.enable_iam_password_policy ? 1 : 0

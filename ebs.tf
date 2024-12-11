@@ -100,6 +100,10 @@ module "ebs_kms" {
   providers = {
     aws = aws.tenant
   }
+
+  depends_on = [
+    aws_iam_service_linked_role.service_linked_roles
+  ]
 }
 
 ## Ensure all EBS volumes are encrypted
