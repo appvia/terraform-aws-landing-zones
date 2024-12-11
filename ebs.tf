@@ -90,7 +90,7 @@ module "ebs_kms" {
   description             = format("Used as the default key for EBS encryption in the %s region", local.region)
   enable_key_rotation     = true
   is_enabled              = true
-  key_administrators      = [local.kms_key_administrator_role_name]
+  key_administrators      = [local.kms_key_administrator_role_arn]
   key_owners              = compact(concat([local.account_root_arn], [local.kms_key_administrator_role_arn]))
   key_usage               = "ENCRYPT_DECRYPT"
   multi_region            = false
