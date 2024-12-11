@@ -13,7 +13,7 @@ resource "aws_iam_service_linked_role" "service_linked_roles" {
 
   aws_service_name = each.key
   description      = "Enabling the service linked role for ${each.key}"
-  tags             = var.tags
+  tags             = local.tags
 }
 
 ## Configure the default IAM password policy for the account
@@ -38,7 +38,7 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   count = var.iam_access_analyzer.enable ? 1 : 0
 
   analyzer_name = var.iam_access_analyzer.analyzer_name
-  tags          = var.tags
+  tags          = local.tags
   type          = var.iam_access_analyzer.analyzer_type
 
   provider = aws.tenant
@@ -53,7 +53,7 @@ resource "aws_iam_policy" "iam_policies" {
   name_prefix = each.value.policy_name_prefix
   path        = each.value.path
   policy      = each.value.policy
-  tags        = var.tags
+  tags        = local.tags
 
   provider = aws.tenant
 }
@@ -75,7 +75,7 @@ module "iam_roles" {
   role_path                         = each.value.path
   role_permissions_boundary_arn     = each.value.permission_boundary_arn
   role_requires_mfa                 = false
-  tags                              = var.tags
+  tags                              = local.tags
   trusted_role_arns                 = concat(each.value.assume_roles, [for x in each.value.assume_accounts : format("arn:aws:iam::%s:root", x)])
   trusted_role_services             = each.value.assume_services
 

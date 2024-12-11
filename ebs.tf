@@ -102,7 +102,8 @@ module "ebs_kms" {
   }
 
   depends_on = [
-    aws_iam_service_linked_role.service_linked_roles
+    aws_iam_service_linked_role.service_linked_roles,
+    module.kms_key_administrator
   ]
 }
 

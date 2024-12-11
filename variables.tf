@@ -320,31 +320,55 @@ variable "identity_center_permitted_roles" {
   }
 }
 
-#variable "guardduty" {
-#  description = "A collection of GuardDuty settings to apply to the account"
-#  type = object({
-#    enable = optional(bool, false)
-#    # A flag indicating if GuardDuty should be enabled
-#    enable_s3_protection = optional(bool, true)
-#    # A flag indicating if S3 protection should be enabled
-#    enable_kubernetes_protection = optional(bool, true)
-#    # A flag indicating if Kubernetes protection should be enabled
-#    enable_malware_protection = optional(bool, true)
-#    # A flag indicating if malware protection should be enabled
-#    enable_snapshot_retention = optional(bool, true)
-#    # A flag indicating if snapshot retention should be enabled
-#    finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")
-#    # The frequency of finding publishing
-#  })
-#  default = {
-#    enabled                      = false
-#    enable_s3_protection         = true
-#    enable_kubernetes_protection = true
-#    enable_malware_protection    = true
-#    enable_snapshot_retention    = true
-#    finding_publishing_frequency = "FIFTEEN_MINUTES"
-#  }
-#}
+variable "guardduty" {
+  description = "A collection of GuardDuty settings to apply to the account"
+  type = object({
+    enable = optional(bool, false)
+    # A flag indicating if GuardDuty should be enabled
+    enable_s3_protection = optional(bool, true)
+    # A flag indicating if S3 protection should be enabled
+    enable_kubernetes_protection = optional(bool, true)
+    # A flag indicating if Kubernetes protection should be enabled
+    enable_malware_protection = optional(bool, true)
+    # A flag indicating if snapshot retention should be enabled
+    finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")
+    # The frequency of finding publishing
+    filters = optional(map(object({
+      # The name of the filter
+      action = string
+      # The action of the filter
+      rank = number
+      # The rank of the filter
+      description = string
+      # The description of the filter
+      criterion = list(object({
+        field = string
+        # The field of the criterion
+        equals = optional(string, null)
+        # The equals of the criterion
+        not_equals = optional(string, null)
+        # The not equals of the criterion
+        greater_than = optional(string, null)
+        # The greater than of the criterion
+        greater_than_or_equal = optional(string, null)
+        # The greater than or equal of the criterion
+        less_than = optional(string, null)
+        # The less than of the criterion
+        less_than_or_equal = optional(string, null)
+        # The less than or equal of the criterion
+      }))
+      # The criterion of the filter
+    })), {})
+  })
+  default = {
+    enable                       = false
+    enable_kubernetes_protection = true
+    enable_malware_protection    = true
+    enable_s3_protection         = true
+    filters                      = {}
+    finding_publishing_frequency = "FIFTEEN_MINUTES"
+  }
+}
 
 variable "s3_block_public_access" {
   description = "A collection of S3 public block access settings to apply to the account"

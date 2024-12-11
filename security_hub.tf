@@ -79,7 +79,7 @@ resource "aws_cloudwatch_log_group" "securityhub_lambda_log_group" {
   count = local.enable_security_hub_events ? 1 : 0
 
   log_group_class   = "STANDARD"
-  name              = format("/aws/lambda/%s/%s", local.region, var.notifications.services.securityhub.lambda_role_name)
+  name              = format("/aws/lambda/%s", var.notifications.services.securityhub.lambda_role_name)
   retention_in_days = 3
   tags              = local.tags
 
@@ -92,7 +92,7 @@ resource "aws_lambda_function" "securityhub_lambda_function" {
   count = local.enable_security_hub_events ? 1 : 0
 
   filename         = "./builds/securityhub-findings-forwarder.zip"
-  function_name    = format("%s-%s", var.notifications.services.securityhub.lambda_role_name, local.region)
+  function_name    = format("%s", var.notifications.services.securityhub.lambda_role_name)
   handler          = "lambda_function.lambda_handler"
   role             = aws_iam_role.securityhub_lambda_role[0].arn
   runtime          = "python3.12"
@@ -134,7 +134,7 @@ resource "aws_cloudwatch_event_rule" "securityhub_findings" {
   count = local.enable_security_hub_events ? 1 : 0
 
   name        = format("%s-%s", var.notifications.services.securityhub.eventbridge_rule_name, local.region)
-  description = "Capture Security Hub findings of a specific severities and publish to the SNS topic (LZA)"
+  description = "Capture Security Hub findings of a specific severities and publish to the SNS topic"
   tags        = local.tags
 
   event_pattern = jsonencode({
