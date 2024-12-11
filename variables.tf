@@ -645,16 +645,6 @@ variable "networks" {
   }
 }
 
-variable "region" {
-  description = "The region we are provisioning the resources for the landing zone"
-  type        = string
-
-  validation {
-    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]$", var.region))
-    error_message = "The region must be in the format of a valid AWS region"
-  }
-}
-
 variable "tags" {
   description = "A collection of tags to apply to resources"
   type        = map(string)

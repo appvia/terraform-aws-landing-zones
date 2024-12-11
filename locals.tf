@@ -28,7 +28,7 @@ locals {
   cloud9_service_linked_role_name = format("arn:aws:iam::%s:role/aws-service-role/cloud9.amazonaws.com/AWSServiceRoleForAWSCloud9", local.account_id)
 
   ## The current region
-  region = var.region
+  region = data.aws_region.tenant.name
 
   ## is_home_region is true if the current region is the home region for the tenant
   home_region = local.region == var.home_region

@@ -4,9 +4,3 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-
-variable "region" {
-  description = "The region to deploy the resources"
-  type        = string
-  default     = "eu-west-2"
-}

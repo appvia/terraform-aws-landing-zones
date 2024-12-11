@@ -9,6 +9,11 @@ data "aws_caller_identity" "tenant" {
   provider = aws.tenant
 }
 
+## Get the current region
+data "aws_region" "tenant" {
+  provider = aws.tenant
+}
+
 ## Get the current account for the current account
 data "aws_caller_identity" "current" {
 }

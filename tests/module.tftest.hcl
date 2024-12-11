@@ -7,7 +7,6 @@ run "basic" {
     environment    = "Production"
     owner          = "Support"
     product        = "Test"
-    region         = "eu-west-2"
     home_region    = "eu-west-2"
     tags           = {}
     git_repository = "test"

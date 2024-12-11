@@ -29,7 +29,7 @@ resource "aws_route53_zone" "zones" {
 
     content {
       vpc_id     = module.networks[vpc.value].vpc_id
-      vpc_region = var.region
+      vpc_region = local.region
     }
   }
 
@@ -53,7 +53,7 @@ resource "aws_route53_vpc_association_authorization" "central_dns_authorization"
   for_each = local.central_dns_enable ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
   vpc_id     = local.central_dns_vpc_id
-  vpc_region = var.region
+  vpc_region = local.region
   zone_id    = aws_route53_zone.zones[each.key].zone_id
 
   depends_on = [
@@ -69,7 +69,7 @@ resource "aws_route53_zone_association" "central_dns_association" {
   for_each = local.central_dns_enable ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
   vpc_id     = local.central_dns_vpc_id
-  vpc_region = var.region
+  vpc_region = local.region
   zone_id    = aws_route53_zone.zones[each.key].zone_id
 
   depends_on = [

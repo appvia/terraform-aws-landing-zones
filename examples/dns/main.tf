@@ -16,7 +16,6 @@ module "app1" {
   environment    = "Development"
   owner          = "platform"
   product        = "app1"
-  region         = "eu-west-2"
   tags           = var.tags
   home_region    = "eu-west-2"
   git_repository = "test"
@@ -67,7 +66,6 @@ module "app2" {
   environment    = "Development"
   owner          = "platform"
   product        = "app2"
-  region         = "eu-west-2"
   tags           = var.tags
   home_region    = "eu-west-2"
   git_repository = "test"
