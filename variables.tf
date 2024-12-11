@@ -325,14 +325,21 @@ variable "guardduty" {
   type = object({
     enable = optional(bool, false)
     # A flag indicating if GuardDuty should be enabled
-    enable_s3_protection = optional(bool, true)
-    # A flag indicating if S3 protection should be enabled
-    enable_kubernetes_protection = optional(bool, true)
-    # A flag indicating if Kubernetes protection should be enabled
-    enable_malware_protection = optional(bool, true)
-    # A flag indicating if snapshot retention should be enabled
     finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")
     # The frequency of finding publishing
+    detectors = optional(list(object({
+      name = string
+      # The name of the detector
+      enable = optional(bool, true)
+      # The frequency of finding publishing
+      additional_configuration = optional(list(object({
+        name = string
+        # The name of the additional configuration
+        enable = optional(bool, true)
+        # The status of the additional configuration
+      })), [])
+    })), [])
+    # Configuration for the detector
     filters = optional(map(object({
       # The name of the filter
       action = string
@@ -360,14 +367,7 @@ variable "guardduty" {
       # The criterion of the filter
     })), {})
   })
-  default = {
-    enable                       = false
-    enable_kubernetes_protection = true
-    enable_malware_protection    = true
-    enable_s3_protection         = true
-    filters                      = {}
-    finding_publishing_frequency = "FIFTEEN_MINUTES"
-  }
+  default = null
 }
 
 variable "s3_block_public_access" {

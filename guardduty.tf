@@ -4,9 +4,13 @@
 
 locals {
   ## Indicates if we should provision a default guardduty detector for the account
-  enable_guardduty = try(var.guardduty.enable, false)
+  enable_guardduty = var.guardduty != null
   ## A map of guardduty filters or an empty map
   guardduty_filters = try(var.guardduty.filters, {})
+  ## A collection of detectors to enable or disable
+  guardduty_detectors = {
+    for detector in try(var.guardduty.detectors, []) : detector.name => detector
+  }
 }
 
 ## Provision a guardduty detector for this account
@@ -17,21 +21,22 @@ resource "aws_guardduty_detector" "guardduty" {
   finding_publishing_frequency = var.guardduty.finding_publishing_frequency
   tags                         = local.tags
 
-  datasources {
-    s3_logs {
-      enable = var.guardduty.enable_s3_protection
-    }
-    kubernetes {
-      audit_logs {
-        enable = var.guardduty.enable_kubernetes_protection
-      }
-    }
-    malware_protection {
-      scan_ec2_instance_with_findings {
-        ebs_volumes {
-          enable = var.guardduty.enable_malware_protection
-        }
-      }
+  provider = aws.tenant
+}
+
+## Provision the guardduty detectors
+resource "aws_guardduty_detector_feature" "detectors" {
+  for_each = local.enable_guardduty ? local.guardduty_detectors : {}
+
+  detector_id = aws_guardduty_detector.guardduty[0].id
+  name        = each.key
+  status      = each.value.enable ? "ENABLED" : "DISABLED"
+
+  dynamic "additional_configuration" {
+    for_each = each.value.additional_configuration
+    content {
+      name   = additional_configuration.value.name
+      status = additional_configuration.value.enable ? "ENABLED" : "DISABLED"
     }
   }
 
