@@ -9,7 +9,7 @@ locals {
 
 ## Configure the service linked role for autoscaling
 resource "aws_iam_service_linked_role" "service_linked_roles" {
-  for_each = toset(var.iam_service_linked_roles)
+  for_each = local.home_region ? toset(var.iam_service_linked_roles) : toset([])
 
   aws_service_name = each.key
   description      = "Enabling the service linked role for ${each.key}"
