@@ -29,7 +29,13 @@ resource "aws_guardduty_detector_feature" "detectors" {
   status      = each.value.enable ? "ENABLED" : "DISABLED"
 
   dynamic "additional_configuration" {
-    for_each = each.value.additional_configuration
+    for_each = {
+      for key, value in each.value.additional_configuration : key => {
+        name   = key
+        enable = value
+      }
+    }
+
     content {
       name   = additional_configuration.value.name
       status = additional_configuration.value.enable ? "ENABLED" : "DISABLED"
