@@ -18,9 +18,9 @@ locals {
   ]
 }
 
-## Provision the cost anomaly detection monitors 
+## Provision the cost anomaly detection monitors
 module "anomaly_detection" {
-  count   = local.enable_anomaly_detection ? 1 : 0
+  count   = local.home_region && local.enable_anomaly_detection ? 1 : 0
   source  = "appvia/anomaly-detection/aws"
   version = "0.2.8"
 

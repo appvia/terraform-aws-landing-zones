@@ -13,13 +13,9 @@ locals {
   }
 }
 
-## Provision a guardduty detector for this account
-resource "aws_guardduty_detector" "guardduty" {
+## Lookup the detector id for the guardduty detector if provisioned already
+data "aws_guardduty_detector" "guardduty" {
   count = local.enable_guardduty ? 1 : 0
-
-  enable                       = var.guardduty.enable
-  finding_publishing_frequency = var.guardduty.finding_publishing_frequency
-  tags                         = local.tags
 
   provider = aws.tenant
 }
@@ -28,7 +24,7 @@ resource "aws_guardduty_detector" "guardduty" {
 resource "aws_guardduty_detector_feature" "detectors" {
   for_each = local.enable_guardduty ? local.guardduty_detectors : {}
 
-  detector_id = aws_guardduty_detector.guardduty[0].id
+  detector_id = data.aws_guardduty_detector.guardduty[0].id
   name        = each.key
   status      = each.value.enable ? "ENABLED" : "DISABLED"
 
@@ -49,7 +45,7 @@ resource "aws_guardduty_filter" "filters" {
 
   action      = each.value.action
   description = each.value.description
-  detector_id = aws_guardduty_detector.guardduty[0].id
+  detector_id = data.aws_guardduty_detector.guardduty[0].id
   name        = each.key
   rank        = each.value.rank
   tags        = local.tags

@@ -323,8 +323,7 @@ variable "identity_center_permitted_roles" {
 variable "guardduty" {
   description = "A collection of GuardDuty settings to apply to the account"
   type = object({
-    enable = optional(bool, false)
-    # A flag indicating if GuardDuty should be enabled
+    # A flag indicating if GuardDuty should be created
     finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")
     # The frequency of finding publishing
     detectors = optional(list(object({

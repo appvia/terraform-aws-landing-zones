@@ -2,7 +2,7 @@
 locals {
   ## The configuration for slack notifications
   notifications_slack = var.notifications.slack.webhook_url != null ? {
-    lambda_name        = "lza-slack-notifications"
+    lambda_name        = "lza-slack-notifications-${local.region}"
     lambda_description = "Lambda function to forward notifications to slack to an SNS topic"
     webhook_url        = var.notifications.slack.webhook_url
   } : null
