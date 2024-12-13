@@ -14,6 +14,8 @@ resource "aws_iam_service_linked_role" "service_linked_roles" {
   aws_service_name = each.key
   description      = "Enabling the service linked role for ${each.key}"
   tags             = local.tags
+
+  provider = aws.tenant
 }
 
 ## Configure the default IAM password policy for the account
