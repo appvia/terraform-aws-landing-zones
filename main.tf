@@ -7,6 +7,13 @@ locals {
     webhook_url        = var.notifications.slack.webhook_url
   } : null
 
+  ## The configuration for ms team notifications
+  notifications_teams = var.notifications.teams.webhook_url != null ? {
+    lambda_name        = "lza-ms-teams-notifications-${local.region}"
+    lambda_description = "Lambda function to forward notifications to ms teams to an SNS topic"
+    webhook_url        = var.notifications.teams.webhook_url
+  } : null
+
   ## The configuration for email notifications
   notifications_email = var.notifications.email.addresses != null ? {
     addresses = var.notifications.email.addresses
@@ -36,15 +43,17 @@ module "tagging" {
 #trivy:ignore:AVD-DS-0026
 module "notifications" {
   source  = "appvia/notifications/aws"
-  version = "1.0.8"
+  version = "1.0.9"
 
   allowed_aws_services = ["budgets.amazonaws.com", "lambda.amazonaws.com", "events.amazonaws.com"]
   create_sns_topic     = true
   email                = local.notifications_email
   enable_slack         = local.notifications_slack != null
+  enable_teams         = local.notifications_teams != null
   slack                = local.notifications_slack
   sns_topic_name       = local.notifications_sns_topic_name
   tags                 = local.tags
+  teams                = local.notifications_teams
 
   providers = {
     aws = aws.tenant

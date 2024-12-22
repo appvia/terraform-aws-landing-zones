@@ -39,6 +39,11 @@ output "private_hosted_zones" {
   value       = local.private_hosted_zones
 }
 
+output "sns_notification_name" {
+  description = "Name of the SNS topic used to channel notifications"
+  value       = local.notifications_sns_topic_name
+}
+
 output "sns_notification_arn" {
   description = "The SNS topic ARN for notifications"
   value       = module.notifications.sns_topic_arn
