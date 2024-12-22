@@ -9,8 +9,8 @@ locals {
 
   ## The configuration for ms team notifications
   notifications_teams = var.notifications.teams.webhook_url != null ? {
-    lambda_name        = "lza-ms-teams-notifications-${local.region}"
-    lambda_description = "Lambda function to forward notifications to ms teams to an SNS topic"
+    lambda_name        = "lza-teams-notifications-${local.region}"
+    lambda_description = "Lambda function to forward notifications to teams to an SNS topic"
     webhook_url        = var.notifications.teams.webhook_url
   } : null
 
