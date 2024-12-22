@@ -12,8 +12,16 @@ module "budgets" {
 
   notifications = {
     email = local.notifications_email
-    slack = local.notifications_slack
-    teams = local.notifications_teams
+    slack = var.notifications.slack.webhook_url != null ? {
+      lambda_name        = "lza-slack-notifications-budgets-${local.region}"
+      lambda_description = "Lambda function to send notifications via Slack"
+      webhook_url        = var.notifications.slack.webhook_url
+    } : null
+    teams = var.notifications.teams.webhook_url != null ? {
+      lambda_name        = "lza-teams-notifications-budgets-${local.region}"
+      lambda_description = "Lambda function to send notifications via Microsoft Teams"
+      webhook_url        = var.notifications.teams.webhook_url
+    } : null
   }
 
   providers = {
