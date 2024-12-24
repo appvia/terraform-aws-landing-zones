@@ -42,7 +42,8 @@ module "tagging" {
 #trivy:ignore:AVD-DS-0015
 #trivy:ignore:AVD-DS-0026
 module "notifications" {
-  source = "github.com/appvia/terraform-aws-notifications?ref=main"
+  source  = "appvia/notifications/aws"
+  version = "1.1.0"
 
   allowed_aws_services = ["budgets.amazonaws.com", "lambda.amazonaws.com", "events.amazonaws.com"]
   create_sns_topic     = true
