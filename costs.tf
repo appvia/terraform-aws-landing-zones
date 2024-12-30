@@ -22,7 +22,7 @@ locals {
 module "anomaly_detection" {
   count   = local.home_region && local.enable_anomaly_detection ? 1 : 0
   source  = "appvia/anomaly-detection/aws"
-  version = "0.2.8"
+  version = "0.2.9"
 
   enable_notification_creation = false
   enable_sns_topic_creation    = false
