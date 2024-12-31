@@ -40,6 +40,7 @@ resource "aws_servicecatalog_provisioned_product" "control_tower_account" {
   lifecycle {
     ignore_changes = [
       product_id,
+      product_name,
       provisioning_artifact_id,
       tags
     ]
