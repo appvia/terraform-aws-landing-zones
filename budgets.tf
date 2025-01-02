@@ -3,7 +3,7 @@
 module "budgets" {
   count   = length(var.budgets) > 0 ? 1 : 0
   source  = "appvia/budgets/aws//modules/budgets"
-  version = "1.1.12"
+  version = "1.2.1"
 
   budgets          = var.budgets
   create_sns_topic = false

@@ -49,10 +49,9 @@ variable "budgets" {
       auto_adjust_type = string
     })), [])
 
-    cost_filter = optional(list(object({
-      name   = string
+    cost_filter = optional(map(object({
       values = list(string)
-    })), [])
+    })), {})
 
     cost_types = optional(object({
       include_credit             = optional(bool, false)
