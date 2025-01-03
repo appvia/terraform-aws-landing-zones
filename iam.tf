@@ -5,6 +5,71 @@
 locals {
   ## Indicates if we should enable the default IAM account settings
   enable_iam_password_policy = local.home_region && var.iam_password_policy.enable
+  ## Collection users to be created within the account
+  iam_users = local.home_region ? { for user in var.iam_users : user.name => user } : {}
+  ## Collection of iam groups to be created within the account
+  iam_groups = local.home_region ? { for group in var.iam_groups : group.name => group } : {}
+}
+
+## Configure any IAM customer managed policies within the account
+resource "aws_iam_policy" "iam_policies" {
+  for_each = local.home_region ? var.iam_policies : {}
+
+  description = each.value.description
+  name        = each.value.policy_name
+  name_prefix = each.value.policy_name_prefix
+  path        = each.value.path
+  policy      = each.value.policy
+  tags        = local.tags
+
+  provider = aws.tenant
+}
+
+## Provision any IAM users required within the account
+module "iam_users" {
+  for_each = local.iam_users
+  source   = "terraform-aws-modules/iam/aws//modules/iam-user"
+  version  = "5.52.1"
+
+  create_iam_access_key         = false
+  create_iam_user_login_profile = false
+  create_user                   = true
+  force_destroy                 = true
+  name                          = each.value.name
+  path                          = each.value.path
+  permissions_boundary          = each.value.permissions_boundary_name != null ? format("arn:aws:iam::%s:policy/%s", local.account_id, each.value.permissions_boundary_name) : ""
+  policy_arns                   = each.value.policy_arns
+  tags                          = local.tags
+
+  providers = {
+    aws = aws.tenant
+  }
+}
+
+## Provision any IAM user policies required within the account
+module "iam_groups" {
+  for_each = local.iam_groups
+  source   = "terraform-aws-modules/iam/aws//modules/iam-group-with-policies"
+  version  = "5.52.1"
+
+  attach_iam_self_management_policy      = true
+  aws_account_id                         = local.account_id
+  create_group                           = true
+  enable_mfa_enforcement                 = each.value.enforce_mfa
+  group_users                            = each.value.users
+  iam_self_management_policy_name_prefix = "lza-self-management-"
+  name                                   = each.value.name
+  path                                   = each.value.path
+  tags                                   = local.tags
+
+  depends_on = [
+    module.iam_users,
+    aws_iam_policy.iam_policies,
+  ]
+
+  providers = {
+    aws = aws.tenant
+  }
 }
 
 ## Configure the service linked role for autoscaling
@@ -42,20 +107,6 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   analyzer_name = var.iam_access_analyzer.analyzer_name
   tags          = local.tags
   type          = var.iam_access_analyzer.analyzer_type
-
-  provider = aws.tenant
-}
-
-## Configure any IAM customer managed policies within the account
-resource "aws_iam_policy" "iam_policies" {
-  for_each = local.home_region ? var.iam_policies : {}
-
-  description = each.value.description
-  name        = each.value.policy_name
-  name_prefix = each.value.policy_name_prefix
-  path        = each.value.path
-  policy      = each.value.policy
-  tags        = local.tags
 
   provider = aws.tenant
 }

@@ -181,6 +181,12 @@ variable "kms_key" {
   }
 }
 
+variable "account_alias" {
+  description = "The account alias to apply to the account"
+  type        = string
+  default     = null
+}
+
 variable "dns" {
   description = "A collection of DNS zones to provision and associate with networks"
   type = map(object({
@@ -198,6 +204,40 @@ variable "dns" {
     condition     = alltrue([for domain in keys(var.dns) : can(regex(".*aws.appvia.local$", domain))])
     error_message = "The domain name must end with aws.appvia.local"
   }
+}
+
+variable "iam_groups" {
+  description = "A collection of IAM groups to apply to the account"
+  type = list(object({
+    enforce_mfa = optional(bool, true)
+    # A flag indicating if MFA should be enforced
+    name = optional(string, null)
+    # The name prefix of the IAM group
+    path = optional(string, "/")
+    # The path of the IAM group
+    policies = optional(list(string), [])
+    # A list of policies to apply to the IAM group
+    users = optional(list(string), [])
+    # A list of users to apply to the IAM group
+  }))
+  default = []
+}
+
+variable "iam_users" {
+  description = "A collection of IAM users to apply to the account"
+  type = list(object({
+    name = optional(string, null)
+    # The name of the IAM user
+    name_prefix = optional(string, null)
+    # The name prefix of the IAM user
+    path = optional(string, "/")
+    # The path of the IAM user
+    permission_boundary_name = optional(string, null)
+    # A list of additional permissions to apply to the IAM user
+    policy_arns = optional(list(string), [])
+    # A list of policies to apply to the IAM user
+  }))
+  default = []
 }
 
 variable "iam_password_policy" {
