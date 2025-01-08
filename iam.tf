@@ -115,7 +115,7 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
 module "iam_roles" {
   for_each = local.home_region ? var.iam_roles : {}
   source   = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version  = "5.51.0"
+  version  = "5.52.1"
 
   create_role                       = true
   custom_role_policy_arns           = each.value.permission_arns
@@ -145,7 +145,7 @@ module "iam_roles" {
 module "security_auditor_iam_role" {
   count   = local.home_region && try(var.include_iam_roles.security_auditor.enable, false) ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version = "5.51.0"
+  version = "5.52.1"
 
   create_role             = true
   custom_role_policy_arns = ["arn:aws:iam::aws:policy/SecurityAudit"]
@@ -163,7 +163,7 @@ module "security_auditor_iam_role" {
 module "ssm_automation_iam_role" {
   count   = local.home_region && try(var.include_iam_roles.ssm_instance.enable, false) ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version = "5.51.0"
+  version = "5.52.1"
 
   create_role           = true
   force_detach_policies = true
