@@ -1,9 +1,10 @@
 
 ## Provision one or more budgets within the account region
 module "budgets" {
-  count   = length(var.budgets) > 0 ? 1 : 0
-  source  = "appvia/budgets/aws//modules/budgets?ref=SA-505-Fix-AWS-Budgets-Terraform-Module"
-  version = "1.2.1"
+  count = length(var.budgets) > 0 ? 1 : 0
+  # source  = "appvia/budgets/aws//modules/budgets?ref=SA-505-Fix-AWS-Budgets-Terraform-Module"
+  # version = "1.2.1"
+  source = "git::https://github.com/appvia/budgets.git//modules/budgets?ref=SA-505-Fix-AWS-Budgets-Terraform-Module"
 
   budgets          = var.budgets
   create_sns_topic = false
