@@ -141,7 +141,7 @@ variable "kms_administrator" {
     # A list of roles to assume the kms administrator role
     assume_services = optional(list(string), [])
     # A list of services to assume the kms administrator role
-    description = optional(string, null)
+    description = optional(string, "Provides access to administer the KMS keys for the account")
     # The description of the default kms administrator role
     enable = optional(bool, false)
     # A flag indicating if the default kms administrator role should be enabled
@@ -172,12 +172,18 @@ variable "kms_key" {
     # The alias of the account encryption key when provisioning a new key
     key_administrators = optional(list(string), [])
     # A list of ARN of the key administrators
+    key_owners = optional(list(string), [])
+    # A list of ARN of the key owners
+    key_users = optional(list(string), [])
+    # A list of ARN of the key users - if unset, it will default to the account
   })
   default = {
     enabled                     = false
     key_administrators          = []
     key_alias                   = "lza/account/default"
-    key_deletion_window_in_days = 10
+    key_deletion_window_in_days = 7
+    key_owners                  = []
+    key_users                   = []
   }
 }
 

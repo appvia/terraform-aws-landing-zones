@@ -90,9 +90,10 @@ module "ebs_kms" {
   description             = format("Used as the default key for EBS encryption in the %s region", local.region)
   enable_key_rotation     = true
   is_enabled              = true
-  key_administrators      = [local.kms_key_administrator_role_arn]
-  key_owners              = compact(concat([local.account_root_arn], [local.kms_key_administrator_role_arn]))
+  key_administrators      = local.kms_key_administrators
+  key_owners              = local.kms_key_owners
   key_usage               = "ENCRYPT_DECRYPT"
+  key_users               = [local.account_root_arn]
   multi_region            = false
   source_policy_documents = [data.aws_iam_policy_document.ebs_encryption_key.json]
   tags                    = local.tags
