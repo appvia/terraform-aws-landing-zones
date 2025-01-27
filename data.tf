@@ -14,11 +14,6 @@ data "aws_region" "tenant" {
   provider = aws.tenant
 }
 
-## Find the current session context
-data "aws_iam_session_context" "tenant" {
-  arn = data.aws_caller_identity.tenant.arn
-}
-
 ## Get the current account for the current account
 data "aws_caller_identity" "current" {
 }

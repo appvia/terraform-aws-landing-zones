@@ -10,11 +10,8 @@ locals {
   ## The ARN for the account root
   account_root_arn = format("arn:aws:iam::%s:root", local.account_id)
 
-  ## Get the session role from iam session for the TENANT account
-  tenant_role = data.aws_iam_session_context.tenant.issuer_name
-
   ## The account role arn - this is the ARN in the TENANT we are using
-  tenant_role_arn = format("arn:aws:iam::%s:role/%s", local.account_id, local.tenant_role)
+  tenant_role_arn = data.aws_caller_identity.tenant.arn
 
   ## Map of account name to account id
   account_id_by_name = {
