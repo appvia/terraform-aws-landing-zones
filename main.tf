@@ -19,6 +19,11 @@ locals {
     addresses = var.notifications.email.addresses
   } : null
 
+  ## The notifications sns topic name
+  notifications_sns = {
+    topic_arn = module.notifications.sns_topic_arn
+  }
+
   ## Name of the sns topic for notifications for budget and cost alerts
   notifications_sns_topic_name = "lza-general-notifications"
 }
