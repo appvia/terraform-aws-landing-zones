@@ -42,7 +42,8 @@ resource "aws_servicecatalog_provisioned_product" "control_tower_account" {
       product_id,
       product_name,
       provisioning_artifact_id,
-      tags
+      provisioning_parameters,
+      tags,
     ]
   }
 }
