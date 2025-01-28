@@ -13,9 +13,5 @@ terraform {
         aws.tenant,
       ]
     }
-    archive = {
-      source  = "hashicorp/archive"
-      version = "~> 2.0"
-    }
   }
 }
