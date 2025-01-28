@@ -1,4 +1,9 @@
 
+output "account_id" {
+  description = "The account ID of the provisioned account"
+  value       = try(aws_servicecatalog_provisioned_product.control_tower_account.outputs["AccountID"], null)
+}
+
 output "arn" {
   description = "The ARN of the provisioned service catalog product"
   value       = aws_servicecatalog_provisioned_product.control_tower_account.arn
