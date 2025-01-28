@@ -1,7 +1,12 @@
 
 output "account_id" {
   description = "The account ID of the provisioned account"
-  value       = try(aws_servicecatalog_provisioned_product.control_tower_account.outputs["AccountID"], null)
+  value       = try(tolist([for o in aws_servicecatalog_provisioned_product.control_tower_account.outputs : o if o.key == "AccountId"])[0].value, null)
+}
+
+output "account_email" {
+  description = "The email address associated to the account"
+  value       = try(tolist([for o in aws_servicecatalog_provisioned_product.control_tower_account.outputs : o if o.key == "AccountEmail"])[0].value, null)
 }
 
 output "arn" {
