@@ -29,6 +29,17 @@ variable "aws_config" {
   }
 }
 
+variable "inspector" {
+  description = "Configuration for the AWS Inspector service"
+  type = object({
+    enable = optional(bool, false)
+    # A flag indicating if AWS Inspector should be enabled
+    delegate_account_id = optional(string, null)
+    # The account ID we should associate the service to
+  })
+  default = null
+}
+
 variable "budgets" {
   description = "A collection of budgets to provision"
   type = list(object({
