@@ -10,7 +10,7 @@ locals {
 module "networks" {
   for_each = var.networks
   source   = "appvia/network/aws"
-  version  = "0.3.4"
+  version  = "0.3.6"
 
   additional_subnets                     = { for k, v in each.value.subnets : k => v if !contains(["public", "private"], k) }
   availability_zones                     = each.value.vpc.availability_zones
