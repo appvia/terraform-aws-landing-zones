@@ -384,7 +384,7 @@ variable "iam_access_analyzer" {
   default = {
     analyzer_name = "lza-iam-access-analyzer"
     analyzer_type = "ORGANIZATION"
-    enabled       = false
+    enabled       = true
   }
 
   validation {
@@ -688,7 +688,9 @@ variable "cost_center" {
 variable "iam_service_linked_roles" {
   description = "A collection of service linked roles to apply to the account"
   type        = list(string)
-  default     = []
+  default = [
+    "autoscaling.amazonaws.com",
+  ]
 }
 
 variable "networks" {
