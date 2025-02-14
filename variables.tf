@@ -268,7 +268,7 @@ variable "iam_password_policy" {
     # A flag indicating if a hard expiry should be enforced
     max_password_age = optional(number, 90)
     # The maximum password age
-    minimum_password_length = optional(number, 8)
+    minimum_password_length = optional(number, 16)
     # The minimum password length
     password_reuse_prevention = optional(number, 24)
     # The number of passwords to prevent reuse
@@ -281,17 +281,7 @@ variable "iam_password_policy" {
     require_uppercase_characters = optional(bool, true)
     # A flag indicating if uppercase characters are required
   })
-  default = {
-    allow_users_to_change_password = true
-    hard_expiry                    = false
-    max_password_age               = 90
-    minimum_password_length        = 8
-    password_reuse_prevention      = 24
-    require_lowercase_characters   = true
-    require_numbers                = true
-    require_symbols                = true
-    require_uppercase_characters   = true
-  }
+  default = {}
 }
 
 variable "include_iam_roles" {
