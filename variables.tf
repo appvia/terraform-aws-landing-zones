@@ -680,6 +680,8 @@ variable "iam_service_linked_roles" {
   type        = list(string)
   default = [
     "autoscaling.amazonaws.com",
+    "spot.amazonaws.com",
+    "spotfleet.amazonaws.com",
   ]
 }
 
