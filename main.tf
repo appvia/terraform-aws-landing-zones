@@ -50,13 +50,18 @@ module "notifications" {
   source  = "appvia/notify/aws"
   version = "0.0.5"
 
-  allowed_aws_services = ["budgets.amazonaws.com", "lambda.amazonaws.com", "events.amazonaws.com"]
-  create_sns_topic     = true
-  email                = local.notifications_email
-  slack                = local.notifications_slack
-  sns_topic_name       = local.notifications_sns_topic_name
-  tags                 = local.tags
-  teams                = local.notifications_teams
+  allowed_aws_services = [
+    "budgets.amazonaws.com",
+    "ce.amazonaws.com",
+    "events.amazonaws.com",
+    "lambda.amazonaws.com",
+  ]
+  create_sns_topic = true
+  email            = local.notifications_email
+  slack            = local.notifications_slack
+  sns_topic_name   = local.notifications_sns_topic_name
+  tags             = local.tags
+  teams            = local.notifications_teams
 
   providers = {
     aws = aws.tenant
