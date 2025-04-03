@@ -52,7 +52,6 @@ module "notifications" {
 
   allowed_aws_services = [
     "budgets.amazonaws.com",
-    "ce.amazonaws.com",
     "events.amazonaws.com",
     "lambda.amazonaws.com",
   ]
