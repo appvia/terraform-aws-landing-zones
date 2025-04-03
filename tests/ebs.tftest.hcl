@@ -1,16 +1,8 @@
+
 override_module {
   target = module.notifications
   outputs = {
     sns_topic_arn = "arn:aws:sns:eu-west-2:123456789012:appvia-notifications"
-  }
-}
-
-override_module {
-  target = module.kms_key_administrator
-  outputs = {
-    role_arn = "arn:aws:iam::123456789012:role/appvia-kms-key-administrator"
-    key_arn  = "arn:aws:kms:eu-west-2:123456789012:key/12345678-1234-1234-1234-123456789012"
-    key_id   = "12345678-1234-1234-1234-123456789012"
   }
 }
 
@@ -31,10 +23,28 @@ run "basic" {
       }
     }
 
-    kms_administrator = {
-      enable              = true
-      enable_account_root = true
+    ebs_encryption = {
+      enable                      = true
+      create_kms_key              = true
+      key_deletion_window_in_days = 10
+      key_alias                   = "lza/ebs/default"
+      key_arn                     = null
     }
+  }
+
+  assert {
+    condition     = aws_ebs_default_kms_key.default[0] != null
+    error_message = "The EBS default KMS key should be created"
+  }
+
+  assert {
+    condition     = aws_ebs_encryption_by_default.default[0].enabled == true
+    error_message = "The EBS encryption should be enabled"
+  }
+
+  assert {
+    condition     = module.ebs_kms[0] != null
+    error_message = "The EBS KMS key should be created"
   }
 }
 
