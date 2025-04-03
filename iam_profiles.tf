@@ -2,7 +2,7 @@
 
 locals {
   ## A map of instance_profile -> iam permission_arn
-  instance_profiles = flatten([
+  instance_profiles = local.home_region ? flatten([
     for name, profile in var.iam_instance_profiles : [
       for policy_arn in profile.permission_arns : {
         name           = name
@@ -10,14 +10,14 @@ locals {
         permission_arn = policy_arn
       }
     ]
-  ])
+  ]) : []
 
-  instance_profiles_map = merge({
+  instance_profiles_map = local.home_region ? merge({
     for x in local.instance_profiles : format("%s-%s", x.name, x.permission_arn) => {
       permission_arn = x.permission_arn
       role_name      = x.name
     }
-  })
+  }) : {}
 }
 
 ## Provision one of more IAM profiles
