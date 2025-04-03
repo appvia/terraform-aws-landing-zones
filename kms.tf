@@ -45,7 +45,7 @@ locals {
 module "kms_key_administrator" {
   count   = local.enable_kms_key_administrator && local.home_region ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version = "5.54.0"
+  version = "5.54.1"
 
   allow_self_assume_role = true
   create_role            = true
