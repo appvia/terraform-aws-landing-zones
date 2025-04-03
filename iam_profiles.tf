@@ -40,6 +40,8 @@ resource "aws_iam_role" "instance_profiles" {
       }
     ]
   })
+
+  provider = aws.tenant
 }
 
 ## Provision the instance profile for us
@@ -49,6 +51,8 @@ resource "aws_iam_instance_profile" "instance_profiles" {
   name = each.value.name
   role = aws_iam_role.instance_profiles[each.key].name
   tags = local.tags
+
+  provider = aws.tenant
 }
 
 ## Associate the permissions with each of the instance roles
@@ -57,4 +61,6 @@ resource "aws_iam_role_policy_attachment" "instance_profiles" {
 
   policy_arn = each.value.permission_arn
   role       = aws_iam_role.instance_profiles[each.value.role_name].id
+
+  provider = aws.tenant
 }
