@@ -2,7 +2,7 @@
 
 locals {
   ## A map of instance_profile -> iam permission_arn
-  instance_profiles = local.home_region ? flatten([
+  instance_profiles = flatten([
     for name, profile in var.iam_instance_profiles : [
       for policy_arn in profile.permission_arns : {
         name           = name
@@ -10,14 +10,14 @@ locals {
         permission_arn = policy_arn
       }
     ]
-  ]) : []
+  ])
 
-  instance_profiles_map = local.home_region ? merge({
+  instance_profiles_map = merge({
     for x in local.instance_profiles : format("%s-%s", x.name, x.permission_arn) => {
       permission_arn = x.permission_arn
       role_name      = x.name
     }
-  }) : {}
+  })
 }
 
 ## Provision one of more IAM profiles
@@ -46,7 +46,7 @@ resource "aws_iam_role" "instance_profiles" {
 
 ## Provision the instance profile for us
 resource "aws_iam_instance_profile" "instance_profiles" {
-  for_each = var.iam_instance_profiles
+  for_each = local.home_region ? var.iam_instance_profiles : {}
 
   name = each.value.name
   role = aws_iam_role.instance_profiles[each.key].name
@@ -57,7 +57,7 @@ resource "aws_iam_instance_profile" "instance_profiles" {
 
 ## Associate the permissions with each of the instance roles
 resource "aws_iam_role_policy_attachment" "instance_profiles" {
-  for_each = local.instance_profiles_map
+  for_each = local.home_region ? local.instance_profiles_map : {}
 
   policy_arn = each.value.permission_arn
   role       = aws_iam_role.instance_profiles[each.value.role_name].id
