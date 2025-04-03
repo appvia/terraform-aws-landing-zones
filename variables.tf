@@ -384,14 +384,14 @@ variable "iam_access_analyzer" {
 variable "include_iam_roles" {
   description = "Collection of IAM roles to include in the account"
   type = object({
-    security_auditor = object({
+    security_auditor = optional(object({
       enable = optional(bool, false)
       name   = optional(string, "lza-security-auditor")
-    })
-    ssm_instance = object({
+    }), {})
+    ssm_instance = optional(object({
       enable = optional(bool, false)
       name   = optional(string, "lza-ssm-instance")
-    })
+    }), {})
   })
   default = {
     security_auditor = {
