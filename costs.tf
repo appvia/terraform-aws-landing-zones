@@ -24,11 +24,9 @@ module "anomaly_detection" {
   source  = "appvia/anomaly-detection/aws"
   version = "0.3.0"
 
-  enable_notification_creation = false
-  enable_sns_topic_creation    = false
-  monitors                     = local.cost_anomaly_monitors
-  sns_topic_arn                = module.notifications.sns_topic_arn
-  tags                         = local.tags
+  monitors      = local.cost_anomaly_monitors
+  sns_topic_arn = module.notifications.sns_topic_arn
+  tags          = local.tags
 
   providers = {
     aws = aws.tenant
