@@ -22,7 +22,7 @@ locals {
 
 ## Provision one of more IAM profiles
 resource "aws_iam_role" "instance_profiles" {
-  for_each = var.iam_instance_profiles
+  for_each = local.home_region ? var.iam_instance_profiles : {}
 
   name = each.value.name
   path = each.value.path
