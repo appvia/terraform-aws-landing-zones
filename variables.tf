@@ -252,7 +252,6 @@ variable "iam_users" {
     permission_boundary_name = optional(string, null)
     # A list of additional permissions to apply to the IAM user
     policy_arns = optional(list(string), [])
-    # A list of policies to apply to the IAM user
   }))
   default = []
 }
@@ -284,28 +283,17 @@ variable "iam_password_policy" {
   default = {}
 }
 
-variable "include_iam_roles" {
-  description = "Collection of IAM roles to include in the account"
-  type = object({
-    security_auditor = object({
-      enable = optional(bool, false)
-      name   = optional(string, "lza-security-auditor")
-    })
-    ssm_instance = object({
-      enable = optional(bool, false)
-      name   = optional(string, "lza-ssm-instance")
-    })
-  })
-  default = {
-    security_auditor = {
-      enable = false
-      name   = "lza-security-auditor"
-    }
-    ssm_instance = {
-      enable = false
-      name   = "lza-ssm-instance"
-    }
-  }
+variable "iam_instance_profiles" {
+  description = "A collection of IAM instance profiles to apply to the account"
+  type = map(object({
+    name = optional(string, null)
+    # The name prefix of the IAM instance profile
+    path = optional(string, "/")
+    # The path of the IAM instance profile
+    permission_arns = optional(list(string), [])
+    # A list of roles to apply to the IAM instance profile
+  }))
+  default = {}
 }
 
 variable "iam_roles" {
@@ -390,6 +378,30 @@ variable "iam_access_analyzer" {
   validation {
     condition     = length(var.iam_access_analyzer.analyzer_name) <= 32
     error_message = "The analyzer name must be less than or equal to 32"
+  }
+}
+
+variable "include_iam_roles" {
+  description = "Collection of IAM roles to include in the account"
+  type = object({
+    security_auditor = object({
+      enable = optional(bool, false)
+      name   = optional(string, "lza-security-auditor")
+    })
+    ssm_instance = object({
+      enable = optional(bool, false)
+      name   = optional(string, "lza-ssm-instance")
+    })
+  })
+  default = {
+    security_auditor = {
+      enable = false
+      name   = "lza-security-auditor"
+    }
+    ssm_instance = {
+      enable = false
+      name   = "lza-ssm-instance"
+    }
   }
 }
 
