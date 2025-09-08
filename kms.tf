@@ -90,7 +90,8 @@ module "kms_key" {
   tags                    = merge(local.tags, { "Name" = var.kms_key.key_alias })
 
   depends_on = [
-    module.kms_key_administrator
+    module.kms_key_administrator,
+    module.iam_roles,
   ]
 
   providers = {
