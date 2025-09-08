@@ -138,6 +138,7 @@ module "iam_roles" {
 
   depends_on = [
     aws_iam_policy.iam_policies
+    aws_iam_service_linked_role.aws_iam_service_linked_role
   ]
 }
 

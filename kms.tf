@@ -91,6 +91,7 @@ module "kms_key" {
 
   depends_on = [
     module.kms_key_administrator
+    module.iam_roles
   ]
 
   providers = {
