@@ -131,9 +131,10 @@ run "network_with_firewall" {
           }
         }
         vpc = {
-          availability_zones = 2
-          cidr               = "10.0.0.0/16"
-          nat_gateway_mode   = "none"
+          enable_transit_gateway = false
+          availability_zones     = 2
+          cidr                   = "10.0.0.0/16"
+          nat_gateway_mode       = "none"
         }
         firewall = {
           capacity     = 1000
