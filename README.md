@@ -421,7 +421,6 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_environment"></a> [environment](#input\_environment) | The environment in which to provision resources | `string` | n/a | yes |
 | <a name="input_git_repository"></a> [git\_repository](#input\_git\_repository) | The git repository to use for the account | `string` | n/a | yes |
 | <a name="input_home_region"></a> [home\_region](#input\_home\_region) | The home region in which to provision global resources | `string` | n/a | yes |
-| <a name="input_infrastructure_repository"></a> [infrastructure\_repository](#input\_infrastructure\_repository) | The git repository to use for the infrastructure account | <pre>object({<br/>    organization = string<br/>    # Organization name of the repository<br/>    repository = string<br/>    # The git repository to use for the infrastructure account<br/>    default_branch = optional(string, "main")<br/>    # The branch to use for the infrastructure account<br/>  })</pre> | n/a | yes |
 | <a name="input_owner"></a> [owner](#input\_owner) | The owner of the product, and injected into all resource tags | `string` | n/a | yes |
 | <a name="input_product"></a> [product](#input\_product) | The name of the product to provision resources and inject into all resource tags | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | A collection of tags to apply to resources | `map(string)` | n/a | yes |

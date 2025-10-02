@@ -331,7 +331,6 @@ No providers.
 | <a name="output_enterprise_repository_topics"></a> [enterprise\_repository\_topics](#output\_enterprise\_repository\_topics) | The topics of the enterprise repository |
 | <a name="output_enterprise_repository_url"></a> [enterprise\_repository\_url](#output\_enterprise\_repository\_url) | The URL of the enterprise repository |
 | <a name="output_enterprise_repository_visibility"></a> [enterprise\_repository\_visibility](#output\_enterprise\_repository\_visibility) | The visibility of the enterprise repository |
-| <a name="output_github_organization"></a> [github\_organization](#output\_github\_organization) | The GitHub organization where repositories were created |
 | <a name="output_public_repository_default_branch"></a> [public\_repository\_default\_branch](#output\_public\_repository\_default\_branch) | The default branch of the public repository |
 | <a name="output_public_repository_name"></a> [public\_repository\_name](#output\_public\_repository\_name) | The name of the public repository |
 | <a name="output_public_repository_ssh_url"></a> [public\_repository\_ssh\_url](#output\_public\_repository\_ssh\_url) | The SSH URL of the public repository |
