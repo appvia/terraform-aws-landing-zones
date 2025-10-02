@@ -28,7 +28,7 @@ locals {
   autoscale_service_linked_role_arn = format("arn:aws:iam::%s:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling", local.account_id)
 
   ## The current region
-  region = data.aws_region.tenant.name
+  region = data.aws_region.tenant.region
 
   ## is_home_region is true if the current region is the home region for the tenant
   home_region = local.region == var.home_region
