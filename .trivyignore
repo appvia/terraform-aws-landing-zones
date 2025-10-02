@@ -6,3 +6,5 @@ AVD-AWS-0057
 AVD-AWS-0067
 AVD-AWS-0095 # https://avd.aquasec.com/misconfig/aws/sns/avd-aws-0095/
 AVD-DS-0001  # https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0001/
+AVD-GIT-0001  # https://avd.aquasec.com/misconfig/git/general/avd-git-0001/
+AVD-AWS-0066 # https://avd.aquasec.com/misconfig/aws/lambda/avd-aws-0066/
