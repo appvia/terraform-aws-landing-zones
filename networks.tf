@@ -22,7 +22,9 @@ module "networks" {
   name                                   = each.key
   nat_gateway_mode                       = each.value.vpc.nat_gateway_mode
   private_subnet_netmask                 = coalesce(try(each.value.subnets["private"].netmask, null), 0)
+  private_subnet_tags                    = each.value.private_subnet_tags
   public_subnet_netmask                  = coalesce(try(each.value.subnets["public"].netmask, null), 0)
+  public_subnet_tags                     = each.value.public_subnet_tags
   subnets                                = { for k, v in each.value.subnets : k => v if !contains(["public", "private"], k) }
   tags                                   = merge(local.tags, each.value.tags)
   transit_gateway_id                     = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway.gateway_id : null

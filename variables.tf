@@ -777,10 +777,17 @@ variable "networks" {
       domains_whitelist = list(string)
     }), null)
 
+    private_subnet_tags = optional(map(string), {})
+    # Additional tags to apply to the private subnet
+    public_subnet_tags = optional(map(string), {})
+    # Additional tags to apply to the public subnet
+
     subnets = map(object({
       cidr = optional(string, null)
       # The CIDR block of the subnet
       netmask = optional(number, 0)
+      # Additional tags to apply to the subnet
+      tags = optional(map(string), {})
     }))
 
     tags = optional(map(string), {})
