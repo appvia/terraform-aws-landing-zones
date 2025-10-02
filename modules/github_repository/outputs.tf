@@ -20,11 +20,6 @@ output "repository_visibility" {
   value       = github_repository.repository.visibility
 }
 
-output "repository_private" {
-  description = "Whether the repository is private"
-  value       = github_repository.repository.private
-}
-
 output "repository_html_url" {
   description = "The HTML URL of the created repository"
   value       = github_repository.repository.html_url
@@ -38,11 +33,6 @@ output "repository_ssh_clone_url" {
 output "repository_git_clone_url" {
   description = "The Git clone URL of the created repository"
   value       = github_repository.repository.git_clone_url
-}
-
-output "repository_default_branch" {
-  description = "The default branch of the created repository"
-  value       = github_repository.repository.default_branch
 }
 
 output "repository_topics" {

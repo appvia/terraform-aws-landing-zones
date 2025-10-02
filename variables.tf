@@ -549,6 +549,71 @@ variable "environment" {
   type        = string
 }
 
+variable "infrastructure_repository" {
+  description = "The infrastructure repository provisions and configures a pipeline repository for the landing zone"
+  type = object({
+    name = optional(string, null)
+    # The name prefix of the repository
+    create = optional(bool, true)
+    # A flag indicating if the repository should be created
+    visibility = optional(string, "private")
+    # The visibility of the repository
+    default_branch = optional(string, "main")
+    # The default branch of the repository
+    template = optional(object({
+      owner = string
+      # The owner of the repository template
+      repository = string
+      # The repository template to use for the repository
+      }), null
+    )
+    # The repository template to use for the repository
+    branch_protection = optional(object({
+      dismissal_apps = list(string)
+      # The apps to dismiss reviews
+      dismiss_stale_reviews = bool
+      # A flag indicating if the stale reviews should be dismissed
+      dismissal_teams = list(string)
+      # The teams to dismiss reviews
+      dismissal_users = list(string)
+      # The users to dismiss reviews
+      enforce_branch_protection_for_admins = bool
+      # A flag indicating if the branch protection should be enforced for admins
+      prevent_self_review = bool
+      # A flag indicating if the self review should be prevented
+      required_approving_review_count = number
+      # The number of approving reviews required
+      }), {
+      dismiss_stale_reviews                = true
+      dismissal_apps                       = []
+      dismissal_teams                      = []
+      dismissal_users                      = []
+      enforce_branch_protection_for_admins = true
+      prevent_self_review                  = true
+      required_approving_review_count      = 2
+    })
+    # The branch protection to use for the repository
+    permissions = optional(object({
+      read_only_policy_arns = list(string)
+      # The policy ARNs to associate with the repository
+      read_write_policy_arns = list(string)
+      # The policy ARNs to associate with the repository
+      }), {
+      read_only_policy_arns  = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
+      read_write_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+    })
+    # The permissions to use for the repository
+    permissions_boundary = optional(object({
+      arn = optional(string, null)
+      # The ARN of the permissions boundary to use for the repository
+      policy = optional(string, null)
+      # The policy of the permissions boundary to use for the repository
+    }), null)
+    # The permissions boundary to use for the repository
+  })
+  default = null
+}
+
 variable "rbac" {
   description = "Provides the ability to associate one of more groups with a sso role in the account"
   type = map(object({

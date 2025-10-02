@@ -19,11 +19,6 @@ output "basic_repository_ssh_url" {
   value       = var.enable_basic_repository ? "git@github.com:${var.github_organization}/${var.basic_repository_name}.git" : null
 }
 
-output "basic_repository_visibility" {
-  description = "The visibility of the basic repository"
-  value       = var.enable_basic_repository ? "private" : null
-}
-
 output "basic_repository_default_branch" {
   description = "The default branch of the basic repository"
   value       = var.enable_basic_repository ? "main" : null

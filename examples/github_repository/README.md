@@ -379,7 +379,6 @@ No providers.
 | <a name="output_basic_repository_ssh_url"></a> [basic\_repository\_ssh\_url](#output\_basic\_repository\_ssh\_url) | The SSH URL of the basic repository |
 | <a name="output_basic_repository_topics"></a> [basic\_repository\_topics](#output\_basic\_repository\_topics) | The topics of the basic repository |
 | <a name="output_basic_repository_url"></a> [basic\_repository\_url](#output\_basic\_repository\_url) | The URL of the basic repository |
-| <a name="output_basic_repository_visibility"></a> [basic\_repository\_visibility](#output\_basic\_repository\_visibility) | The visibility of the basic repository |
 | <a name="output_enterprise_repository_collaborators"></a> [enterprise\_repository\_collaborators](#output\_enterprise\_repository\_collaborators) | The collaborators of the enterprise repository |
 | <a name="output_enterprise_repository_default_branch"></a> [enterprise\_repository\_default\_branch](#output\_enterprise\_repository\_default\_branch) | The default branch of the enterprise repository |
 | <a name="output_enterprise_repository_environments"></a> [enterprise\_repository\_environments](#output\_enterprise\_repository\_environments) | The environments configured for the enterprise repository |

@@ -48,8 +48,8 @@ resource "aws_route53_zone" "zones" {
   provider = aws.tenant
 }
 
-## Authorize the spoke vpc to associate with the central dns solution if required 
-resource "aws_route53_vpc_association_authorization" "central_dns_authorization" {
+## Request from spoke vpc to associate with the central dns solution if required
+resource "aws_route53_vpc_association_authorization" "request_dns_authorization" {
   for_each = local.central_dns_enable ? { for key, zone in var.dns : key => zone if zone.private } : {}
 
   vpc_id     = local.central_dns_vpc_id
@@ -74,7 +74,7 @@ resource "aws_route53_zone_association" "central_dns_association" {
 
   depends_on = [
     aws_route53_zone.zones,
-    aws_route53_vpc_association_authorization.central_dns_authorization,
+    aws_route53_vpc_association_authorization.request_dns_authorization,
     module.networks,
   ]
 
