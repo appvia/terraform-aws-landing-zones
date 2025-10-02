@@ -124,7 +124,7 @@ variable "cost_anomaly_detection" {
     })), [])
   })
   default = {
-    enabled  = true
+    enable   = true
     monitors = []
   }
 }
@@ -189,7 +189,7 @@ variable "kms_key" {
     # A list of ARN of the key users - if unset, it will default to the account
   })
   default = {
-    enabled                     = false
+    enable                      = false
     key_administrators          = []
     key_alias                   = "lza/account/default"
     key_deletion_window_in_days = 7
@@ -362,7 +362,7 @@ variable "iam_access_analyzer" {
   default = {
     analyzer_name = "lza-iam-access-analyzer"
     analyzer_type = "ORGANIZATION"
-    enabled       = true
+    enable        = true
   }
 
   validation {
@@ -496,7 +496,7 @@ variable "s3_block_public_access" {
     # A flag indicating if S3 restrict public buckets should be enabled
   })
   default = {
-    enabled                        = false
+    enable                         = false
     enable_block_public_policy     = true
     enable_block_public_acls       = true
     enable_ignore_public_acls      = true
