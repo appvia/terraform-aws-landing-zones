@@ -246,6 +246,73 @@ rbac = {
 }
 ```
 
+## GitHub Repository Management
+
+This module includes comprehensive GitHub repository management capabilities through the `modules/github_repository` module. This allows tenants to create and manage GitHub repositories with enterprise-grade security and compliance features.
+
+### GitHub Repository Features
+
+- **Repository Creation**: Create GitHub repositories with customizable names, descriptions, and visibility
+- **Security & Compliance**: Branch protection, required reviews, status checks, vulnerability alerts
+- **Collaboration Management**: User and team access control, environment protection
+- **Automation**: Repository templates, merge strategies, and automated workflows
+
+### Basic GitHub Repository Usage
+
+```hcl
+module "my_repository" {
+  source = "./modules/github_repository"
+
+  repository  = "my-project"
+  description = "My awesome project"
+  visibility  = "private"
+}
+```
+
+### Advanced GitHub Repository Configuration
+
+```hcl
+module "enterprise_repository" {
+  source = "./modules/github_repository"
+
+  repository  = "enterprise-critical-system"
+  description = "Enterprise critical system with strict controls"
+  
+  # Security settings
+  visibility = "private"
+  
+  # Branch protection
+  enforce_branch_protection_for_admins = true
+  required_approving_review_count      = 3
+  dismiss_stale_reviews                = true
+  prevent_self_review                  = true
+  
+  # Status checks
+  required_status_checks = [
+    "CI / Build and Test",
+    "Security / Security Scan",
+    "Compliance / Compliance Check"
+  ]
+  
+  # Environments
+  repository_environments          = ["staging", "production"]
+  default_environment_review_users = ["senior-dev1", "senior-dev2"]
+  
+  # Collaborators
+  repository_collaborators = [
+    {
+      username   = "senior-dev1"
+      permission = "admin"
+    }
+  ]
+  
+  # Topics
+  repository_topics = ["enterprise", "terraform", "aws", "critical"]
+}
+```
+
+For complete GitHub repository management examples, see the `examples/github_repository/` directory.
+
 ## Cost Management Features
 
 Tenants are able to receive budgets notifications related to the services. Once notifications have been configured they will automatically receive daily, weekly or monthly reports and notifications on where they sit in the budget.
@@ -400,7 +467,7 @@ module "my_account" {
 The `terraform-docs` utility is used to generate this README. Follow the below steps to update:
 
 1. Make changes to the `.terraform-docs.yml` file
-2. Fetch the `terraform-docs` binary (https://terraform-docs.io/user-guide/installation/)
+2. Fetch the `terraform-docs` binary (<https://terraform-docs.io/user-guide/installation/>)
 3. Run `terraform-docs markdown table --output-file ${PWD}/README.md --output-mode inject .`
 
 <!-- BEGIN_TF_DOCS -->
@@ -413,6 +480,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="provider_aws.management"></a> [aws.management](#provider\_aws.management) | >= 5.0.0 |
 | <a name="provider_aws.network"></a> [aws.network](#provider\_aws.network) | >= 5.0.0 |
 | <a name="provider_aws.tenant"></a> [aws.tenant](#provider\_aws.tenant) | >= 5.0.0 |
+| <a name="provider_github"></a> [github](#provider\_github) | ~> 6.0 |
 
 ## Inputs
 

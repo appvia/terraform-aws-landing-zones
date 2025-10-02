@@ -25,8 +25,8 @@ Configure the GitHub provider in your `providers.tf`:
 
 ```hcl
 provider "github" {
-  organization = "your-organization"
-  token        = var.github_token  # Use environment variable or variable
+  owner = "your-organization"  # Use 'owner' instead of deprecated 'organization'
+  token = var.github_token     # Use environment variable or variable
 }
 ```
 
@@ -59,6 +59,9 @@ module "my_repository" {
   # Repository settings
   visibility = "private"
   default_branch = "main"
+  
+  # Security settings
+  vulnerability_alerts = true  # Automatically enabled by default
   
   # Merge settings
   allow_merge_commit = true
@@ -109,6 +112,8 @@ A standard private repository with:
 - Environment protection
 - Collaborator management
 - Repository topics
+- Vulnerability alerts enabled
+- Signed commits required
 
 ### 2. Public Repository
 
@@ -131,6 +136,9 @@ A highly controlled enterprise repository with:
 - Multiple environments with reviewers
 - Bypass allowances for emergencies
 - Enterprise-specific topics
+- Vulnerability alerts enabled
+- Signed commits required
+- Self-review prevention
 
 ## Variables
 
@@ -243,6 +251,30 @@ repository_collaborators = [
 ]
 ```
 
+## Security Features
+
+This module implements comprehensive security features:
+
+### Automatic Security Features
+
+- **Vulnerability Alerts**: Automatically enabled for all repositories
+- **Signed Commits**: Required for all changes to protected branches
+- **Branch Protection**: Enforced for all repositories with configurable rules
+
+### Configurable Security Features
+
+- **Required Reviews**: Set minimum number of reviewers for pull requests
+- **Status Checks**: Require specific CI/CD checks before merging
+- **Environment Protection**: Protect deployment environments with reviewers
+- **Self-Review Prevention**: Prevent users from approving their own changes
+- **Bypass Allowances**: Configure emergency access for critical situations
+
+### Access Control
+
+- **Collaborator Management**: Granular permission control (read, write, admin)
+- **Team-based Access**: Support for team-based collaboration
+- **Review Dismissal**: Control who can dismiss reviews and when
+
 ## Security Considerations
 
 - Use least privilege principle for collaborators
@@ -250,15 +282,41 @@ repository_collaborators = [
 - Require status checks for all changes
 - Use environment protection for production deployments
 - Regularly review and audit repository access
+- Enable vulnerability alerts for security scanning
+- Use signed commits for enhanced security
+- Configure appropriate bypass allowances for emergencies
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Authentication Errors**: Ensure your GitHub token has the necessary permissions
+   - Required scopes: `repo`, `admin:org`, `admin:repo_hook`
+   - For organizations: `admin:org_hook` scope may be needed
+
 2. **Organization Access**: Verify you have admin access to the organization
+   - Check that your token has organization admin permissions
+   - Ensure the organization allows repository creation
+
 3. **Repository Name Conflicts**: Ensure repository names are unique within the organization
+   - Repository names must be unique within the organization
+   - Check for existing repositories with the same name
+
 4. **Status Check Names**: Verify status check names match exactly with your CI/CD setup
+   - Status check names are case-sensitive
+   - Ensure your CI/CD system is configured with the exact same names
+
+5. **Branch Protection Issues**: Common branch protection problems
+   - Ensure the default branch exists before applying branch protection
+   - Check that required status checks are properly configured in your CI/CD
+
+6. **Environment Protection**: Issues with environment configuration
+   - Ensure environment names don't conflict with existing environments
+   - Verify reviewer users/teams exist in the organization
+
+7. **Collaborator Permissions**: Problems with collaborator access
+   - Ensure collaborator usernames are correct and exist
+   - Check that permission levels are valid (read, write, admin)
 
 ### Debugging
 
