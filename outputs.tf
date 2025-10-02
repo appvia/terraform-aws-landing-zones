@@ -58,3 +58,8 @@ output "log_archive_account_id" {
   description = "The account id for the log archive account"
   value       = local.log_archive_account_id
 }
+
+output "ipam_pools_by_name" {
+  description = "A map of the ipam pool name to id"
+  value       = local.ipam_pools_by_name
+}

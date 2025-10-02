@@ -37,5 +37,5 @@ data "aws_vpc_ipam_pools" "current" {
     values = ["ipv4"]
   }
 
-  provider = aws.network
+  provider = aws.tenant
 }

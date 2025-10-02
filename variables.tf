@@ -785,8 +785,8 @@ variable "networks" {
 
   ## The nat mode can only be none, single or all_azs
   validation {
-    condition     = alltrue([for network in var.networks : contains(["none", "single", "all_azs"], network.vpc.nat_gateway_mode)])
-    error_message = "The nat mode can only be none, single or all_azs"
+    condition     = alltrue([for network in var.networks : contains(["none", "single_az", "all_azs"], network.vpc.nat_gateway_mode)])
+    error_message = "The nat mode can only be none, single_az or all_azs"
   }
 }
 
