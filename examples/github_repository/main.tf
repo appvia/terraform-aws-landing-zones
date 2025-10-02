@@ -23,9 +23,8 @@ module "basic_repository" {
   delete_branch_on_merge = true
 
   # Template settings
-  enable_repository_template = true
-  repository_template        = "terraform-aws-pipeline-template"
-  organization_template      = "appvia"
+  repository_template   = "terraform-aws-pipeline-template"
+  organization_template = "appvia"
 
   # Branch protection settings
   enforce_branch_protection_for_admins = true
@@ -82,9 +81,6 @@ module "public_repository" {
   allow_auto_merge       = true
   delete_branch_on_merge = true
 
-  # No template for open source project
-  enable_repository_template = false
-
   # Stricter branch protection for public repo
   enforce_branch_protection_for_admins = true
   required_approving_review_count      = 1
@@ -127,9 +123,8 @@ module "enterprise_repository" {
   delete_branch_on_merge = true
 
   # Use enterprise template
-  enable_repository_template = true
-  repository_template        = "enterprise-terraform-template"
-  organization_template      = "my-enterprise-org"
+  repository_template   = "enterprise-terraform-template"
+  organization_template = "my-enterprise-org"
 
   # Strict branch protection
   enforce_branch_protection_for_admins = true

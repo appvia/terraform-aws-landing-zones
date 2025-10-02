@@ -12,7 +12,7 @@ resource "github_repository" "repository" {
   vulnerability_alerts   = true
 
   dynamic "template" {
-    for_each = var.enable_repository_template == true ? [1] : []
+    for_each = local.enable_repository_template == true ? [1] : toset([])
     content {
       owner                = var.organization_template
       repository           = var.repository_template

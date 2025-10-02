@@ -55,9 +55,8 @@ module "github_repository" {
   visibility     = local.repository.visibility
 
   # Template settings
-  enable_repository_template = try(local.repository.template, null) != null ? true : false
-  organization_template      = try(local.repository.template.owner, null)
-  repository_template        = try(local.repository.template.repository, null)
+  organization_template = try(local.repository.template.owner, null)
+  repository_template   = try(local.repository.template.repository, null)
 
   # Branch rules 
   allow_auto_merge       = try(local.repository.allow_auto_merge, false)

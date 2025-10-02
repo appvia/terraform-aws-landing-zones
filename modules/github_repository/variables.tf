@@ -25,22 +25,16 @@ variable "visibility" {
   default     = "private"
 }
 
-variable "enable_repository_template" {
-  description = "The enable repository template of the repository to provision"
-  type        = bool
-  default     = true
-}
-
 variable "repository_template" {
   description = "The repository template of the repository to provision"
   type        = string
-  default     = "terraform-aws-pipeline-template"
+  default     = null
 }
 
 variable "organization_template" {
   description = "The organization template of the repository to provision"
   type        = string
-  default     = "appvia"
+  default     = null
 }
 
 variable "delete_branch_on_merge" {
