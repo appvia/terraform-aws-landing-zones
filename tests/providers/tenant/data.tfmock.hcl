@@ -18,15 +18,12 @@ mock_data "aws_vpc_ipam_pools" {
       {
         id                             = "ipam-pool-1234567890"
         address_family                 = "ipv4"
-        description                    = "Test IPAM pool"
+        description                    = "test-ipam-pool"
         ipam_pool_id                   = "ipam-pool-1234567890"
         ipam_pool_type                 = "private"
         ipam_pool_cidr                 = "10.0.0.0/16"
         ipam_pool_cidr_allocation      = "static"
         ipam_pool_cidr_allocation_type = "prefix"
-        tags = {
-          Name = "test-ipam-pool"
-        }
       }
     ]
   }

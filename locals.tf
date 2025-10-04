@@ -45,8 +45,13 @@ locals {
   ## The tags associated with all resources within the account
   tags = merge(var.tags, module.tagging.tags)
 
+  ## The ipam pools found in the account
+  ipam_pools = data.aws_vpc_ipam_pools.current.ipam_pools
+
   ## Create a map of the ipam pools, using the Name tag as the key
-  ipam_pools_by_name = { for pool in data.aws_vpc_ipam_pools.current.ipam_pools : pool.tags.Name => pool.id }
+  ipam_pools_by_name = {
+    for pool in try(local.ipam_pools, {}) : pool.description => pool.id if try(pool.description, null) != null
+  }
   #  ## This is a merge list of all the ip sets from the firewall rules
   #  firewall_merged_ipsets = merge(local.firewall_default_ipsets, local.enable_firewall_rules ? var.firewall_rules.ip_sets : {})
   #  ## A merged list of all the port sets from the firewall rules
