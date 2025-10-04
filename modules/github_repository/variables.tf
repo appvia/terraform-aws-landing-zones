@@ -107,19 +107,19 @@ variable "dismiss_stale_reviews" {
 variable "dismissal_users" {
   description = "The users to dismiss reviews"
   type        = list(string)
-  default     = []
+  default     = null
 }
 
 variable "dismissal_apps" {
   description = "The apps to dismiss reviews"
   type        = list(string)
-  default     = []
+  default     = null
 }
 
 variable "dismissal_teams" {
   description = "The teams to dismiss reviews"
   type        = list(string)
-  default     = []
+  default     = null
 }
 
 variable "required_approving_review_count" {
@@ -137,19 +137,19 @@ variable "enforce_branch_protection_for_admins" {
 variable "bypass_pull_request_allowances_users" {
   description = "The users to bypass pull request allowances"
   type        = list(string)
-  default     = []
+  default     = null
 }
 
 variable "bypass_pull_request_allowances_teams" {
   description = "The teams to bypass pull request allowances"
   type        = list(string)
-  default     = []
+  default     = null
 }
 
 variable "bypass_pull_request_allowances_apps" {
   description = "The apps to bypass pull request allowances"
   type        = list(string)
-  default     = []
+  default     = null
 }
 
 variable "required_status_checks" {
@@ -174,13 +174,13 @@ variable "repository_environments" {
 variable "default_environment_review_users" {
   description = "The user reviewers to apply to the production environment"
   type        = list(string)
-  default     = []
+  default     = null
 }
 
 variable "default_environment_review_teams" {
   description = "The teams reviewers to apply to the production environment"
   type        = list(string)
-  default     = []
+  default     = null
 }
 
 variable "repository_topics" {

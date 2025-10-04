@@ -67,7 +67,7 @@ module "github_repository" {
 
   # Branch protection
   dismiss_stale_reviews                = try(local.repository.dismiss_stale_reviews, true)
-  dismissal_users                      = try(local.repository.dismissal_users, [])
+  dismissal_users                      = try(local.repository.dismissal_users, null)
   enforce_branch_protection_for_admins = try(local.repository.branch_protection.enforce_branch_protection_for_admins, true)
   prevent_self_review                  = try(local.repository.prevent_self_review, true)
   required_approving_review_count      = try(local.repository.branch_protection.required_approving_review_count, 2)
