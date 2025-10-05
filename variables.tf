@@ -885,6 +885,25 @@ variable "networks" {
       # A flag indicating if the default route table should be associated with the network
       enable_default_route_table_propagation = optional(bool, true)
       # A flag indicating if the default route table should be propagated to the network
+      flow_logs = optional(object({
+        destination_type = optional(string, "none")
+        # The destination type of the flow logs 
+        destination_arn = optional(string, null)
+        # The ARN of the destination of the flow logs
+        log_format = optional(string, "plain-text")
+        # The format of the flow logs
+        traffic_type = optional(string, "ALL")
+        # The type of traffic to capture
+        destination_options = optional(object({
+          file_format = optional(string, "plain-text")
+          # The format of the flow logs
+          hive_compatible_partitions = optional(bool, false)
+          # Whether to use hive compatible partitions
+          per_hour_partition = optional(bool, false)
+          # Whether to partition the flow logs per hour
+        }), null)
+        # The destination options of the flow logs
+      }), null)
       ipam_pool_name = optional(string, null)
       # The name of the IPAM pool to use for the network
       nat_gateway_mode = optional(string, "none")
@@ -892,7 +911,6 @@ variable "networks" {
       netmask = optional(number, null)
       # The netmask of the VPC network if using IPAM
       transit_gateway_routes = optional(map(string), null)
-      # A list of routes to associate with the transit gateway, optional
     })
   }))
   default = {}
