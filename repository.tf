@@ -46,8 +46,9 @@ module "repository_permissions" {
 
 ## Provision a Github repository for this landing zone, if required.
 module "github_repository" {
-  count  = local.enable_infrastructure_repository && try(local.repository.create, false) ? 1 : 0
-  source = "./modules/github_repository"
+  count   = local.enable_infrastructure_repository && try(local.repository.create, false) ? 1 : 0
+  source  = "appvia/repository/github"
+  version = "0.0.1"
 
   repository     = local.repository.name
   description    = format("Infrastructure repository for the %s landing zone.", local.repository.name)
