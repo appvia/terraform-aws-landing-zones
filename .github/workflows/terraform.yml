@@ -18,4 +18,5 @@ jobs:
     name: Module Validation
     with:
       terraform-dir: examples/basic
+      terraform-version: 1.13.3
       working-directory: .
