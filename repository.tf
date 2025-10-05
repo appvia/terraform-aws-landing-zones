@@ -20,7 +20,7 @@ resource "aws_iam_policy" "permissions_boundary" {
   tags        = local.tags
 }
 
-## Provision a repository for this landing zone, and enable the repository permissions 
+## Provision a repository for this landing zone, and enable the repository permissions
 ## to configure and provision the infrastructure with the said account.
 module "repository_permissions" {
   count   = local.enable_infrastructure_repository ? 1 : 0
@@ -48,28 +48,31 @@ module "repository_permissions" {
 module "github_repository" {
   count   = local.enable_infrastructure_repository && try(local.repository.create, false) ? 1 : 0
   source  = "appvia/repository/github"
-  version = "0.0.1"
+  version = "1.1.3"
 
-  repository     = local.repository.name
-  description    = format("Infrastructure repository for the %s landing zone.", local.repository.name)
-  default_branch = try(local.repository.default_branch, "main")
-  visibility     = local.repository.visibility
+  repository                  = local.repository.name
+  description                 = try(local.repository.description, format("Infrastructure repository for the %s landing zone.", local.repository.name))
+  allow_auto_merge            = try(local.repository.allow_auto_merge, false)
+  allow_merge_commit          = try(local.repository.allow_merge_commit, true)
+  allow_rebase_merge          = try(local.repository.allow_rebase_merge, true)
+  allow_squash_merge          = try(local.repository.allow_squash_merge, true)
+  branch_protection           = try(local.repository.branch_protection, null)
+  default_branch              = try(local.repository.default_branch, "main")
+  enable_archived             = try(local.repository.enable_archived, false)
+  enable_discussions          = try(local.repository.enable_discussions, false)
+  enable_downloads            = try(local.repository.enable_downloads, false)
+  enable_issues               = try(local.repository.enable_issues, true)
+  enable_projects             = try(local.repository.enable_projects, false)
+  enable_vulnerability_alerts = try(local.repository.enable_vulnerability_alerts, null)
+  enable_wiki                 = try(local.repository.enable_wiki, false)
+  homepage_url                = try(local.repository.homepage_url, null)
+  topics                      = try(local.repository.topics, ["aws", "terraform", "landing-zone"])
+  visibility                  = try(local.repository.visibility, "private")
 
   # Template settings
-  organization_template = try(local.repository.template.owner, null)
-  repository_template   = try(local.repository.template.repository, null)
-
-  # Branch rules 
-  allow_auto_merge       = try(local.repository.allow_auto_merge, false)
-  allow_merge_commit     = try(local.repository.allow_merge_commit, true)
-  allow_rebase_merge     = try(local.repository.allow_rebase_merge, true)
-  allow_squash_merge     = try(local.repository.allow_squash_merge, true)
-  delete_branch_on_merge = true
-
-  # Branch protection
-  dismiss_stale_reviews                = try(local.repository.dismiss_stale_reviews, true)
-  dismissal_users                      = try(local.repository.dismissal_users, null)
-  enforce_branch_protection_for_admins = try(local.repository.branch_protection.enforce_branch_protection_for_admins, true)
-  prevent_self_review                  = try(local.repository.prevent_self_review, true)
-  required_approving_review_count      = try(local.repository.branch_protection.required_approving_review_count, 2)
+  template = var.infrastructure_repository.template != null ? {
+    owner                = try(var.infrastructure_repository.template.owner, null)
+    repository           = try(var.infrastructure_repository.template.repository, null)
+    include_all_branches = try(var.infrastructure_repository.template.include_all_branches, null)
+  } : null
 }
