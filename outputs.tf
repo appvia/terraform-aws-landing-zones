@@ -63,3 +63,13 @@ output "ipam_pools_by_name" {
   description = "A map of the ipam pool name to id"
   value       = local.ipam_pools_by_name
 }
+
+output "infrastructure_repository_git_clone_url" {
+  description = "The URL of the infrastructure repository for the landing zone"
+  value       = local.enable_infrastructure_repository ? module.github_repository[0].repository_git_clone_url : null
+}
+
+output "infrastructure_repository_url" {
+  description = "The SSH URL of the infrastructure repository for the landing zone"
+  value       = local.enable_infrastructure_repository ? module.github_repository[0].repository_html_url : null
+}

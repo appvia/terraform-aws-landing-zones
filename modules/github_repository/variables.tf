@@ -171,18 +171,6 @@ variable "repository_environments" {
   default     = ["production"]
 }
 
-variable "default_environment_review_users" {
-  description = "The user reviewers to apply to the production environment"
-  type        = list(string)
-  default     = null
-}
-
-variable "default_environment_review_teams" {
-  description = "The teams reviewers to apply to the production environment"
-  type        = list(string)
-  default     = null
-}
-
 variable "repository_topics" {
   description = "The topics to apply to the repositories"
   type        = list(string)

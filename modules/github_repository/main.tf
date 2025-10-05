@@ -68,10 +68,13 @@ resource "github_branch_protection_v3" "branch_protection" {
     dismissal_apps                  = var.dismissal_apps
     required_approving_review_count = var.required_approving_review_count
 
-    bypass_pull_request_allowances {
-      users = var.bypass_pull_request_allowances_users
-      teams = var.bypass_pull_request_allowances_teams
-      apps  = var.bypass_pull_request_allowances_apps
+    dynamic "bypass_pull_request_allowances" {
+      for_each = var.bypass_pull_request_allowances_users != null || var.bypass_pull_request_allowances_teams != null || var.bypass_pull_request_allowances_apps != null ? [1] : []
+      content {
+        users = var.bypass_pull_request_allowances_users
+        teams = var.bypass_pull_request_allowances_teams
+        apps  = var.bypass_pull_request_allowances_apps
+      }
     }
   }
 }

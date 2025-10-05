@@ -234,8 +234,6 @@ This module is part of the terraform-aws-landing-zones project and follows the s
 | <a name="input_bypass_pull_request_allowances_teams"></a> [bypass\_pull\_request\_allowances\_teams](#input\_bypass\_pull\_request\_allowances\_teams) | The teams to bypass pull request allowances | `list(string)` | `null` | no |
 | <a name="input_bypass_pull_request_allowances_users"></a> [bypass\_pull\_request\_allowances\_users](#input\_bypass\_pull\_request\_allowances\_users) | The users to bypass pull request allowances | `list(string)` | `null` | no |
 | <a name="input_default_branch"></a> [default\_branch](#input\_default\_branch) | The default branch of the repository to provision | `string` | `"main"` | no |
-| <a name="input_default_environment_review_teams"></a> [default\_environment\_review\_teams](#input\_default\_environment\_review\_teams) | The teams reviewers to apply to the production environment | `list(string)` | `null` | no |
-| <a name="input_default_environment_review_users"></a> [default\_environment\_review\_users](#input\_default\_environment\_review\_users) | The user reviewers to apply to the production environment | `list(string)` | `null` | no |
 | <a name="input_delete_branch_on_merge"></a> [delete\_branch\_on\_merge](#input\_delete\_branch\_on\_merge) | The delete branch on merge of the repository to provision | `bool` | `true` | no |
 | <a name="input_description"></a> [description](#input\_description) | The description of the repository to provision | `string` | `"Terraform AWS Pipeline"` | no |
 | <a name="input_dismiss_stale_reviews"></a> [dismiss\_stale\_reviews](#input\_dismiss\_stale\_reviews) | Indicates a review will be dismissed if it becomes stale | `bool` | `true` | no |

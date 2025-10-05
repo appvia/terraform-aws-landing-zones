@@ -528,6 +528,8 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="output_account_id"></a> [account\_id](#output\_account\_id) | The account id where the pipeline is running |
 | <a name="output_auditor_account_id"></a> [auditor\_account\_id](#output\_auditor\_account\_id) | The account id for the audit account |
 | <a name="output_environment"></a> [environment](#output\_environment) | The environment name for the tenant |
+| <a name="output_infrastructure_repository_git_clone_url"></a> [infrastructure\_repository\_git\_clone\_url](#output\_infrastructure\_repository\_git\_clone\_url) | The URL of the infrastructure repository for the landing zone |
+| <a name="output_infrastructure_repository_url"></a> [infrastructure\_repository\_url](#output\_infrastructure\_repository\_url) | The SSH URL of the infrastructure repository for the landing zone |
 | <a name="output_ipam_pools_by_name"></a> [ipam\_pools\_by\_name](#output\_ipam\_pools\_by\_name) | A map of the ipam pool name to id |
 | <a name="output_log_archive_account_id"></a> [log\_archive\_account\_id](#output\_log\_archive\_account\_id) | The account id for the log archive account |
 | <a name="output_networks"></a> [networks](#output\_networks) | A map of the network name to network details |
