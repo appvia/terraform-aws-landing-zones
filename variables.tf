@@ -559,39 +559,98 @@ variable "infrastructure_repository" {
     visibility = optional(string, "private")
     # The visibility of the repository
     default_branch = optional(string, "main")
-    # The default branch of the repository
+    # home page url of the repository
+    homepage_url = optional(string, null)
+    # The home page url of the repository
+    enable_archived = optional(bool, false)
+    # A flag indicating if the repository should be archived
+    enable_discussions = optional(bool, false)
+    # A flag indicating if the repository should enable discussions
+    enable_downloads = optional(bool, false)
+    # A flag indicating if the repository should enable downloads
+    enable_issues = optional(bool, true)
+    # A flag indicating if the repository should enable issues
+    enable_projects = optional(bool, false)
+    # A flag indicating if the repository should enable projects
+    enable_wiki = optional(bool, false)
+    # A flag indicating if the repository should enable wiki
+    enable_vulnerability_alerts = optional(bool, null)
+    # A flag indicating if the repository should enable vulnerability alerts
+    topics = optional(list(string), ["aws", "terraform", "landing-zone"])
+    # The topics of the repository
+    collaborators = optional(list(object({
+      # The username of the collaborator
+      username = string
+      # The permission of the collaborator
+      permission = optional(string, "write")
+    })), [])
+    # The collaborators of the repository
     template = optional(object({
-      owner = string
       # The owner of the repository template
-      repository = string
+      owner = string
       # The repository template to use for the repository
-      }), null
-    )
-    # The repository template to use for the repository
-    branch_protection = optional(object({
-      dismissal_apps = list(string)
-      # The apps to dismiss reviews
-      dismiss_stale_reviews = bool
-      # A flag indicating if the stale reviews should be dismissed
-      dismissal_teams = list(string)
-      # The teams to dismiss reviews
-      dismissal_users = list(string)
-      # The users to dismiss reviews
-      enforce_branch_protection_for_admins = bool
-      # A flag indicating if the branch protection should be enforced for admins
-      prevent_self_review = bool
-      # A flag indicating if the self review should be prevented
-      required_approving_review_count = number
-      # The number of approving reviews required
-      }), {
-      dismiss_stale_reviews                = true
-      dismissal_apps                       = []
-      dismissal_teams                      = []
-      dismissal_users                      = []
-      enforce_branch_protection_for_admins = true
-      prevent_self_review                  = true
-      required_approving_review_count      = 2
+      repository = string
+      # Include all branches
+      include_all_branches = optional(bool, false)
+    }), null)
+    # Configure webhooks for the repository
+    webhooks = optional(list(object({
+      # The content type of the webhook
+      content_type = optional(string, "json")
+      # The enable flag of the webhook
+      enable = optional(bool, true)
+      # The events of the webhook
+      events = optional(list(string), ["push", "pull_request"])
+      # The insecure SSL flag of the webhook
+      insecure_ssl = optional(bool, false)
+      # The secret of the webhook
+      secret = optional(string, null)
+      # The URL of the webhook
+      url = string
+    })), null)
+    # The branch protection to use for the repository
+    branch_protection = optional(map(object({
+      allows_force_pushes             = optional(bool, false)
+      allows_deletions                = optional(bool, false)
+      dismiss_stale_reviews           = optional(bool, true)
+      enforce_admins                  = optional(bool, true)
+      lock_branch                     = optional(bool, false)
+      require_conversation_resolution = optional(bool, false)
+      require_last_push_approval      = optional(bool, false)
+      require_signed_commits          = optional(bool, true)
+      required_linear_history         = optional(bool, false)
+
+      required_status_checks = optional(object({
+        strict   = optional(bool, true)
+        contexts = optional(list(string), null)
+      }), null)
+
+      required_pull_request_reviews = optional(object({
+        dismiss_stale_reviews           = optional(bool, true)
+        dismissal_restrictions          = optional(list(string), null)
+        pull_request_bypassers          = optional(list(string), null)
+        require_code_owner_reviews      = optional(bool, true)
+        require_last_push_approval      = optional(bool, false)
+        required_approving_review_count = optional(number, 1)
+        restrict_dismissals             = optional(bool, false)
+      }), null)
+      })), {
+      main = {
+        allows_force_pushes             = false
+        allows_deletions                = false
+        dismiss_stale_reviews           = true
+        enforce_admins                  = true
+        require_conversation_resolution = true
+        require_signed_commits          = true
+        required_approving_review_count = 2
+
+        required_status_checks = {
+          strict   = true
+          contexts = null
+        }
+      }
     })
+
     # The branch protection to use for the repository
     permissions = optional(object({
       read_only_policy_arns = list(string)
@@ -602,6 +661,7 @@ variable "infrastructure_repository" {
       read_only_policy_arns  = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
       read_write_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
     })
+
     # The permissions to use for the repository
     permissions_boundary = optional(object({
       arn = optional(string, null)
