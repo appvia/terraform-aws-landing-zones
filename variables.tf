@@ -9,6 +9,14 @@ variable "home_region" {
   }
 }
 
+variable "ssm" {
+  description = "Configuration for the SSM service"
+  type = object({
+    enable_block_public_sharing = optional(bool, true)
+    # A flag indicating if SSM public sharing should be blocked
+  })
+  default = {}
+}
 variable "aws_config" {
   description = "Account specific configuration for AWS Config"
   type = object({
