@@ -148,7 +148,7 @@ module "iam_roles" {
       for service in each.value.assume_services : service => {
         sid     = "AllowServiceAssumeRole${replace(service, ".", "")}"
         effect  = "Allow"
-        actions = ["sts:AssumeRole"]
+        actions = ["sts:AssumeRole", "sts:TagSession"]
         principals = {
           type        = "Service"
           identifiers = [service]
@@ -202,7 +202,7 @@ module "ssm_automation_iam_role" {
     "ec2" : {
       sid     = "AllowServiceAssumeRoleEC2"
       effect  = "Allow"
-      actions = ["sts:AssumeRole"]
+      actions = ["sts:AssumeRole", "sts:TagSession"]
       principals = [
         {
           type        = "Service"

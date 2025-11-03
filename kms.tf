@@ -5,7 +5,7 @@ locals {
 
   ## Indicates we if should create a IAM role in the account used for KMS key administration,
   ## additional options allow external services and or accounts to assume this role. The role
-  ## is scopes to adminsitrator actions only, and has no access to perform encryption actions.
+  ## is scopes to administrators actions only, and has no access to perform encryption actions.
   enable_kms_key_administrator = var.kms_administrator.enable
 
   ## Is a list of roles and or accounts whom should have a assume trust into the kms
@@ -51,6 +51,7 @@ module "kms_key_administrator" {
   create_inline_policy = true
   name                 = var.kms_administrator.name
   tags                 = local.tags
+  use_name_prefix      = false
 
   trust_policy_permissions = merge(
     ## Allow the account
@@ -62,7 +63,10 @@ module "kms_key_administrator" {
       "kms_admin" = {
         sid     = "AllowKMSAdminAssumeRole"
         effect  = "Allow"
-        actions = ["sts:AssumeRole"]
+        actions = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
         principals = [
           {
             type        = "AWS"
@@ -75,7 +79,10 @@ module "kms_key_administrator" {
       for service in var.kms_administrator.assume_services : service => {
         sid     = "AllowServiceAssumeRole${replace(service, ".", "")}"
         effect  = "Allow"
-        actions = ["sts:AssumeRole"]
+        actions = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
         principals = [
           {
             type        = "Service"
