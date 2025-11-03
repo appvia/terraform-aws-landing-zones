@@ -9,7 +9,20 @@ locals {
   iam_users = local.home_region ? { for user in var.iam_users : user.name => user } : {}
   ## Collection of iam groups to be created within the account
   iam_groups = local.home_region ? { for group in var.iam_groups : group.name => group } : {}
+  ## The account root assume
+  iam_account_root = {
+    sid     = "AllowAccountRoot"
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    principals = [
+      {
+        type        = "AWS"
+        identifiers = [format("arn:aws:iam::%s:root", local.account_id)]
+      }
+    ]
+  }
 }
+
 
 ## Configure any IAM customer managed policies within the account
 resource "aws_iam_policy" "iam_policies" {
@@ -31,15 +44,14 @@ module "iam_users" {
   source   = "terraform-aws-modules/iam/aws//modules/iam-user"
   version  = "6.2.3"
 
-  create_iam_access_key         = false
-  create_iam_user_login_profile = false
-  create_user                   = true
-  force_destroy                 = true
-  name                          = each.value.name
-  path                          = each.value.path
-  permissions_boundary          = each.value.permissions_boundary_name != null ? format("arn:aws:iam::%s:policy/%s", local.account_id, each.value.permissions_boundary_name) : ""
-  policy_arns                   = each.value.policy_arns
-  tags                          = local.tags
+  create_access_key    = false
+  create_login_profile = false
+  force_destroy        = true
+  name                 = each.value.name
+  path                 = each.value.path
+  permissions_boundary = each.value.permissions_boundary_name != null ? format("arn:aws:iam::%s:policy/%s", local.account_id, each.value.permissions_boundary_name) : ""
+  policies             = { for policy in try(each.value.permission_arns, []) : policy => policy }
+  tags                 = local.tags
 
   providers = {
     aws = aws.tenant
@@ -49,18 +61,16 @@ module "iam_users" {
 ## Provision any IAM user policies required within the account
 module "iam_groups" {
   for_each = local.iam_groups
-  source   = "terraform-aws-modules/iam/aws//modules/iam-group-with-policies"
+  source   = "terraform-aws-modules/iam/aws//modules/iam-group"
   version  = "6.2.3"
 
-  attach_iam_self_management_policy      = true
-  aws_account_id                         = local.account_id
-  create_group                           = true
-  enable_mfa_enforcement                 = each.value.enforce_mfa
-  group_users                            = each.value.users
-  iam_self_management_policy_name_prefix = "lza-self-management-"
-  name                                   = each.value.name
-  path                                   = each.value.path
-  tags                                   = local.tags
+  enable_mfa_enforcement             = each.value.enforce_mfa
+  enable_self_management_permissions = true
+  name                               = each.value.name
+  path                               = each.value.path
+  tags                               = local.tags
+  users                              = each.value.users
+  users_account_id                   = local.account_id
 
   depends_on = [
     module.iam_users,
@@ -114,23 +124,38 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
 ## Configure any IAM roles required within the iam_account_password_policy
 module "iam_roles" {
   for_each = local.home_region ? var.iam_roles : {}
-  source   = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  source   = "terraform-aws-modules/iam/aws//modules/iam-role"
   version  = "6.2.3"
 
-  create_role                       = true
-  custom_role_policy_arns           = each.value.permission_arns
-  force_detach_policies             = true
-  inline_policy_statements          = each.value.policies
-  number_of_custom_role_policy_arns = length(each.value.permission_arns)
-  role_description                  = each.value.description
-  role_name                         = each.value.name
-  role_name_prefix                  = each.value.name_prefix
-  role_path                         = each.value.path
-  role_permissions_boundary_arn     = each.value.permission_boundary_arn
-  role_requires_mfa                 = false
-  tags                              = local.tags
-  trusted_role_arns                 = concat(each.value.assume_roles, [for x in each.value.assume_accounts : format("arn:aws:iam::%s:root", x)])
-  trusted_role_services             = each.value.assume_services
+  create_inline_policy           = length(each.value.policies) > 0 ? true : false
+  description                    = each.value.description
+  name                           = each.value.name
+  path                           = each.value.path
+  permissions_boundary           = each.value.permission_boundary_arn
+  source_inline_policy_documents = each.value.policies
+  tags                           = local.tags
+  use_name_prefix                = each.value.name_prefix != null ? true : false
+
+  policies = merge(
+    try(toset(each.value.permission_arns), {}),
+  )
+
+  ## Build out the trust policy permissions
+  trust_policy_permissions = merge(
+    ## Allow the account
+    { "root" : local.iam_account_root },
+    {
+      for service in each.value.assume_services : service => {
+        sid     = "AllowServiceAssumeRole${replace(service, ".", "")}"
+        effect  = "Allow"
+        actions = ["sts:AssumeRole"]
+        principals = {
+          type        = "Service"
+          identifiers = [service]
+        }
+      }
+    }
+  )
 
   providers = {
     aws = aws.tenant
@@ -145,15 +170,19 @@ module "iam_roles" {
 ## Provision a security auditor role if required
 module "security_auditor_iam_role" {
   count   = local.home_region && try(var.include_iam_roles.security_auditor.enable, false) ? 1 : 0
-  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role"
   version = "6.2.3"
 
-  create_role             = true
-  custom_role_policy_arns = ["arn:aws:iam::aws:policy/SecurityAudit"]
-  force_detach_policies   = true
-  role_description        = "Used by the security team to audit the accounts"
-  role_name               = var.include_iam_roles.security_auditor.name
-  trusted_role_arns       = [format("arn:aws:iam::%s:root", local.audit_account_id)]
+  description = "Used by the security team to audit the accounts"
+  name        = var.include_iam_roles.security_auditor.name
+
+  policies = {
+    "SecurityAudit" = "arn:aws:iam::aws:policy/SecurityAudit"
+  }
+
+  trust_policy_permissions = {
+    "root" : local.iam_account_root
+  }
 
   providers = {
     aws = aws.tenant
@@ -163,20 +192,31 @@ module "security_auditor_iam_role" {
 ## Provision a ssm automation role if required
 module "ssm_automation_iam_role" {
   count   = local.home_region && try(var.include_iam_roles.ssm_instance.enable, false) ? 1 : 0
-  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role"
   version = "6.2.3"
 
-  create_role           = true
-  force_detach_policies = true
-  role_description      = "Used by instances to access the ssm service"
-  role_name             = var.include_iam_roles.ssm_instance.name
-  trusted_role_services = ["ec2.amazonaws.com"]
+  description = "Used by instances to access the ssm service"
+  name        = var.include_iam_roles.ssm_instance.name
 
-  custom_role_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess",
-    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
-  ]
+  trust_policy_permissions = {
+    "ec2" : {
+      sid     = "AllowServiceAssumeRoleEC2"
+      effect  = "Allow"
+      actions = ["sts:AssumeRole"]
+      principals = [
+        {
+          type        = "Service"
+          identifiers = ["ec2.amazonaws.com"]
+        }
+      ]
+    }
+  }
+
+  policies = {
+    "AmazonSSMDirectoryServiceAccess" = "arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess"
+    "AmazonSSMManagedInstanceCore"    = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    "CloudWatchAgentServerPolicy"     = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+  }
 
   providers = {
     aws = aws.tenant
