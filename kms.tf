@@ -63,10 +63,12 @@ module "kms_key_administrator" {
         sid     = "AllowKMSAdminAssumeRole"
         effect  = "Allow"
         actions = ["sts:AssumeRole"]
-        principals = {
-          type       = "AWS"
-          principals = local.kms_key_administrator_roles
-        }
+        principals = [
+          {
+            type        = "AWS"
+            identifiers = local.kms_key_administrator_roles
+          }
+        ]
       }
     },
     {
@@ -74,10 +76,12 @@ module "kms_key_administrator" {
         sid     = "AllowServiceAssumeRole${replace(service, ".", "")}"
         effect  = "Allow"
         actions = ["sts:AssumeRole"]
-        principals = {
-          type       = "Service"
-          principals = [service]
-        }
+        principals = [
+          {
+            type        = "Service"
+            identifiers = [service]
+          }
+        ]
       }
     }
   )
