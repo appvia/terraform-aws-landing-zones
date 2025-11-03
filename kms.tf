@@ -44,27 +44,52 @@ locals {
 ## Provision the key administrator role for the account if required
 module "kms_key_administrator" {
   count   = local.enable_kms_key_administrator && local.home_region ? 1 : 0
-  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role"
   version = "6.2.3"
 
-  allow_self_assume_role = true
-  create_role            = true
-  force_detach_policies  = true
-  role_description       = var.kms_administrator.description
-  role_name              = var.kms_administrator.name
-  role_requires_mfa      = false
-  tags                   = local.tags
-  trusted_role_arns      = local.kms_key_administrator_roles
-  trusted_role_services  = var.kms_administrator.assume_services
+  description          = var.kms_administrator.description
+  create_inline_policy = true
+  name                 = var.kms_administrator.name
+  tags                 = local.tags
 
-  inline_policy_statements = [
+  trust_policy_permissions = merge(
+    ## Allow the account
     {
+      "root" = local.iam_account_root
+    },
+    ## Allow the KMS administrators
+    {
+      "kms_admin" = {
+        sid     = "AllowKMSAdminAssumeRole"
+        effect  = "Allow"
+        actions = ["sts:AssumeRole"]
+        principals = {
+          type       = "AWS"
+          principals = local.kms_key_administrator_roles
+        }
+      }
+    },
+    {
+      for service in var.kms_administrator.assume_services : service => {
+        sid     = "AllowServiceAssumeRole${replace(service, ".", "")}"
+        effect  = "Allow"
+        actions = ["sts:AssumeRole"]
+        principals = {
+          type       = "Service"
+          principals = [service]
+        }
+      }
+    }
+  )
+
+  inline_policy_permissions = {
+    "kms" : {
       sid       = "AllowKMSKeyActions"
       effect    = "Allow"
       actions   = ["kms:*"]
       resources = ["*"]
     }
-  ]
+  }
 
   providers = {
     aws = aws.tenant
