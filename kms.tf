@@ -32,7 +32,7 @@ locals {
   ## of the key administrator (if enabled) and any additional roles specified by the consumer.
   kms_key_administrators = compact(
     concat(
-      [local.kms_key_administrator_role_arn],
+      local.enable_kms_key_administrator ? [local.kms_key_administrator_role_arn] : [],
       var.kms_key.key_administrators,
     )
   )
@@ -61,8 +61,8 @@ module "kms_key_administrator" {
     ## Allow the KMS administrators
     {
       "kms_admin" = {
-        sid     = "AllowKMSAdminAssumeRole"
-        effect  = "Allow"
+        sid    = "AllowKMSAdminAssumeRole"
+        effect = "Allow"
         actions = [
           "sts:AssumeRole",
           "sts:TagSession"
@@ -77,8 +77,8 @@ module "kms_key_administrator" {
     },
     {
       for service in var.kms_administrator.assume_services : service => {
-        sid     = "AllowServiceAssumeRole${replace(service, ".", "")}"
-        effect  = "Allow"
+        sid    = "AllowServiceAssumeRole${replace(service, ".", "")}"
+        effect = "Allow"
         actions = [
           "sts:AssumeRole",
           "sts:TagSession"
