@@ -17,23 +17,50 @@ variable "ssm" {
   })
   default = {}
 }
+
 variable "aws_config" {
   description = "Account specific configuration for AWS Config"
   type = object({
-    enable = optional(bool, false)
     # A flag indicating if AWS Config should be enabled
-    compliance_packs = map(object({
-      parameter_overrides = optional(map(string), {})
+    enable = optional(bool, false)
+    # A list of compliance packs to provision in the account
+    compliance_packs = optional(map(object({
       # A map of parameter overrides to apply to the compliance pack
-      template_url = optional(string, "")
+      parameter_overrides = optional(map(string), {})
       # The URL of the compliance pack
+      template_url = optional(string, "")
+      # The body of the compliance pack
       template_body = optional(string, "")
-    }))
-    ## A list of compliance packs to provision in the account
+    })), {})
+    # A list of managed rules to provision in the account
+    rules = optional(map(object({
+      # The list of resource types to scope the rule
+      resource_types = list(string)
+      # The description of the rule
+      description = string
+      # The identifier of the rule  
+      identifier = string
+      # The inputs of the rule
+      inputs = optional(map(string), {})
+      # The maximum execution frequency of the rule
+      max_execution_frequency = optional(string, null)
+      # The scope of the rule
+      scope = optional(object({
+        # The list of resource types to scope the rule
+        compliance_resource_types = optional(list(string), [])
+        # The key of the tag to scope the rule
+        tag_key = optional(string, null)
+        # The value of the tag to scope the rule
+        tag_value = optional(string, null)
+      }), null)
+    })), {})
   })
   default = {
-    enable           = false
     compliance_packs = {}
+    enable           = false
+    input_parameters = {}
+    rules            = {}
+    scope            = null
   }
 }
 

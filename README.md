@@ -56,7 +56,26 @@ module "account" {
 
 ### AWS Config Compliance Packs
 
-You can configure additional compliance packs using the `var.aws_config` variable, such as the below example
+AWS Config Conformance Packs are collections of AWS Config rules and remediation actions that are packaged together for common compliance and security best practices. You can configure compliance packs using the `var.aws_config` variable to ensure your account meets specific compliance requirements.
+
+Compliance packs can be created using either a template body (YAML or JSON) or a template URL. You can also override default parameters in the compliance pack template to customize the rules for your specific requirements.
+
+#### Basic Compliance Pack Configuration
+
+```hcl
+module "account" {
+  aws_config = {
+    enable = true
+    compliance_packs = {
+      "security-best-practices" = {
+        template_body = file("${path.module}/templates/security-best-practices.yml")
+      }
+    }
+  }
+}
+```
+
+#### Compliance Pack with Template URL
 
 ```hcl
 data "http" "security_hub_enabled" {
@@ -67,16 +86,157 @@ module "account" {
   aws_config = {
     enable = true
     compliance_packs = {
-      "MY_COMPLIANCE_PACK" = {
-        parameter_overrides = {
-          "MY_PARAMETER" = "MY_VALUE"
-        }
-        template_url = data.http.security_hub_enabled.body
+      "security-hub-enabled" = {
+        template_body = data.http.security_hub_enabled.body
       }
     }
   }
 }
 ```
+
+#### Compliance Pack with Parameter Overrides
+
+Many compliance packs support parameter overrides that allow you to customize the behavior of the rules within the pack. For example, you can adjust thresholds, specify resource types, or configure other rule-specific settings.
+
+```hcl
+module "account" {
+  aws_config = {
+    enable = true
+    compliance_packs = {
+      "hipaa-compliance" = {
+        template_body = file("${path.module}/templates/hipaa-compliance.yml")
+        parameter_overrides = {
+          "AccessKeysRotatedParamMaxAccessKeyAge" = "45"
+          "PasswordPolicyParamMinimumPasswordLength" = "14"
+          "PasswordPolicyParamRequireUppercaseCharacters" = "true"
+          "PasswordPolicyParamRequireLowercaseCharacters" = "true"
+          "PasswordPolicyParamRequireNumbers" = "true"
+          "PasswordPolicyParamRequireSymbols" = "true"
+        }
+      }
+      "pci-dss-compliance" = {
+        template_body = file("${path.module}/templates/pci-dss-compliance.yml")
+        parameter_overrides = {
+          "EncryptedVolumesParamKmsKeyId" = "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012"
+        }
+      }
+    }
+  }
+}
+```
+
+#### Compliance Pack Configuration Options
+
+The compliance pack configuration supports the following options:
+
+- **template_body**: (Required) The YAML or JSON template body for the compliance pack. This can be provided directly as a string, loaded from a file using `file()`, or fetched from a URL using `data.http`.
+- **template_url**: (Optional) The URL of the compliance pack template. Note: Either `template_body` or `template_url` must be provided, but not both.
+- **parameter_overrides**: (Optional) A map of parameter overrides to customize the compliance pack rules. The keys should match the parameter names defined in the compliance pack template, and the values are the custom values you want to apply.
+
+#### Using AWS Managed Compliance Packs
+
+AWS provides several pre-built compliance pack templates that you can use. These templates are available in the AWS Service Catalog and can be referenced by their S3 URLs. Common examples include:
+
+- **Operational Best Practices**: General security and operational best practices
+- **HIPAA Compliance**: Healthcare industry compliance requirements
+- **PCI-DSS Compliance**: Payment card industry data security standards
+- **Security Best Practices**: Security-focused configuration rules
+- **CIS AWS Foundations Benchmark**: Center for Internet Security benchmarks
+
+You can find the complete list of AWS managed compliance pack templates in the [AWS Config Conformance Pack Sample Templates](https://docs.aws.amazon.com/config/latest/developerguide/conformancepack-sample-templates.html) documentation.
+
+#### Example: Multiple Compliance Packs
+
+You can configure multiple compliance packs simultaneously to meet various compliance requirements:
+
+```hcl
+module "account" {
+  aws_config = {
+    enable = true
+    compliance_packs = {
+      "operational-best-practices" = {
+        template_body = file("${path.module}/templates/operational-best-practices.yml")
+      }
+      "security-best-practices" = {
+        template_body = file("${path.module}/templates/security-best-practices.yml")
+        parameter_overrides = {
+          "CheckPublicReadAclParam" = "true"
+          "CheckPublicWriteAclParam" = "true"
+        }
+      }
+      "cis-aws-foundations-benchmark" = {
+        template_body = file("${path.module}/templates/cis-aws-foundations-benchmark.yml")
+        parameter_overrides = {
+          "AccessKeysRotatedParamMaxAccessKeyAge" = "90"
+        }
+      }
+    }
+  }
+}
+```
+
+**Note**: Ensure that AWS Config is enabled (`enable = true`) in the `aws_config` variable for compliance packs to be provisioned. The compliance packs will be deployed to the account and will continuously evaluate your resources against the rules defined in the pack.
+
+### AWS Config Rules
+
+You can configure additional AWS Config managed rules using the `var.aws_config` variable. AWS Config rules allow you to evaluate the configuration settings of your AWS resources to ensure they comply with your organization's policies.
+
+```hcl
+module "account" {
+  aws_config = {
+    enable = true
+    rules = {
+      "encrypted-volumes" = {
+        description = "Checks whether EBS volumes are encrypted"
+        identifier = "ENCRYPTED_VOLUMES"
+        resource_types = ["AWS::EC2::Volume"]
+      }
+      "s3-bucket-public-read-prohibited" = {
+        description = "Checks that your S3 buckets do not allow public read access"
+        identifier = "S3_BUCKET_PUBLIC_READ_PROHIBITED"
+        resource_types = ["AWS::S3::Bucket"]
+      }
+      "rds-instance-public-access-check" = {
+        description = "Checks whether the Amazon Relational Database Service instances are not publicly accessible"
+        identifier = "RDS_INSTANCE_PUBLIC_ACCESS_CHECK"
+        resource_types = ["AWS::RDS::DBInstance"]
+        max_execution_frequency = "TwentyFour_Hours"
+        inputs = {
+          "publicAccessCheckValue" = "true"
+        }
+      }
+      "tagged-resources" = {
+        description = "Checks whether resources are properly tagged"
+        identifier = "REQUIRED_TAGS"
+        resource_types = ["AWS::EC2::Instance"]
+        inputs = {
+          "tag1Key" = "Environment"
+          "tag2Key" = "Owner"
+        }
+        scope = {
+          compliance_resource_types = ["AWS::EC2::Instance"]
+          tag_key = "Environment"
+          tag_value = "Production"
+        }
+      }
+    }
+  }
+}
+```
+
+The rules configuration supports the following options:
+
+- **description**: A description of what the rule checks
+- **identifier**: The identifier of the AWS managed Config rule (e.g., `ENCRYPTED_VOLUMES`, `S3_BUCKET_PUBLIC_READ_PROHIBITED`)
+- **resource_types**: A list of resource types that the rule evaluates (for documentation purposes)
+- **inputs**: (Optional) A map of input parameters for the rule
+- **max_execution_frequency**: (Optional) The maximum frequency at which the rule runs. Valid values: `One_Hour`, `Three_Hours`, `Six_Hours`, `Twelve_Hours`, `TwentyFour_Hours`
+- **scope**: (Optional) Defines which resources are evaluated by the rule:
+  - **compliance_resource_types**: A list of resource types to scope the rule
+  - **tag_key**: (Optional) The tag key to scope the rule
+  - **tag_value**: (Optional) The tag value to scope the rule
+
+For a complete list of available AWS managed Config rules and their identifiers, see the [AWS Config Managed Rules documentation](https://docs.aws.amazon.com/config/latest/developerguide/managed-rules-by-aws-config.html).
 
 ### IAM Password Policy
 
@@ -492,7 +652,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_product"></a> [product](#input\_product) | The name of the product to provision resources and inject into all resource tags | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | A collection of tags to apply to resources | `map(string)` | n/a | yes |
 | <a name="input_account_alias"></a> [account\_alias](#input\_account\_alias) | The account alias to apply to the account | `string` | `null` | no |
-| <a name="input_aws_config"></a> [aws\_config](#input\_aws\_config) | Account specific configuration for AWS Config | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if AWS Config should be enabled<br/>    compliance_packs = map(object({<br/>      parameter_overrides = optional(map(string), {})<br/>      # A map of parameter overrides to apply to the compliance pack<br/>      template_url = optional(string, "")<br/>      # The URL of the compliance pack<br/>      template_body = optional(string, "")<br/>    }))<br/>    ## A list of compliance packs to provision in the account<br/>  })</pre> | <pre>{<br/>  "compliance_packs": {},<br/>  "enable": false<br/>}</pre> | no |
+| <a name="input_aws_config"></a> [aws\_config](#input\_aws\_config) | Account specific configuration for AWS Config | <pre>object({<br/>    # A flag indicating if AWS Config should be enabled<br/>    enable = optional(bool, false)<br/>    # A list of compliance packs to provision in the account<br/>    compliance_packs = optional(map(object({<br/>      # A map of parameter overrides to apply to the compliance pack<br/>      parameter_overrides = optional(map(string), {})<br/>      # The URL of the compliance pack<br/>      template_url = optional(string, "")<br/>      # The body of the compliance pack<br/>      template_body = optional(string, "")<br/>    })), {})<br/>    # A list of managed rules to provision in the account<br/>    rules = optional(map(object({<br/>      # The list of resource types to scope the rule<br/>      resource_types = list(string)<br/>      # The description of the rule<br/>      description = string<br/>      # The identifier of the rule  <br/>      identifier = string<br/>      # The inputs of the rule<br/>      inputs = optional(map(string), {})<br/>      # The maximum execution frequency of the rule<br/>      max_execution_frequency = optional(string, null)<br/>      # The scope of the rule<br/>      scope = optional(object({<br/>        # The list of resource types to scope the rule<br/>        compliance_resource_types = optional(list(string), [])<br/>        # The key of the tag to scope the rule<br/>        tag_key = optional(string, null)<br/>        # The value of the tag to scope the rule<br/>        tag_value = optional(string, null)<br/>      }), null)<br/>    })), {})<br/>  })</pre> | <pre>{<br/>  "compliance_packs": {},<br/>  "enable": false,<br/>  "input_parameters": {},<br/>  "rules": {},<br/>  "scope": null<br/>}</pre> | no |
 | <a name="input_budgets"></a> [budgets](#input\_budgets) | A collection of budgets to provision | <pre>list(object({<br/>    name         = string<br/>    budget_type  = optional(string, "COST")<br/>    limit_amount = optional(string, "100.0")<br/>    limit_unit   = optional(string, "PERCENTAGE")<br/>    time_unit    = optional(string, "MONTHLY")<br/><br/>    notifications = optional(map(object({<br/>      comparison_operator = string<br/>      notification_type   = string<br/>      threshold           = number<br/>      threshold_type      = string<br/>    })), null)<br/><br/>    auto_adjust_data = optional(list(object({<br/>      auto_adjust_type = string<br/>    })), [])<br/><br/>    cost_filter = optional(map(object({<br/>      values = list(string)<br/>    })), {})<br/><br/>    cost_types = optional(object({<br/>      include_credit             = optional(bool, false)<br/>      include_discount           = optional(bool, false)<br/>      include_other_subscription = optional(bool, false)<br/>      include_recurring          = optional(bool, false)<br/>      include_refund             = optional(bool, false)<br/>      include_subscription       = optional(bool, false)<br/>      include_support            = optional(bool, false)<br/>      include_tax                = optional(bool, false)<br/>      include_upfront            = optional(bool, false)<br/>      use_blended                = optional(bool, false)<br/>      }), {<br/>      include_credit             = false<br/>      include_discount           = false<br/>      include_other_subscription = false<br/>      include_recurring          = false<br/>      include_refund             = false<br/>      include_subscription       = true<br/>      include_support            = false<br/>      include_tax                = false<br/>      include_upfront            = false<br/>      use_blended                = false<br/>    })<br/><br/>    tags = optional(map(string), {})<br/>  }))</pre> | `[]` | no |
 | <a name="input_central_dns"></a> [central\_dns](#input\_central\_dns) | Configuration for the hub used to centrally resolved dns requests | <pre>object({<br/>    enable = optional(bool, false)<br/>    # The domain name to use for the central DNS<br/>    vpc_id = optional(string, null)<br/>  })</pre> | <pre>{<br/>  "enable": false,<br/>  "vpc_id": null<br/>}</pre> | no |
 | <a name="input_cost_anomaly_detection"></a> [cost\_anomaly\_detection](#input\_cost\_anomaly\_detection) | A collection of cost anomaly detection monitors to apply to the account | <pre>object({<br/>    enable = optional(bool, true)<br/>    # A flag indicating if the default monitors should be enabled<br/>    monitors = optional(list(object({<br/>      name = string<br/>      # The name of the anomaly detection rule<br/>      frequency = optional(string, "IMMEDIATE")<br/>      # The dimension of the anomaly detection rule, either SERVICE or DIMENSIONAL<br/>      threshold_expression = optional(list(object({<br/>        and = object({<br/>          dimension = object({<br/>            key = string<br/>            # The key of the dimension<br/>            match_options = list(string)<br/>            # The match options of the dimension<br/>            values = list(string)<br/>            # The values of the dimension<br/>          })<br/>        })<br/>        # The expression to apply to the cost anomaly detection monitor<br/>      })), [])<br/>      # The expression to apply to the anomaly detection rule<br/>      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor<br/>      specification = optional(string, "")<br/>      # The specification to anomaly detection monitor<br/>      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor<br/>    })), [])<br/>  })</pre> | <pre>{<br/>  "enable": true,<br/>  "monitors": []<br/>}</pre> | no |
