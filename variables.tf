@@ -331,6 +331,56 @@ variable "iam_instance_profiles" {
   default = {}
 }
 
+variable "cloudwatch" {
+  description = "Configuration for the CloudWatch service"
+  ## Indicates if cloudwatch cross-account observability should be enabled
+  type = object({
+    # The observability sink configuration
+    observability_sink = optional(object({
+      # A flag indicating if cloudwatch cross-account observability should be enabled
+      enable = optional(bool, false)
+      # The AWS Identifier of the accounts that are allowed to access the observability sink
+      identifiers = optional(list(string), null)
+      # The AWS resource types that are allowed to be linked to the observability sink
+      resource_types = optional(list(string), [
+        "AWS::CloudWatch::Metric",
+        "AWS::CloudWatch::Dashboard",
+        "AWS::CloudWatch::Alarm",
+        "AWS::CloudWatch::LogGroup",
+        "AWS::CloudWatch::LogStream",
+      ])
+    }), null)
+    observability_source = optional(object({
+      # A flag indicating if cloudwatch cross-account observability should be enabled
+      enable = optional(bool, false)
+      # The name of the cloudwatch cross-account observability
+      account_id = optional(string, null)
+      # The OAM sink identifier i.e. arn:aws:oam:region:account-id:sink/sink-id
+      sink_identifier = optional(string, null)
+      # The resource types to link to the observability source
+      resource_types = optional(list(string), [
+        "AWS::CloudWatch::Metric",
+        "AWS::CloudWatch::Dashboard",
+        "AWS::CloudWatch::Alarm",
+        "AWS::CloudWatch::LogGroup",
+        "AWS::CloudWatch::LogStream",
+      ])
+    }), null)
+    ## Collection of account subscriptions to provision 
+    account_subscriptions = optional(map(object({
+      # The policy document to apply to the subscription
+      policy = optional(string, null)
+      # The selection criteria to apply to the subscription
+      selection_criteria = optional(string, null)
+    })), {})
+  })
+  default = {
+    account_subscriptions = {}
+    observability_sink    = null
+    observability_source  = null
+  }
+}
+
 variable "iam_roles" {
   description = "A collection of IAM roles to apply to the account"
   type = map(object({

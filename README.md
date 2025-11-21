@@ -524,6 +524,265 @@ cost_anomaly_detection = {
 }
 ```
 
+## CloudWatch Cross-Account Observability
+
+CloudWatch Cross-Account Observability allows you to centralize monitoring and observability data from multiple AWS accounts. This feature supports two configurations:
+
+- **Observability Sink**: Configure an account to receive observability data from other accounts
+- **Observability Source**: Configure an account to send its observability data to a central sink account
+
+### Observability Sink Configuration
+
+An observability sink is typically configured in a central monitoring or security account that aggregates observability data from multiple source accounts. The sink allows specified accounts to link their CloudWatch resources.
+
+```hcl
+module "monitoring_account" {
+  cloudwatch = {
+    observability_sink = {
+      enable = true
+      identifiers = [
+        "123456789012",  # Source account 1
+        "234567890123",  # Source account 2
+      ]
+      resource_types = [
+        "AWS::CloudWatch::Metric",
+        "AWS::CloudWatch::Dashboard",
+        "AWS::CloudWatch::Alarm",
+        "AWS::CloudWatch::LogGroup",
+        "AWS::CloudWatch::LogStream",
+      ]
+    }
+  }
+}
+```
+
+#### Observability Sink Configuration Options
+
+- **enable**: (Required) A flag indicating if the observability sink should be enabled
+- **identifiers**: (Required) A list of AWS account IDs that are allowed to link their resources to this sink
+- **resource_types**: (Optional) A list of CloudWatch resource types that can be linked to the sink. Defaults to:
+  - `AWS::CloudWatch::Metric`
+  - `AWS::CloudWatch::Dashboard`
+  - `AWS::CloudWatch::Alarm`
+  - `AWS::CloudWatch::LogGroup`
+  - `AWS::CloudWatch::LogStream`
+
+### Observability Source Configuration
+
+An observability source is configured in accounts that need to send their CloudWatch data to a central sink account. This allows centralized monitoring and analysis of observability data across multiple accounts.
+
+```hcl
+module "source_account" {
+  cloudwatch = {
+    observability_source = {
+      enable = true
+      account_id = "123456789012"  # The monitoring account ID
+      sink_identifier = "arn:aws:oam:us-east-1:123456789012:sink/observability-sink"
+      resource_types = [
+        "AWS::CloudWatch::Metric",
+        "AWS::CloudWatch::Dashboard",
+        "AWS::CloudWatch::Alarm",
+        "AWS::CloudWatch::LogGroup",
+        "AWS::CloudWatch::LogStream",
+      ]
+    }
+  }
+}
+```
+
+#### Observability Source Configuration Options
+
+- **enable**: (Required) A flag indicating if the observability source should be enabled
+- **account_id**: (Required) The AWS account ID of the sink account that will receive the observability data
+- **sink_identifier**: (Required) The ARN of the OAM sink in the monitoring account (format: `arn:aws:oam:region:account-id:sink/sink-id`)
+- **resource_types**: (Optional) A list of CloudWatch resource types to link to the observability sink. Defaults to:
+  - `AWS::CloudWatch::Metric`
+  - `AWS::CloudWatch::Dashboard`
+  - `AWS::CloudWatch::Alarm`
+  - `AWS::CloudWatch::LogGroup`
+  - `AWS::CloudWatch::LogStream`
+
+### Complete Example: Centralized Monitoring Setup
+
+This example shows how to set up centralized monitoring with a monitoring account and multiple source accounts:
+
+**Monitoring Account (Sink):**
+
+```hcl
+module "monitoring_account" {
+  cloudwatch = {
+    observability_sink = {
+      enable = true
+      identifiers = [
+        "111111111111",  # Production account
+        "222222222222",  # Development account
+        "333333333333",  # Staging account
+      ]
+    }
+  }
+}
+```
+
+**Source Account (Production):**
+
+```hcl
+module "production_account" {
+  cloudwatch = {
+    observability_source = {
+      enable = true
+      account_id = "999999999999"  # Monitoring account ID
+      sink_identifier = "arn:aws:oam:us-east-1:999999999999:sink/observability-sink"
+    }
+  }
+}
+```
+
+**Note**: The sink must be created first in the monitoring account. Once the sink is created, you can obtain its ARN from the AWS Console or Terraform outputs, and use that ARN in the `sink_identifier` field for all source accounts.
+
+### Benefits of CloudWatch Cross-Account Observability
+
+- **Centralized Monitoring**: Aggregate metrics, logs, and alarms from multiple accounts in a single location
+- **Unified Dashboards**: Create dashboards that span multiple accounts without switching contexts
+- **Cost Optimization**: Reduce duplicate monitoring infrastructure across accounts
+- **Security**: Centralize security monitoring and alerting in a dedicated security account
+- **Compliance**: Simplify compliance reporting by centralizing observability data
+
+### Account Subscription Filter Policy
+
+CloudWatch Logs Account Subscription Filter Policies allow you to control which log groups can have subscription filters created and what destinations those subscription filters can send logs to. This provides account-level governance for log forwarding and helps ensure compliance with organizational policies.
+
+#### Basic Account Subscription Filter Policy Configuration
+
+```hcl
+module "account" {
+  cloudwatch = {
+    account_subscriptions = {
+      "lambda-forwarding" = {
+        # https://docs.aws.amazon.com/cli/latest/reference/logs/put-account-policy.html
+        policy = jsonencode({
+          DestinationArn = aws_lambda_function.test.arn
+          FilterPattern  = "test"
+        })
+        selection_criteria = "LogGroupName NOT IN [\"excluded_log_group_name\"]"
+      }
+    }
+  }
+}
+```
+
+#### Account Subscription Filter Policy with Selection Criteria
+
+You can use selection criteria to apply the policy only to specific log groups based on resource attributes:
+
+```hcl
+module "account" {
+  cloudwatch = {
+    account_subscriptions = {
+      "lambda-forwarding" = {
+        policy = jsonencode({
+          DestinationArn = aws_lambda_function.test.arn
+          FilterPattern  = "test"
+        })
+        selection_criteria = "LogGroupName NOT IN [\"excluded_log_group_name\"]"
+      }
+    }
+  }
+}
+```
+
+#### Multiple Account Subscription Filter Policies
+
+You can configure multiple subscription filter policies for different destinations or log groups:
+
+```hcl
+module "account" {
+  cloudwatch = {
+    account_subscriptions = {
+      "kinesis-streams" = {
+        policy = jsonencode({
+          Statement = [
+            {
+              Action = [
+                "logs:CreateLogDelivery",
+                "logs:GetLogDelivery",
+                "logs:UpdateLogDelivery",
+                "logs:DeleteLogDelivery",
+                "logs:ListLogDeliveries"
+              ]
+              Effect = "Allow"
+              Principal = {
+                Service = "logs.amazonaws.com"
+              }
+              Resource = "arn:aws:logs:*:*:log-delivery:*"
+              Condition = {
+                StringEquals = {
+                  "logs:destinationType" = "KinesisStream"
+                }
+              }
+            }
+          ]
+          Version = "2012-10-17"
+        })
+        selection_criteria = "ALL"
+      }
+      "firehose-delivery" = {
+        policy = jsonencode({
+          Statement = [
+            {
+              Action = [
+                "logs:CreateLogDelivery",
+                "logs:GetLogDelivery",
+                "logs:UpdateLogDelivery",
+                "logs:DeleteLogDelivery",
+                "logs:ListLogDeliveries"
+              ]
+              Effect = "Allow"
+              Principal = {
+                Service = "logs.amazonaws.com"
+              }
+              Resource = "arn:aws:logs:*:*:log-delivery:*"
+              Condition = {
+                StringEquals = {
+                  "logs:destinationType" = "Firehose"
+                }
+              }
+            }
+          ]
+          Version = "2012-10-17"
+        })
+        selection_criteria = jsonencode({
+          LogGroupName = "/aws/application/*"
+        })
+      }
+    }
+  }
+}
+```
+
+#### Account Subscription Filter Policy Configuration Options
+
+- **policy**: (Required) The IAM policy document (as JSON string) that defines what actions are allowed for subscription filters. The policy must allow `logs:CreateLogDelivery`, `logs:GetLogDelivery`, `logs:UpdateLogDelivery`, `logs:DeleteLogDelivery`, and `logs:ListLogDeliveries` actions.
+- **selection_criteria**: (Optional) A JSON string that specifies which log groups the policy applies to. Use `"ALL"` to apply the policy to all log groups, or provide a JSON object with selection criteria such as:
+  - `LogGroupName`: Filter by log group name pattern (e.g., `"/aws/lambda/*"`)
+  - `ResourceArn`: Filter by log group ARN pattern
+
+#### Supported Destination Types
+
+The subscription filter policy can control access to the following destination types:
+
+- **KinesisStream**: Forward logs to Amazon Kinesis Data Streams
+- **Firehose**: Forward logs to Amazon Kinesis Data Firehose
+- **Lambda**: Forward logs to AWS Lambda functions
+
+#### Use Cases
+
+- **Compliance**: Ensure only approved destinations can receive log data
+- **Security**: Control which log groups can forward logs to external systems
+- **Cost Management**: Restrict log forwarding to specific destinations to control costs
+- **Governance**: Enforce organizational policies on log data handling
+
+**Note**: Account subscription filter policies are account-level policies that apply to all log groups in the account (or those matching the selection criteria). They work in conjunction with resource-based policies on individual log groups.
+
 ## Networking Features
 
 Tenants are able to provision networks within the designated region, while allowing the platform to decide how these are wired up into the network topology of the organization i.e. ensuring the are using IPAM, connected to the transit gateway, egress via the central vpc and so forth.
@@ -655,6 +914,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_aws_config"></a> [aws\_config](#input\_aws\_config) | Account specific configuration for AWS Config | <pre>object({<br/>    # A flag indicating if AWS Config should be enabled<br/>    enable = optional(bool, false)<br/>    # A list of compliance packs to provision in the account<br/>    compliance_packs = optional(map(object({<br/>      # A map of parameter overrides to apply to the compliance pack<br/>      parameter_overrides = optional(map(string), {})<br/>      # The URL of the compliance pack<br/>      template_url = optional(string, "")<br/>      # The body of the compliance pack<br/>      template_body = optional(string, "")<br/>    })), {})<br/>    # A list of managed rules to provision in the account<br/>    rules = optional(map(object({<br/>      # The list of resource types to scope the rule<br/>      resource_types = list(string)<br/>      # The description of the rule<br/>      description = string<br/>      # The identifier of the rule  <br/>      identifier = string<br/>      # The inputs of the rule<br/>      inputs = optional(map(string), {})<br/>      # The maximum execution frequency of the rule<br/>      max_execution_frequency = optional(string, null)<br/>      # The scope of the rule<br/>      scope = optional(object({<br/>        # The list of resource types to scope the rule<br/>        compliance_resource_types = optional(list(string), [])<br/>        # The key of the tag to scope the rule<br/>        tag_key = optional(string, null)<br/>        # The value of the tag to scope the rule<br/>        tag_value = optional(string, null)<br/>      }), null)<br/>    })), {})<br/>  })</pre> | <pre>{<br/>  "compliance_packs": {},<br/>  "enable": false,<br/>  "input_parameters": {},<br/>  "rules": {},<br/>  "scope": null<br/>}</pre> | no |
 | <a name="input_budgets"></a> [budgets](#input\_budgets) | A collection of budgets to provision | <pre>list(object({<br/>    name         = string<br/>    budget_type  = optional(string, "COST")<br/>    limit_amount = optional(string, "100.0")<br/>    limit_unit   = optional(string, "PERCENTAGE")<br/>    time_unit    = optional(string, "MONTHLY")<br/><br/>    notifications = optional(map(object({<br/>      comparison_operator = string<br/>      notification_type   = string<br/>      threshold           = number<br/>      threshold_type      = string<br/>    })), null)<br/><br/>    auto_adjust_data = optional(list(object({<br/>      auto_adjust_type = string<br/>    })), [])<br/><br/>    cost_filter = optional(map(object({<br/>      values = list(string)<br/>    })), {})<br/><br/>    cost_types = optional(object({<br/>      include_credit             = optional(bool, false)<br/>      include_discount           = optional(bool, false)<br/>      include_other_subscription = optional(bool, false)<br/>      include_recurring          = optional(bool, false)<br/>      include_refund             = optional(bool, false)<br/>      include_subscription       = optional(bool, false)<br/>      include_support            = optional(bool, false)<br/>      include_tax                = optional(bool, false)<br/>      include_upfront            = optional(bool, false)<br/>      use_blended                = optional(bool, false)<br/>      }), {<br/>      include_credit             = false<br/>      include_discount           = false<br/>      include_other_subscription = false<br/>      include_recurring          = false<br/>      include_refund             = false<br/>      include_subscription       = true<br/>      include_support            = false<br/>      include_tax                = false<br/>      include_upfront            = false<br/>      use_blended                = false<br/>    })<br/><br/>    tags = optional(map(string), {})<br/>  }))</pre> | `[]` | no |
 | <a name="input_central_dns"></a> [central\_dns](#input\_central\_dns) | Configuration for the hub used to centrally resolved dns requests | <pre>object({<br/>    enable = optional(bool, false)<br/>    # The domain name to use for the central DNS<br/>    vpc_id = optional(string, null)<br/>  })</pre> | <pre>{<br/>  "enable": false,<br/>  "vpc_id": null<br/>}</pre> | no |
+| <a name="input_cloudwatch"></a> [cloudwatch](#input\_cloudwatch) | Configuration for the CloudWatch service | <pre>object({<br/>    # The observability sink configuration<br/>    observability_sink = optional(object({<br/>      # A flag indicating if cloudwatch cross-account observability should be enabled<br/>      enable = optional(bool, false)<br/>      # The AWS Identifier of the accounts that are allowed to access the observability sink<br/>      identifiers = optional(list(string), null)<br/>      # The AWS resource types that are allowed to be linked to the observability sink<br/>      resource_types = optional(list(string), [<br/>        "AWS::CloudWatch::Metric",<br/>        "AWS::CloudWatch::Dashboard",<br/>        "AWS::CloudWatch::Alarm",<br/>        "AWS::CloudWatch::LogGroup",<br/>        "AWS::CloudWatch::LogStream",<br/>      ])<br/>    }), null)<br/>    observability_source = optional(object({<br/>      # A flag indicating if cloudwatch cross-account observability should be enabled<br/>      enable = optional(bool, false)<br/>      # The name of the cloudwatch cross-account observability<br/>      account_id = optional(string, null)<br/>      # The OAM sink identifier i.e. arn:aws:oam:region:account-id:sink/sink-id<br/>      sink_identifier = optional(string, null)<br/>      # The resource types to link to the observability source<br/>      resource_types = optional(list(string), [<br/>        "AWS::CloudWatch::Metric",<br/>        "AWS::CloudWatch::Dashboard",<br/>        "AWS::CloudWatch::Alarm",<br/>        "AWS::CloudWatch::LogGroup",<br/>        "AWS::CloudWatch::LogStream",<br/>      ])<br/>    }), null)<br/>    ## Collection of account subscriptions to provision <br/>    account_subscriptions = optional(map(object({<br/>      # The policy document to apply to the subscription<br/>      policy = optional(string, null)<br/>      # The selection criteria to apply to the subscription<br/>      selection_criteria = optional(string, null)<br/>    })), {})<br/>  })</pre> | <pre>{<br/>  "account_subscriptions": {},<br/>  "observability_sink": null,<br/>  "observability_source": null<br/>}</pre> | no |
 | <a name="input_cost_anomaly_detection"></a> [cost\_anomaly\_detection](#input\_cost\_anomaly\_detection) | A collection of cost anomaly detection monitors to apply to the account | <pre>object({<br/>    enable = optional(bool, true)<br/>    # A flag indicating if the default monitors should be enabled<br/>    monitors = optional(list(object({<br/>      name = string<br/>      # The name of the anomaly detection rule<br/>      frequency = optional(string, "IMMEDIATE")<br/>      # The dimension of the anomaly detection rule, either SERVICE or DIMENSIONAL<br/>      threshold_expression = optional(list(object({<br/>        and = object({<br/>          dimension = object({<br/>            key = string<br/>            # The key of the dimension<br/>            match_options = list(string)<br/>            # The match options of the dimension<br/>            values = list(string)<br/>            # The values of the dimension<br/>          })<br/>        })<br/>        # The expression to apply to the cost anomaly detection monitor<br/>      })), [])<br/>      # The expression to apply to the anomaly detection rule<br/>      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor<br/>      specification = optional(string, "")<br/>      # The specification to anomaly detection monitor<br/>      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor<br/>    })), [])<br/>  })</pre> | <pre>{<br/>  "enable": true,<br/>  "monitors": []<br/>}</pre> | no |
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | The cost center of the product, and injected into all resource tags | `string` | `null` | no |
 | <a name="input_dns"></a> [dns](#input\_dns) | A collection of DNS zones to provision and associate with networks | <pre>map(object({<br/>    comment = optional(string, "Managed by zone created by terraform")<br/>    # A comment associated with the DNS zone<br/>    network = string<br/>    # A list of network names to associate with the DNS zone<br/>    private = optional(bool, true)<br/>    # A flag indicating if the DNS zone is private or public<br/>  }))</pre> | `{}` | no |
