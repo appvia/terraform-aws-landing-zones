@@ -20,6 +20,8 @@ resource "aws_config_conformance_pack" "default" {
       parameter_value = input_parameter.value
     }
   }
+
+  provider = aws.tenant
 }
 
 ## Provision the AWS Config rules
@@ -48,4 +50,6 @@ resource "aws_config_config_rule" "default" {
       tag_value                 = try(each.value.scope.tag_value, null)
     }
   }
+
+  provider = aws.tenant
 }
