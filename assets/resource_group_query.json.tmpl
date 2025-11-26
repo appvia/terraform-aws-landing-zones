@@ -1,0 +1,12 @@
+ResourceTypeFilters:
+  %{ for resource in resource_type_filters }
+  - "${ resource }"
+  %{ endfor }
+TagFilters:
+  %{ for tag_key, tag_values in tag_filters }
+  - Key: "${ tag_key }"
+    Values: 
+      %{ for value in tag_values }
+      - "${ value }"
+      %{ endfor }
+  %{ endfor }

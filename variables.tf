@@ -9,6 +9,38 @@ variable "home_region" {
   }
 }
 
+variable "resource_groups" {
+  description = "Configuration for the resource groups service"
+  type = map(object({
+    # The name of the resource group
+    description = string
+    # The type of the of group configuration
+    type = optional(string, "TAG_FILTERS_1_0")
+    # An optional configuration for the resource group
+    configuration = optional(object({
+      # The type of the of group configuration
+      type = string
+      # The parameters of the group configuration
+      parameters = optional(list(object({
+        # The name of the parameter
+        name = string
+        # The list of values for the parameter
+        values = list(string)
+      })), [])
+    }), null)
+    # The resource query to configure the resource group
+    query = optional(object({
+      # A collection of resource types to scope the resource query
+      resource_type_filters = optional(list(string), ["AWS::AllSupported"])
+      # A collection of tag filters to scope the resource query
+      tag_filters = optional(map(list(string)), {})
+    }), null)
+    # The resource query in json format https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/resourcegroups_group
+    resource_query = optional(string, null)
+  }))
+  default = {}
+}
+
 variable "ssm" {
   description = "Configuration for the SSM service"
   type = object({
