@@ -406,6 +406,228 @@ rbac = {
 }
 ```
 
+## Resource Groups
+
+AWS Resource Groups allow you to organize and manage AWS resources by grouping them based on tags, resource types, or other criteria. This module provides the ability to create and manage resource groups within your account, making it easier to organize, discover, and manage related resources.
+
+### Basic Resource Group Configuration
+
+You can create resource groups using the `var.resource_groups` variable. The recommended approach is to use the `query` object which provides a simpler, more intuitive way to define resource queries.
+
+```hcl
+module "account" {
+  resource_groups = {
+    "production-ec2-instances" = {
+      description = "All EC2 instances in production environment"
+      query = {
+        resource_type_filters = ["AWS::EC2::Instance"]
+        tag_filters           = {
+          "Environment" = ["production"]
+        }
+      }
+    }
+  }
+}
+```
+
+### Resource Group with Tag-Based Filtering
+
+Resource groups are commonly used to organize resources by tags, making it easier to manage resources across different environments or applications:
+
+```hcl
+module "account" {
+  resource_groups = {
+    "production-resources" = {
+      description = "All production resources"
+      query = {
+        resource_type_filters = ["AWS::AllSupported"]
+        tag_filters = {
+          "Environment" = ["production"]
+          "Product"     = ["my-product"]
+        }
+      }
+    }
+    "development-resources" = {
+      description = "All development resources"
+      query = {
+        resource_type_filters = ["AWS::AllSupported"]
+        tag_filters = {
+          "Environment" = ["development"]
+        }
+      }
+    }
+  }
+}
+```
+
+### Resource Group with Resource Type Filtering
+
+You can create resource groups that include only specific resource types. If no `tag_filters` are specified, the resource group will include all resources of the specified types:
+
+```hcl
+module "account" {
+  resource_groups = {
+    "s3-buckets" = {
+      description = "All S3 buckets in the account"
+      query = {
+        resource_type_filters = ["AWS::S3::Bucket"]
+      }
+    }
+    "lambda-functions" = {
+      description = "All Lambda functions"
+      query = {
+        resource_type_filters = ["AWS::Lambda::Function"]
+      }
+    }
+    "rds-instances" = {
+      description = "All RDS database instances"
+      query = {
+        resource_type_filters = ["AWS::RDS::DBInstance"]
+      }
+    }
+  }
+}
+```
+
+### Resource Group with Configuration
+
+Resource groups can include configuration settings for specific use cases, such as AWS Systems Manager maintenance windows or other group-based operations:
+
+```hcl
+module "account" {
+  resource_groups = {
+    "maintenance-window-targets" = {
+      description = "EC2 instances for maintenance windows"
+      query = {
+        resource_type_filters = ["AWS::EC2::Instance"]
+        tag_filters = {
+          "MaintenanceWindow" = ["enabled"]
+        }
+      }
+      configuration = {
+        type = "AWS::SSM::MaintenanceWindowTarget"
+        parameters = [
+          {
+            name   = "WindowTargetId"
+            values = ["target-123456"]
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### Resource Group Configuration Options
+
+The resource group configuration supports the following options:
+
+- **description**: (Required) A description of the resource group
+- **query**: (Optional) An object that defines the query used to select resources for the group. This is the recommended approach:
+  - **resource_type_filters**: (Optional) A list of AWS resource types (e.g., `["AWS::EC2::Instance"]`, `["AWS::S3::Bucket"]`, or `["AWS::AllSupported"]`). Defaults to `["AWS::AllSupported"]` if not specified.
+  - **tag_filters**: (Optional) A map where keys are tag names and values are lists of tag values. For example: `{ "Environment" = ["production"], "Product" = ["my-app"] }`
+- **resource_query**: (Optional) A JSON string that defines the query used to select resources for the group. This is an alternative to the `query` object for advanced use cases or backward compatibility. The query must follow AWS Resource Groups query syntax.
+- **type**: (Optional) The type of resource query. Defaults to `"TAG_FILTERS_1_0"` if not specified.
+- **configuration**: (Optional) Configuration settings for the resource group:
+  - **type**: The type of group configuration (e.g., `"AWS::SSM::MaintenanceWindowTarget"`)
+  - **parameters**: (Optional) A list of parameters for the configuration:
+    - **name**: The parameter name
+    - **values**: A list of parameter values
+
+### Using the Query Object (Recommended)
+
+The `query` object provides a simpler and more intuitive way to define resource group queries:
+
+```hcl
+query = {
+  resource_type_filters = ["AWS::EC2::Instance"]  # List of resource types
+  tag_filters = {                                  # Map of tag keys to values
+    "Environment" = ["production", "staging"]     # Tag key with multiple values
+    "Product"     = ["my-app"]                     # Additional tag filter
+  }
+}
+```
+
+### Using Resource Query String (Advanced)
+
+For advanced use cases or backward compatibility, you can provide a raw JSON string:
+
+```hcl
+resource_query = jsonencode({
+  ResourceTypeFilters = ["AWS::EC2::Instance"]
+  TagFilters = [
+    {
+      Key    = "Environment"
+      Values = ["production", "staging"]
+    }
+  ]
+})
+```
+
+### Use Cases
+
+Resource groups are useful for:
+
+- **Environment Management**: Group resources by environment (production, staging, development)
+- **Application Organization**: Group resources belonging to a specific application or service
+- **Cost Management**: Organize resources for cost allocation and budgeting
+- **Security Management**: Group resources for security scanning and compliance checks
+- **Maintenance Windows**: Organize resources for scheduled maintenance operations
+- **Resource Discovery**: Quickly find and list related resources across your account
+
+### Example: Multi-Environment Resource Organization
+
+This example shows how to organize resources across multiple environments using the `query` object:
+
+```hcl
+module "account" {
+  resource_groups = {
+    "production-app-resources" = {
+      description = "All resources for the production application"
+      query = {
+        resource_type_filters = ["AWS::AllSupported"]
+        tag_filters = {
+          "Environment" = ["production"]
+          "Application" = ["my-app"]
+        }
+      }
+    }
+    "staging-app-resources" = {
+      description = "All resources for the staging application"
+      query = {
+        resource_type_filters = ["AWS::AllSupported"]
+        tag_filters = {
+          "Environment" = ["staging"]
+          "Application" = ["my-app"]
+        }
+      }
+    }
+  }
+}
+```
+
+### Example: Multiple Tag Values
+
+You can specify multiple values for a single tag key to match resources with any of those values:
+
+```hcl
+module "account" {
+  resource_groups = {
+    "production-and-staging" = {
+      description = "All resources in production or staging environments"
+      query = {
+        resource_type_filters = ["AWS::AllSupported"]
+        tag_filters = {
+          "Environment" = ["production", "staging"]
+        }
+      }
+    }
+  }
+}
+```
+
+**Note**: Resource groups are dynamic and automatically update as resources are created, modified, or deleted based on the resource query criteria. Ensure your resources are properly tagged to be included in the appropriate resource groups. When using the `query` object, if `resource_type_filters` is not specified, it defaults to `["AWS::AllSupported"]`.
+
 ## GitHub Repository Management
 
 This module includes comprehensive GitHub repository management capabilities through the `modules/github_repository` module. This allows tenants to create and manage GitHub repositories with enterprise-grade security and compliance features.
@@ -894,11 +1116,11 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0.0 |
-| <a name="provider_aws.identity"></a> [aws.identity](#provider\_aws.identity) | >= 5.0.0 |
-| <a name="provider_aws.management"></a> [aws.management](#provider\_aws.management) | >= 5.0.0 |
-| <a name="provider_aws.network"></a> [aws.network](#provider\_aws.network) | >= 5.0.0 |
-| <a name="provider_aws.tenant"></a> [aws.tenant](#provider\_aws.tenant) | >= 5.0.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
+| <a name="provider_aws.identity"></a> [aws.identity](#provider\_aws.identity) | >= 6.0.0 |
+| <a name="provider_aws.management"></a> [aws.management](#provider\_aws.management) | >= 6.0.0 |
+| <a name="provider_aws.network"></a> [aws.network](#provider\_aws.network) | >= 6.0.0 |
+| <a name="provider_aws.tenant"></a> [aws.tenant](#provider\_aws.tenant) | >= 6.0.0 |
 
 ## Inputs
 
@@ -938,6 +1160,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_networks"></a> [networks](#input\_networks) | A collection of networks to provision within the designated region | <pre>map(object({<br/>    firewall = optional(object({<br/>      capacity = number<br/>      # The capacity of the firewall rule group<br/>      rules_source = string<br/>      # The content of the suracata rules<br/>      ip_sets = map(list(string))<br/>      # A map of IP sets to apply to the firewall rule ie. WEBSERVERS = ["100.0.0.0/16"]<br/>      port_sets = map(list(number))<br/>      # A map of port sets to apply to the firewall rule ie. WEBSERVERS = [80, 443]<br/>      domains_whitelist = list(string)<br/>    }), null)<br/><br/>    private_subnet_tags = optional(map(string), {})<br/>    # Additional tags to apply to the private subnet<br/>    public_subnet_tags = optional(map(string), {})<br/>    # Additional tags to apply to the public subnet<br/><br/>    subnets = map(object({<br/>      cidr = optional(string, null)<br/>      # The CIDR block of the subnet<br/>      netmask = optional(number, 0)<br/>      # Additional tags to apply to the subnet<br/>      tags = optional(map(string), {})<br/>    }))<br/><br/>    tags = optional(map(string), {})<br/>    # A collection of tags to apply to the network - these will be merged with the global tags<br/><br/>    transit_gateway = optional(object({<br/>      gateway_id = optional(string, null)<br/>      # The transit gateway ID to associate with the network<br/>      gateway_route_table_id = optional(string, null)<br/>      ## Optional id of the transit gateway route table to associate with the network<br/>      gateway_routes = optional(map(string), null)<br/>      # A map used to associate routes with subnets provisioned by the module - i.e ensure<br/>      # all private subnets push<br/>      }), {<br/>      gateway_id             = null<br/>      gateway_route_table_id = null<br/>      gateway_routes         = null<br/>    })<br/>    ## Configuration for the transit gateway for this network<br/><br/>    vpc = object({<br/>      availability_zones = optional(string, 2)<br/>      # The availability zone in which to provision the network, defaults to 2<br/>      cidr = optional(string, null)<br/>      # The CIDR block of the VPC network if not using IPAM<br/>      enable_private_endpoints = optional(list(string), [])<br/>      # An optional list of private endpoints to associate with the network i.e ["s3", "dynamodb"]<br/>      enable_shared_endpoints = optional(bool, true)<br/>      # Indicates if the network should accept shared endpoints<br/>      enable_transit_gateway = optional(bool, true)<br/>      # A flag indicating if the network should be associated with the transit gateway<br/>      enable_transit_gateway_appliance_mode = optional(bool, false)<br/>      # A flag indicating if the transit gateway should be in appliance mode<br/>      enable_default_route_table_association = optional(bool, true)<br/>      # A flag indicating if the default route table should be associated with the network<br/>      enable_default_route_table_propagation = optional(bool, true)<br/>      # A flag indicating if the default route table should be propagated to the network<br/>      flow_logs = optional(object({<br/>        destination_type = optional(string, "none")<br/>        # The destination type of the flow logs <br/>        destination_arn = optional(string, null)<br/>        # The ARN of the destination of the flow logs<br/>        log_format = optional(string, "plain-text")<br/>        # The format of the flow logs<br/>        traffic_type = optional(string, "ALL")<br/>        # The type of traffic to capture<br/>        destination_options = optional(object({<br/>          file_format = optional(string, "plain-text")<br/>          # The format of the flow logs<br/>          hive_compatible_partitions = optional(bool, false)<br/>          # Whether to use hive compatible partitions<br/>          per_hour_partition = optional(bool, false)<br/>          # Whether to partition the flow logs per hour<br/>        }), null)<br/>        # The destination options of the flow logs<br/>      }), null)<br/>      ipam_pool_name = optional(string, null)<br/>      # The name of the IPAM pool to use for the network<br/>      nat_gateway_mode = optional(string, "none")<br/>      # The NAT gateway mode to use for the network, defaults to none<br/>      netmask = optional(number, null)<br/>      # The netmask of the VPC network if using IPAM<br/>      transit_gateway_routes = optional(map(string), null)<br/>    })<br/>  }))</pre> | `{}` | no |
 | <a name="input_notifications"></a> [notifications](#input\_notifications) | Configuration for the notifications to the owner of the account | <pre>object({<br/>    email = optional(object({<br/>      addresses = optional(list(string), [])<br/>      # A list of email addresses to send notifications to<br/>      }), {<br/>      addresses = []<br/>    })<br/><br/>    slack = optional(object({<br/>      webhook_url = optional(string, "")<br/>      # The slack webhook_url to send notifications to<br/>      }), {<br/>      webhook_url = null<br/>    })<br/><br/>    teams = optional(object({<br/>      webhook_url = optional(string, "")<br/>      # The teams webhook_url to send notifications to<br/>      }), {<br/>      webhook_url = null<br/>    })<br/><br/>    services = optional(object({<br/>      securityhub = object({<br/>        enable = optional(bool, false)<br/>        # A flag indicating if security hub notifications should be enabled<br/>        eventbridge_rule_name = optional(string, "lza-securityhub-eventbridge")<br/>        # The sns topic name which is created per region in the account,<br/>        # this is used to receive notifications, and forward them on via email or other means.<br/>        lambda_name = optional(string, "lza-securityhub-slack-forwarder")<br/>        # The name of the lambda which will be used to forward the security hub events to slack<br/>        lambda_role_name = optional(string, "lza-securityhub-slack-forwarder")<br/>        # The name of the eventbridge rule which is used to forward the security hub events to the lambda<br/>        severity = optional(list(string), ["CRITICAL"])<br/>      })<br/>      }), {<br/>      securityhub = {<br/>        enable = false<br/>      }<br/>    })<br/>  })</pre> | <pre>{<br/>  "email": {<br/>    "addresses": []<br/>  },<br/>  "services": {<br/>    "securityhub": {<br/>      "enable": false,<br/>      "eventbridge_rule_name": "lza-securityhub-eventbridge",<br/>      "lambda_name": "lza-securityhub-slack-forwarder",<br/>      "lambda_role_name": "lza-securityhub-slack-forwarder",<br/>      "severity": [<br/>        "CRITICAL"<br/>      ]<br/>    }<br/>  },<br/>  "slack": {<br/>    "webhook_url": null<br/>  },<br/>  "teams": {<br/>    "webhook_url": null<br/>  }<br/>}</pre> | no |
 | <a name="input_rbac"></a> [rbac](#input\_rbac) | Provides the ability to associate one of more groups with a sso role in the account | <pre>map(object({<br/>    users = optional(list(string), [])<br/>    # A list of users to associate with the developer role<br/>    groups = optional(list(string), [])<br/>    # A list of groups to associate with the developer role<br/>  }))</pre> | `{}` | no |
+| <a name="input_resource_groups"></a> [resource\_groups](#input\_resource\_groups) | Configuration for the resource groups service | <pre>map(object({<br/>    # The name of the resource group<br/>    description = string<br/>    # The type of the of group configuration<br/>    type = optional(string, "TAG_FILTERS_1_0")<br/>    # An optional configuration for the resource group<br/>    configuration = optional(object({<br/>      # The type of the of group configuration<br/>      type = string<br/>      # The parameters of the group configuration<br/>      parameters = optional(list(object({<br/>        # The name of the parameter<br/>        name = string<br/>        # The list of values for the parameter<br/>        values = list(string)<br/>      })), [])<br/>    }), null)<br/>    # The resource query to configure the resource group<br/>    query = optional(object({<br/>      # A collection of resource types to scope the resource query<br/>      resource_type_filters = optional(list(string), ["AWS::AllSupported"])<br/>      # A collection of tag filters to scope the resource query<br/>      tag_filters = optional(map(list(string)), {})<br/>    }), null)<br/>    # The resource query in json format https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/resourcegroups_group<br/>    resource_query = optional(string, null)<br/>  }))</pre> | `{}` | no |
 | <a name="input_s3_block_public_access"></a> [s3\_block\_public\_access](#input\_s3\_block\_public\_access) | A collection of S3 public block access settings to apply to the account | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if S3 block public access should be enabled<br/>    enable_block_public_policy = optional(bool, true)<br/>    # A flag indicating if S3 block public policy should be enabled<br/>    enable_block_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 block public ACLs should be enabled<br/>    enable_ignore_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 ignore public ACLs should be enabled<br/>    enable_restrict_public_buckets = optional(bool, true)<br/>    # A flag indicating if S3 restrict public buckets should be enabled<br/>  })</pre> | <pre>{<br/>  "enable": false,<br/>  "enable_block_public_acls": true,<br/>  "enable_block_public_policy": true,<br/>  "enable_ignore_public_acls": true,<br/>  "enable_restrict_public_buckets": true<br/>}</pre> | no |
 | <a name="input_service_control_policies"></a> [service\_control\_policies](#input\_service\_control\_policies) | Provides the ability to associate one of more service control policies with an account | <pre>map(object({<br/>    name = string<br/>    # The policy name to associate with the account<br/>    policy = string<br/>    # The policy document to associate with the account<br/>  }))</pre> | `{}` | no |
 | <a name="input_ssm"></a> [ssm](#input\_ssm) | Configuration for the SSM service | <pre>object({<br/>    enable_block_public_sharing = optional(bool, true)<br/>    # A flag indicating if SSM public sharing should be blocked<br/>  })</pre> | `{}` | no |
