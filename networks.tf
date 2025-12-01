@@ -10,7 +10,7 @@ locals {
 module "networks" {
   for_each = var.networks
   source   = "appvia/network/aws"
-  version  = "0.6.13"
+  version  = "0.6.14"
 
   availability_zones                     = each.value.vpc.availability_zones
   enable_default_route_table_association = each.value.vpc.enable_default_route_table_association
