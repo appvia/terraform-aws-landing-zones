@@ -1,7 +1,7 @@
 
 locals {
   ## Indicates if we should provision notiications for security hub events
-  enable_security_hub_events = var.notifications.services.securityhub.enable
+  enable_security_hub_events = try(var.notifications.services.securityhub.enable, false)
 }
 
 ## Provision the event bridge rule to capture security hub findings, of a specific severities

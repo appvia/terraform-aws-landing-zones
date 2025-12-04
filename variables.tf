@@ -838,7 +838,13 @@ variable "notifications" {
         # The severity of the security hub events to forward
         severity = optional(list(string), ["CRITICAL"])
       })
-    }), null)
+      }), {
+      securityhub = {
+        enable                = false
+        eventbridge_rule_name = "lza-securityhub-eventbridge"
+        severity              = ["CRITICAL"]
+      }
+    })
   })
   default = {
     email = {
@@ -846,13 +852,6 @@ variable "notifications" {
     }
     slack = null
     teams = null
-    services = {
-      securityhub = {
-        enable                = false
-        eventbridge_rule_name = "lza-securityhub-eventbridge"
-        severity              = ["CRITICAL"]
-      }
-    }
   }
 }
 
