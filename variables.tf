@@ -44,8 +44,8 @@ variable "resource_groups" {
 variable "ssm" {
   description = "Configuration for the SSM service"
   type = object({
-    enable_block_public_sharing = optional(bool, true)
     # A flag indicating if SSM public sharing should be blocked
+    enable_block_public_sharing = optional(bool, true)
   })
   default = {}
 }
@@ -70,7 +70,7 @@ variable "aws_config" {
       resource_types = list(string)
       # The description of the rule
       description = string
-      # The identifier of the rule  
+      # The identifier of the rule
       identifier = string
       # The inputs of the rule
       inputs = optional(map(string), {})
@@ -398,7 +398,7 @@ variable "cloudwatch" {
         "AWS::CloudWatch::LogStream",
       ])
     }), null)
-    ## Collection of account subscriptions to provision 
+    ## Collection of account subscriptions to provision
     account_subscriptions = optional(map(object({
       # The policy document to apply to the subscription
       policy = optional(string, null)
@@ -813,48 +813,43 @@ variable "notifications" {
     })
 
     slack = optional(object({
-      webhook_url = optional(string, "")
+      # The slack webhook_arn to a secret in secrets manager containing the webhook_url
+      webhook_arn = optional(string, null)
       # The slack webhook_url to send notifications to
-      }), {
-      webhook_url = null
-    })
+      webhook_url = optional(string, "")
+    }), null)
 
     teams = optional(object({
-      webhook_url = optional(string, "")
+      # The teams webhook_arn to a secret in secrets manager containing the webhook_url
+      webhook_arn = optional(string, null)
       # The teams webhook_url to send notifications to
-      }), {
-      webhook_url = null
-    })
+      webhook_url = optional(string, "")
+    }), null)
 
+    # The services to configure for notifications
     services = optional(object({
+      # The security hub notifications to configure
       securityhub = object({
-        enable = optional(bool, false)
         # A flag indicating if security hub notifications should be enabled
-        eventbridge_rule_name = optional(string, "lza-securityhub-eventbridge")
+        enable = optional(bool, false)
         # The sns topic name which is created per region in the account,
         # this is used to receive notifications, and forward them on via email or other means.
-        lambda_name = optional(string, "lza-securityhub-slack-forwarder")
+        eventbridge_rule_name = optional(string, "lza-securityhub-eventbridge")
         # The name of the lambda which will be used to forward the security hub events to slack
-        lambda_role_name = optional(string, "lza-securityhub-slack-forwarder")
+        lambda_name = optional(string, "lza-securityhub-slack-forwarder")
         # The name of the eventbridge rule which is used to forward the security hub events to the lambda
+        lambda_role_name = optional(string, "lza-securityhub-slack-forwarder")
+        # The severity of the security hub events to forward
         severity = optional(list(string), ["CRITICAL"])
       })
-      }), {
-      securityhub = {
-        enable = false
-      }
-    })
+    }), null)
   })
   default = {
     email = {
       addresses = []
     }
-    slack = {
-      webhook_url = null
-    }
-    teams = {
-      webhook_url = null
-    }
+    slack = null
+    teams = null
     services = {
       securityhub = {
         enable                = false
@@ -1004,7 +999,7 @@ variable "networks" {
       # A flag indicating if the default route table should be propagated to the network
       flow_logs = optional(object({
         destination_type = optional(string, "none")
-        # The destination type of the flow logs 
+        # The destination type of the flow logs
         destination_arn = optional(string, null)
         # The ARN of the destination of the flow logs
         log_format = optional(string, "plain-text")

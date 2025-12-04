@@ -1,16 +1,18 @@
 
 locals {
   ## The configuration for slack notifications
-  notifications_slack = var.notifications.slack.webhook_url != null ? {
-    lambda_name        = "lza-slack-notifications-${local.region}"
+  notifications_slack = var.notifications.slack != null ? {
     lambda_description = "Lambda function to forward notifications to slack to an SNS topic"
+    lambda_name        = "lza-slack-notifications-${local.region}"
+    webhook_arn        = var.notifications.slack.webhook_arn
     webhook_url        = var.notifications.slack.webhook_url
   } : null
 
   ## The configuration for ms team notifications
-  notifications_teams = var.notifications.teams.webhook_url != null ? {
-    lambda_name        = "lza-teams-notifications-${local.region}"
+  notifications_teams = var.notifications.teams != null ? {
     lambda_description = "Lambda function to forward notifications to teams to an SNS topic"
+    lambda_name        = "lza-teams-notifications-${local.region}"
+    webhook_arn        = var.notifications.teams.webhook_arn
     webhook_url        = var.notifications.teams.webhook_url
   } : null
 
@@ -48,7 +50,7 @@ module "tagging" {
 #trivy:ignore:AVD-DS-0026
 module "notifications" {
   source  = "appvia/notify/aws"
-  version = "0.0.7"
+  version = "0.1.0"
 
   allowed_aws_services = [
     "budgets.amazonaws.com",
