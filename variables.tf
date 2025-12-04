@@ -816,14 +816,14 @@ variable "notifications" {
       # The slack webhook_arn to a secret in secrets manager containing the webhook_url
       webhook_arn = optional(string, null)
       # The slack webhook_url to send notifications to
-      webhook_url = optional(string, "")
+      webhook_url = optional(string, null)
     }), null)
 
     teams = optional(object({
       # The teams webhook_arn to a secret in secrets manager containing the webhook_url
       webhook_arn = optional(string, null)
       # The teams webhook_url to send notifications to
-      webhook_url = optional(string, "")
+      webhook_url = optional(string, null)
     }), null)
 
     # The services to configure for notifications
@@ -835,10 +835,6 @@ variable "notifications" {
         # The sns topic name which is created per region in the account,
         # this is used to receive notifications, and forward them on via email or other means.
         eventbridge_rule_name = optional(string, "lza-securityhub-eventbridge")
-        # The name of the lambda which will be used to forward the security hub events to slack
-        lambda_name = optional(string, "lza-securityhub-slack-forwarder")
-        # The name of the eventbridge rule which is used to forward the security hub events to the lambda
-        lambda_role_name = optional(string, "lza-securityhub-slack-forwarder")
         # The severity of the security hub events to forward
         severity = optional(list(string), ["CRITICAL"])
       })
@@ -854,8 +850,6 @@ variable "notifications" {
       securityhub = {
         enable                = false
         eventbridge_rule_name = "lza-securityhub-eventbridge"
-        lambda_name           = "lza-securityhub-slack-forwarder"
-        lambda_role_name      = "lza-securityhub-slack-forwarder"
         severity              = ["CRITICAL"]
       }
     }
