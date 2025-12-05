@@ -282,6 +282,122 @@ module "account" {
 }
 ```
 
+### AWS Resilience Hub
+
+AWS Resilience Hub helps you define, validate, and track the resilience of your applications so you can avoid unnecessary downtime caused by software, infrastructure, or operational disruptions. You can enable Resilience Hub and configure resiliency policies that define recovery objectives for your applications.
+
+#### Basic Resilience Hub Configuration
+
+To enable Resilience Hub, set the `enable` flag to `true`. This will create the necessary IAM role for Resilience Hub to perform assessments (only created in the home region):
+
+```hcl
+module "account" {
+  resilience_hub = {
+    enable = true
+  }
+}
+```
+
+#### Resilience Hub with Resiliency Policies
+
+You can define resiliency policies that specify Recovery Point Objectives (RPO) and Recovery Time Objectives (RTO) for different types of failures. Policies can be configured for:
+
+- **Region**: Regional failure scenarios
+- **Hardware**: Hardware component failures
+- **Software**: Software or application failures
+- **AZ (Availability Zone)**: Availability zone failures
+
+Each policy type supports RPO (Recovery Point Objective) and RTO (Recovery Time Objective) settings. The tier can be one of: `MissionCritical`, `Critical`, `Important`, `CoreServices`, `NonCritical`, or `NotApplicable`.
+
+```hcl
+module "account" {
+  resilience_hub = {
+    enable = true
+    policies = {
+      "production-app-policy" = {
+        name        = "production-application-policy"
+        description = "Resiliency policy for production applications"
+        tier        = "Critical"
+        policy = {
+          region = {
+            rpo = "1 hour"
+            rto = "4 hours"
+          }
+          hardware = {
+            rpo = "15 minutes"
+            rto = "1 hour"
+          }
+          software = {
+            rpo = "30 minutes"
+            rto = "2 hours"
+          }
+          az = {
+            rpo = "1 hour"
+            rto = "4 hours"
+          }
+        }
+      }
+      "development-app-policy" = {
+        name        = "development-application-policy"
+        description = "Resiliency policy for development applications"
+        tier        = "Important"
+        policy = {
+          region = {
+            rpo = "24 hours"
+            rto = "48 hours"
+          }
+          hardware = {
+            rpo = "1 hour"
+            rto = "4 hours"
+          }
+          software = {
+            rpo = "2 hours"
+            rto = "8 hours"
+          }
+          az = {
+            rpo = "4 hours"
+            rto = "12 hours"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### Resilience Hub Policy Configuration Options
+
+- **name**: (Optional) The name of the resiliency policy. If not provided, the map key is used.
+- **description**: (Required) A description of the resiliency policy.
+- **tier**: (Optional) The tier classification for the policy. Valid values: `MissionCritical`, `Critical`, `Important`, `CoreServices`, `NonCritical`, `NotApplicable`. Defaults to `Important`.
+- **policy**: (Optional) The resiliency policy configuration with RPO and RTO settings:
+  - **region**: (Optional) Regional failure recovery objectives
+  - **hardware**: (Optional) Hardware failure recovery objectives
+  - **software**: (Optional) Software failure recovery objectives
+  - **az**: (Optional) Availability zone failure recovery objectives
+  - Each policy type supports:
+    - **rpo**: (Optional) Recovery Point Objective - the maximum acceptable amount of data loss. Defaults to `"1 hour"`.
+    - **rto**: (Optional) Recovery Time Objective - the maximum acceptable downtime. Defaults to `"1 hour"`.
+
+#### IAM Role for Resilience Hub
+
+When Resilience Hub is enabled, an IAM role is automatically created in the home region. This role:
+
+- Uses the name from `var.include_iam_roles.ssm_instance.name` (if configured)
+- Allows the Resilience Hub service to assume the role
+- Includes the `AWSResilienceHubAsssessmentExecutionPolicy` managed policy
+
+**Note**: The IAM role is only created when Resilience Hub is enabled and the account is in the home region. This role is required for Resilience Hub to perform assessments of your applications and resources.
+
+#### Use Cases
+
+- **Application Resilience Planning**: Define and track resilience objectives for critical applications
+- **Compliance**: Meet regulatory requirements for disaster recovery and business continuity
+- **Risk Management**: Identify and address resilience gaps in your infrastructure
+- **Cost Optimization**: Balance resilience requirements with operational costs
+
+**Note**: Resilience Hub requires the IAM role to be created in the home region. Ensure that `home_region` is properly configured when enabling this feature.
+
 ### EBS Encryption
 
 The EBS encryption can be configured to encrypt all EBS volumes within the account. The feature ensures all volumes are automatically encrypted.
@@ -1160,6 +1276,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_networks"></a> [networks](#input\_networks) | A collection of networks to provision within the designated region | <pre>map(object({<br/>    firewall = optional(object({<br/>      capacity = number<br/>      # The capacity of the firewall rule group<br/>      rules_source = string<br/>      # The content of the suracata rules<br/>      ip_sets = map(list(string))<br/>      # A map of IP sets to apply to the firewall rule ie. WEBSERVERS = ["100.0.0.0/16"]<br/>      port_sets = map(list(number))<br/>      # A map of port sets to apply to the firewall rule ie. WEBSERVERS = [80, 443]<br/>      domains_whitelist = list(string)<br/>    }), null)<br/><br/>    private_subnet_tags = optional(map(string), {})<br/>    # Additional tags to apply to the private subnet<br/>    public_subnet_tags = optional(map(string), {})<br/>    # Additional tags to apply to the public subnet<br/><br/>    subnets = map(object({<br/>      cidr = optional(string, null)<br/>      # The CIDR block of the subnet<br/>      netmask = optional(number, 0)<br/>      # Additional tags to apply to the subnet<br/>      tags = optional(map(string), {})<br/>    }))<br/><br/>    tags = optional(map(string), {})<br/>    # A collection of tags to apply to the network - these will be merged with the global tags<br/><br/>    transit_gateway = optional(object({<br/>      gateway_id = optional(string, null)<br/>      # The transit gateway ID to associate with the network<br/>      gateway_route_table_id = optional(string, null)<br/>      ## Optional id of the transit gateway route table to associate with the network<br/>      gateway_routes = optional(map(string), null)<br/>      # A map used to associate routes with subnets provisioned by the module - i.e ensure<br/>      # all private subnets push<br/>      }), {<br/>      gateway_id             = null<br/>      gateway_route_table_id = null<br/>      gateway_routes         = null<br/>    })<br/>    ## Configuration for the transit gateway for this network<br/><br/>    vpc = object({<br/>      availability_zones = optional(string, 2)<br/>      # The availability zone in which to provision the network, defaults to 2<br/>      cidr = optional(string, null)<br/>      # The CIDR block of the VPC network if not using IPAM<br/>      enable_private_endpoints = optional(list(string), [])<br/>      # An optional list of private endpoints to associate with the network i.e ["s3", "dynamodb"]<br/>      enable_shared_endpoints = optional(bool, true)<br/>      # Indicates if the network should accept shared endpoints<br/>      enable_transit_gateway = optional(bool, true)<br/>      # A flag indicating if the network should be associated with the transit gateway<br/>      enable_transit_gateway_appliance_mode = optional(bool, false)<br/>      # A flag indicating if the transit gateway should be in appliance mode<br/>      enable_default_route_table_association = optional(bool, true)<br/>      # A flag indicating if the default route table should be associated with the network<br/>      enable_default_route_table_propagation = optional(bool, true)<br/>      # A flag indicating if the default route table should be propagated to the network<br/>      flow_logs = optional(object({<br/>        destination_type = optional(string, "none")<br/>        # The destination type of the flow logs<br/>        destination_arn = optional(string, null)<br/>        # The ARN of the destination of the flow logs<br/>        log_format = optional(string, "plain-text")<br/>        # The format of the flow logs<br/>        traffic_type = optional(string, "ALL")<br/>        # The type of traffic to capture<br/>        destination_options = optional(object({<br/>          file_format = optional(string, "plain-text")<br/>          # The format of the flow logs<br/>          hive_compatible_partitions = optional(bool, false)<br/>          # Whether to use hive compatible partitions<br/>          per_hour_partition = optional(bool, false)<br/>          # Whether to partition the flow logs per hour<br/>        }), null)<br/>        # The destination options of the flow logs<br/>      }), null)<br/>      ipam_pool_name = optional(string, null)<br/>      # The name of the IPAM pool to use for the network<br/>      nat_gateway_mode = optional(string, "none")<br/>      # The NAT gateway mode to use for the network, defaults to none<br/>      netmask = optional(number, null)<br/>      # The netmask of the VPC network if using IPAM<br/>      transit_gateway_routes = optional(map(string), null)<br/>    })<br/>  }))</pre> | `{}` | no |
 | <a name="input_notifications"></a> [notifications](#input\_notifications) | Configuration for the notifications to the owner of the account | <pre>object({<br/>    email = optional(object({<br/>      addresses = optional(list(string), [])<br/>      # A list of email addresses to send notifications to<br/>      }), {<br/>      addresses = []<br/>    })<br/><br/>    slack = optional(object({<br/>      # The slack webhook_arn to a secret in secrets manager containing the webhook_url<br/>      webhook_arn = optional(string, null)<br/>      # The slack webhook_url to send notifications to<br/>      webhook_url = optional(string, null)<br/>    }), null)<br/><br/>    teams = optional(object({<br/>      # The teams webhook_arn to a secret in secrets manager containing the webhook_url<br/>      webhook_arn = optional(string, null)<br/>      # The teams webhook_url to send notifications to<br/>      webhook_url = optional(string, null)<br/>    }), null)<br/><br/>    # The services to configure for notifications<br/>    services = optional(object({<br/>      # The security hub notifications to configure<br/>      securityhub = object({<br/>        # A flag indicating if security hub notifications should be enabled<br/>        enable = optional(bool, false)<br/>        # The sns topic name which is created per region in the account,<br/>        # this is used to receive notifications, and forward them on via email or other means.<br/>        eventbridge_rule_name = optional(string, "lza-securityhub-eventbridge")<br/>        # The severity of the security hub events to forward<br/>        severity = optional(list(string), ["CRITICAL"])<br/>      })<br/>      }), {<br/>      securityhub = {<br/>        enable                = false<br/>        eventbridge_rule_name = "lza-securityhub-eventbridge"<br/>        severity              = ["CRITICAL"]<br/>      }<br/>    })<br/>  })</pre> | <pre>{<br/>  "email": {<br/>    "addresses": []<br/>  },<br/>  "slack": null,<br/>  "teams": null<br/>}</pre> | no |
 | <a name="input_rbac"></a> [rbac](#input\_rbac) | Provides the ability to associate one of more groups with a sso role in the account | <pre>map(object({<br/>    users = optional(list(string), [])<br/>    # A list of users to associate with the developer role<br/>    groups = optional(list(string), [])<br/>    # A list of groups to associate with the developer role<br/>  }))</pre> | `{}` | no |
+| <a name="input_resilience_hub"></a> [resilience\_hub](#input\_resilience\_hub) | Configuration for the resilience hub service | <pre>object({<br/>    # Enable the service within the account, creating the IAM Role<br/>    enable = optional(bool, false)<br/>    # A collection of policies to apply to the resilience hub <br/>    policies = optional(map(object({<br/>      # The name of the policy, else we use the map key<br/>      name = optional(string, null)<br/>      # The description of the policy <br/>      description = string<br/>      # The tier associated the policy (MissionCritical, Critical, Important, CoreServices, NonCritical, and NotApplicable)<br/>      tier = optional(string, "Important")<br/>      # The policy document to apply to the policy<br/>      policy = optional(object({<br/>        # Availability zone recovery point objectives<br/>        az = optional(object({<br/>          # The RPO or recommended recovery point objective<br/>          rpo = optional(string, "1h")<br/>          # The RTO or recommended recovery time<br/>          rto = optional(string, "1h")<br/>        }), {})<br/>        # The policy associated the hardware<br/>        hardware = optional(object({<br/>          # The RPO or recommended recovery point objective<br/>          rpo = optional(string, "1h")<br/>          # The RTO or recommended recovery time<br/>          rto = optional(string, "1h")<br/>        }), {})<br/>        # The policy associated the software recovery<br/>        software = optional(object({<br/>          # The RPO or recommended recovery point objective<br/>          rpo = optional(string, "1h")<br/>          # The RTO or recommended recovery time<br/>          rto = optional(string, "1h")<br/>        }), {})<br/>        # The policy associated the regional recovery<br/>        region = optional(object({<br/>          # The RPO or recommended recovery point objective<br/>          rpo = optional(string, "1 hour")<br/>          # The RTO or recommended recovery time<br/>          rto = optional(string, "1 hour")<br/>        }), {})<br/>      }), {})<br/>    })), {})<br/>  })</pre> | <pre>{<br/>  "enable": false<br/>}</pre> | no |
 | <a name="input_resource_groups"></a> [resource\_groups](#input\_resource\_groups) | Configuration for the resource groups service | <pre>map(object({<br/>    # The name of the resource group<br/>    description = string<br/>    # The type of the of group configuration<br/>    type = optional(string, "TAG_FILTERS_1_0")<br/>    # An optional configuration for the resource group<br/>    configuration = optional(object({<br/>      # The type of the of group configuration<br/>      type = string<br/>      # The parameters of the group configuration<br/>      parameters = optional(list(object({<br/>        # The name of the parameter<br/>        name = string<br/>        # The list of values for the parameter<br/>        values = list(string)<br/>      })), [])<br/>    }), null)<br/>    # The resource query to configure the resource group<br/>    query = optional(object({<br/>      # A collection of resource types to scope the resource query<br/>      resource_type_filters = optional(list(string), ["AWS::AllSupported"])<br/>      # A collection of tag filters to scope the resource query<br/>      tag_filters = optional(map(list(string)), {})<br/>    }), null)<br/>    # The resource query in json format https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/resourcegroups_group<br/>    resource_query = optional(string, null)<br/>  }))</pre> | `{}` | no |
 | <a name="input_s3_block_public_access"></a> [s3\_block\_public\_access](#input\_s3\_block\_public\_access) | A collection of S3 public block access settings to apply to the account | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if S3 block public access should be enabled<br/>    enable_block_public_policy = optional(bool, true)<br/>    # A flag indicating if S3 block public policy should be enabled<br/>    enable_block_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 block public ACLs should be enabled<br/>    enable_ignore_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 ignore public ACLs should be enabled<br/>    enable_restrict_public_buckets = optional(bool, true)<br/>    # A flag indicating if S3 restrict public buckets should be enabled<br/>  })</pre> | <pre>{<br/>  "enable": false,<br/>  "enable_block_public_acls": true,<br/>  "enable_block_public_policy": true,<br/>  "enable_ignore_public_acls": true,<br/>  "enable_restrict_public_buckets": true<br/>}</pre> | no |
 | <a name="input_service_control_policies"></a> [service\_control\_policies](#input\_service\_control\_policies) | Provides the ability to associate one of more service control policies with an account | <pre>map(object({<br/>    name = string<br/>    # The policy name to associate with the account<br/>    policy = string<br/>    # The policy document to associate with the account<br/>  }))</pre> | `{}` | no |

@@ -175,6 +175,7 @@ module "security_auditor_iam_role" {
 
   description = "Used by the security team to audit the accounts"
   name        = var.include_iam_roles.security_auditor.name
+  tags        = local.tags
 
   policies = {
     "SecurityAudit" = "arn:aws:iam::aws:policy/SecurityAudit"

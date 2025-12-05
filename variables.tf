@@ -9,6 +9,56 @@ variable "home_region" {
   }
 }
 
+variable "resilience_hub" {
+  description = "Configuration for the resilience hub service"
+  type = object({
+    # Enable the service within the account, creating the IAM Role
+    enable = optional(bool, false)
+    # A collection of policies to apply to the resilience hub 
+    policies = optional(map(object({
+      # The name of the policy, else we use the map key
+      name = optional(string, null)
+      # The description of the policy 
+      description = string
+      # The tier associated the policy (MissionCritical, Critical, Important, CoreServices, NonCritical, and NotApplicable)
+      tier = optional(string, "Important")
+      # The policy document to apply to the policy
+      policy = optional(object({
+        # Availability zone recovery point objectives
+        az = optional(object({
+          # The RPO or recommended recovery point objective
+          rpo = optional(string, "1h")
+          # The RTO or recommended recovery time
+          rto = optional(string, "1h")
+        }), {})
+        # The policy associated the hardware
+        hardware = optional(object({
+          # The RPO or recommended recovery point objective
+          rpo = optional(string, "1h")
+          # The RTO or recommended recovery time
+          rto = optional(string, "1h")
+        }), {})
+        # The policy associated the software recovery
+        software = optional(object({
+          # The RPO or recommended recovery point objective
+          rpo = optional(string, "1h")
+          # The RTO or recommended recovery time
+          rto = optional(string, "1h")
+        }), {})
+        # The policy associated the regional recovery
+        region = optional(object({
+          # The RPO or recommended recovery point objective
+          rpo = optional(string, "1 hour")
+          # The RTO or recommended recovery time
+          rto = optional(string, "1 hour")
+        }), {})
+      }), {})
+    })), {})
+  })
+  default = {
+    enable = false
+  }
+}
 variable "resource_groups" {
   description = "Configuration for the resource groups service"
   type = map(object({

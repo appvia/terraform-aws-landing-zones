@@ -40,3 +40,9 @@ mock_data "aws_partition" {
     partition = "aws"
   }
 }
+
+mock_data "aws_iam_policy_document" {
+  defaults = {
+    json = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"resiliencehub.amazonaws.com\"},\"Action\":[\"sts:AssumeRole\",\"sts:TagSession\"]}]}"
+  }
+}
