@@ -398,6 +398,133 @@ When Resilience Hub is enabled, an IAM role is automatically created in the home
 
 **Note**: Resilience Hub requires the IAM role to be created in the home region. Ensure that `home_region` is properly configured when enabling this feature.
 
+### AWS Service Quotas
+
+AWS Service Quotas allows you to view and manage your service quotas (also known as limits) for AWS services. You can request quota increases and configure default quotas for your account. This module enables you to manage service quotas as infrastructure-as-code.
+
+#### Basic Service Quota Configuration
+
+You can configure service quotas using the `var.service_quotas` variable. Each quota requires a service code, quota code, and desired value:
+
+```hcl
+module "account" {
+  service_quotas = [
+    {
+      service_code = "ec2"
+      quota_code   = "L-1216C47A"  # Running On-Demand All G and VT instances
+      value        = 100
+    },
+    {
+      service_code = "s3"
+      quota_code   = "L-89B4F0A3"  # Number of buckets
+      value        = 1000
+    }
+  ]
+}
+```
+
+#### Finding Service and Quota Codes
+
+To find the service codes and quota codes for AWS services, you can use the AWS CLI:
+
+```bash
+# List all available services
+aws service-quotas list-services
+
+# List quotas for a specific service
+aws service-quotas list-service-quotas --service-code ec2
+
+# Get details for a specific quota
+aws service-quotas get-service-quota --service-code ec2 --quota-code L-1216C47A
+```
+
+Alternatively, you can find quota codes in the AWS Service Quotas console or in the AWS documentation.
+
+#### Common Service Quota Examples
+
+Here are some common service quotas you might want to configure:
+
+```hcl
+module "account" {
+  service_quotas = [
+    # EC2 Instance Limits
+    {
+      service_code = "ec2"
+      quota_code   = "L-1216C47A"  # Running On-Demand All G and VT instances
+      value        = 100
+    },
+    {
+      service_code = "ec2"
+      quota_code   = "L-0263D0A3"  # Running On-Demand F instances
+      value        = 50
+    },
+    {
+      service_code = "ec2"
+      quota_code   = "L-34B43A08"  # Running On-Demand Standard (A, C, D, H, I, M, R, T, Z) instances
+      value        = 200
+    },
+    # S3 Limits
+    {
+      service_code = "s3"
+      quota_code   = "L-89B4F0A3"  # Number of buckets
+      value        = 1000
+    },
+    # RDS Limits
+    {
+      service_code = "rds"
+      quota_code   = "L-29A0A3C3"  # DB instances
+      value        = 200
+    },
+    {
+      service_code = "rds"
+      quota_code   = "L-7B6409FD"  # DB clusters
+      value        = 50
+    },
+    # VPC Limits
+    {
+      service_code = "vpc"
+      quota_code   = "L-F678F1CE"  # VPCs per Region
+      value        = 50
+    },
+    {
+      service_code = "vpc"
+      quota_code   = "L-A4707A72"  # Internet gateways per Region
+      value        = 50
+    },
+    # Lambda Limits
+    {
+      service_code = "lambda"
+      quota_code   = "L-B99A9384"  # Concurrent executions
+      value        = 1000
+    }
+  ]
+}
+```
+
+#### Service Quota Configuration Options
+
+Each service quota configuration requires:
+
+- **service_code**: (Required) The service code for the AWS service (e.g., `"ec2"`, `"s3"`, `"rds"`, `"vpc"`, `"lambda"`)
+- **quota_code**: (Required) The quota code for the specific quota (e.g., `"L-1216C47A"`). Quota codes start with `L-` followed by alphanumeric characters
+- **value**: (Required) The desired quota value (number). This must be greater than or equal to the current quota value
+
+#### Important Notes
+
+- **Quota Increase Requests**: When you set a quota value higher than the current default, AWS will automatically create a quota increase request. These requests typically require approval and may take time to process.
+- **Regional Quotas**: Some quotas are regional, while others are account-wide. The module will apply quotas in the region where the provider is configured.
+- **Quota Decreases**: You cannot decrease a quota below its current value. If you need to decrease a quota, you must do so manually through the AWS Console or CLI.
+- **Provider Configuration**: Service quotas are created using the `aws.tenant` provider, which should be configured for the appropriate region.
+
+#### Use Cases
+
+- **Resource Planning**: Set quotas proactively to prevent unexpected resource limits
+- **Cost Control**: Limit resource creation to control costs
+- **Compliance**: Enforce organizational limits on resource usage
+- **Multi-Account Management**: Standardize quota limits across multiple accounts
+
+**Note**: Service quota increase requests may require approval from AWS Support, especially for significant increases. Monitor quota requests in the AWS Service Quotas console.
+
 ### EBS Encryption
 
 The EBS encryption can be configured to encrypt all EBS volumes within the account. The feature ensures all volumes are automatically encrypted.
@@ -1280,6 +1407,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_resource_groups"></a> [resource\_groups](#input\_resource\_groups) | Configuration for the resource groups service | <pre>map(object({<br/>    # The name of the resource group<br/>    description = string<br/>    # The type of the of group configuration<br/>    type = optional(string, "TAG_FILTERS_1_0")<br/>    # An optional configuration for the resource group<br/>    configuration = optional(object({<br/>      # The type of the of group configuration<br/>      type = string<br/>      # The parameters of the group configuration<br/>      parameters = optional(list(object({<br/>        # The name of the parameter<br/>        name = string<br/>        # The list of values for the parameter<br/>        values = list(string)<br/>      })), [])<br/>    }), null)<br/>    # The resource query to configure the resource group<br/>    query = optional(object({<br/>      # A collection of resource types to scope the resource query<br/>      resource_type_filters = optional(list(string), ["AWS::AllSupported"])<br/>      # A collection of tag filters to scope the resource query<br/>      tag_filters = optional(map(list(string)), {})<br/>    }), null)<br/>    # The resource query in json format https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/resourcegroups_group<br/>    resource_query = optional(string, null)<br/>  }))</pre> | `{}` | no |
 | <a name="input_s3_block_public_access"></a> [s3\_block\_public\_access](#input\_s3\_block\_public\_access) | A collection of S3 public block access settings to apply to the account | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if S3 block public access should be enabled<br/>    enable_block_public_policy = optional(bool, true)<br/>    # A flag indicating if S3 block public policy should be enabled<br/>    enable_block_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 block public ACLs should be enabled<br/>    enable_ignore_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 ignore public ACLs should be enabled<br/>    enable_restrict_public_buckets = optional(bool, true)<br/>    # A flag indicating if S3 restrict public buckets should be enabled<br/>  })</pre> | <pre>{<br/>  "enable": false,<br/>  "enable_block_public_acls": true,<br/>  "enable_block_public_policy": true,<br/>  "enable_ignore_public_acls": true,<br/>  "enable_restrict_public_buckets": true<br/>}</pre> | no |
 | <a name="input_service_control_policies"></a> [service\_control\_policies](#input\_service\_control\_policies) | Provides the ability to associate one of more service control policies with an account | <pre>map(object({<br/>    name = string<br/>    # The policy name to associate with the account<br/>    policy = string<br/>    # The policy document to associate with the account<br/>  }))</pre> | `{}` | no |
+| <a name="input_service_quotas"></a> [service\_quotas](#input\_service\_quotas) | Configuration for the service quotas service | <pre>list(object({<br/>    # The service code of the service quota<br/>    service_code = string<br/>    # The quota code of the service quota<br/>    quota_code = string<br/>    # The value of the service quota<br/>    value = number<br/>  }))</pre> | `[]` | no |
 | <a name="input_ssm"></a> [ssm](#input\_ssm) | Configuration for the SSM service | <pre>object({<br/>    # A flag indicating if SSM public sharing should be blocked<br/>    enable_block_public_sharing = optional(bool, true)<br/>  })</pre> | `{}` | no |
 
 ## Outputs

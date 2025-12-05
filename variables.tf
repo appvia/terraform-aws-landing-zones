@@ -9,6 +9,19 @@ variable "home_region" {
   }
 }
 
+variable "service_quotas" {
+  description = "Configuration for the service quotas service"
+  type = list(object({
+    # The service code of the service quota
+    service_code = string
+    # The quota code of the service quota
+    quota_code = string
+    # The value of the service quota
+    value = number
+  }))
+  default = []
+}
+
 variable "resilience_hub" {
   description = "Configuration for the resilience hub service"
   type = object({
