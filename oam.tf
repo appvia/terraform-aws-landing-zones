@@ -20,7 +20,7 @@ resource "aws_oam_sink" "observability_sink" {
   count = local.enable_observability_sink ? 1 : 0
 
   name = "observability-sink"
-  tags = local.tags
+  tags = merge(local.tags, { "Name" = "observability-sink" })
 
   provider = aws.tenant
 }

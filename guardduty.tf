@@ -54,7 +54,7 @@ resource "aws_guardduty_filter" "filters" {
   detector_id = data.aws_guardduty_detector.guardduty[0].id
   name        = each.key
   rank        = each.value.rank
-  tags        = local.tags
+  tags        = merge(local.tags, { "Name" = each.key })
 
   finding_criteria {
     dynamic "criterion" {

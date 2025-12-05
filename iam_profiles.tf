@@ -26,7 +26,7 @@ resource "aws_iam_role" "instance_profiles" {
 
   name = each.value.name
   path = each.value.path
-  tags = local.tags
+  tags = merge(local.tags, { "Name" = each.value.name })
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

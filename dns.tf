@@ -22,7 +22,7 @@ resource "aws_route53_zone" "zones" {
   name          = each.key
   comment       = try(each.value.comment, "Managed by zone created by terraform")
   force_destroy = true
-  tags          = local.tags
+  tags          = merge(local.tags, { "Name" = each.key })
 
   dynamic "vpc" {
     for_each = try(each.value.private, false) ? [each.value.network] : []

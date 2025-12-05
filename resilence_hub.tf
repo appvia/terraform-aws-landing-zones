@@ -14,7 +14,7 @@ module "resilience_hub_iam_role" {
 
   name        = "lza-resilience-hub-role"
   description = "Used by the AWS Resilience Hub to assess applications against policy"
-  tags        = local.tags
+  tags        = merge(local.tags, { "Name" = "lza-resilience-hub-role" })
 
   trust_policy_permissions = {
     "resiliencehub" : {
@@ -49,7 +49,7 @@ resource "aws_resiliencehub_resiliency_policy" "policies" {
   name        = each.value.name != null ? each.value.name : each.key
   description = each.value.description
   tier        = each.value.tier
-  tags        = local.tags
+  tags        = merge(local.tags, { "Name" = each.value.name != null ? each.value.name : each.key })
 
   policy {
     region {

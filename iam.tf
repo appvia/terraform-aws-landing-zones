@@ -51,7 +51,7 @@ module "iam_users" {
   path                 = each.value.path
   permissions_boundary = each.value.permissions_boundary_name != null ? format("arn:aws:iam::%s:policy/%s", local.account_id, each.value.permissions_boundary_name) : ""
   policies             = { for policy in try(each.value.permission_arns, []) : policy => policy }
-  tags                 = local.tags
+  tags                 = merge(local.tags, { "Name" = each.value.name })
 
   providers = {
     aws = aws.tenant
@@ -68,7 +68,7 @@ module "iam_groups" {
   enable_self_management_permissions = true
   name                               = each.value.name
   path                               = each.value.path
-  tags                               = local.tags
+  tags                               = merge(local.tags, { "Name" = each.value.name })
   users                              = each.value.users
   users_account_id                   = local.account_id
 
@@ -115,7 +115,7 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   count = var.iam_access_analyzer.enable ? 1 : 0
 
   analyzer_name = var.iam_access_analyzer.analyzer_name
-  tags          = local.tags
+  tags          = merge(local.tags, { "Name" = var.iam_access_analyzer.analyzer_name })
   type          = var.iam_access_analyzer.analyzer_type
 
   provider = aws.tenant
@@ -133,7 +133,7 @@ module "iam_roles" {
   path                           = each.value.path
   permissions_boundary           = each.value.permission_boundary_arn
   source_inline_policy_documents = each.value.policies
-  tags                           = local.tags
+  tags                           = merge(local.tags, { "Name" = each.value.name })
   use_name_prefix                = each.value.name_prefix != null ? true : false
 
   policies = merge(
@@ -175,7 +175,7 @@ module "security_auditor_iam_role" {
 
   description = "Used by the security team to audit the accounts"
   name        = var.include_iam_roles.security_auditor.name
-  tags        = local.tags
+  tags        = merge(local.tags, { "Name" = var.include_iam_roles.security_auditor.name })
 
   policies = {
     "SecurityAudit" = "arn:aws:iam::aws:policy/SecurityAudit"

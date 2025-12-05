@@ -30,7 +30,7 @@ resource "aws_config_config_rule" "default" {
 
   name                        = coalesce(each.value.name, each.key)
   description                 = each.value.description
-  tags                        = local.tags
+  tags                        = merge(local.tags, { "Name" = coalesce(each.value.name, each.key) })
   maximum_execution_frequency = try(each.value.max_execution_frequency, null)
   input_parameters            = length(each.value.inputs) > 0 ? jsonencode(each.value.inputs) : null
 
