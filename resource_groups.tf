@@ -8,8 +8,7 @@ resource "aws_resourcegroups_group" "resource_groups" {
 
   name        = each.key
   description = each.value.description
-  tags        = local.tags
-
+  tags        = merge(local.tags, { "Name" = each.key })
   dynamic "resource_query" {
     for_each = each.value.resource_query != null ? [1] : []
 

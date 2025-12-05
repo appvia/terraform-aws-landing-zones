@@ -96,7 +96,7 @@ module "ebs_kms" {
   key_users               = [local.account_root_arn]
   multi_region            = false
   source_policy_documents = [data.aws_iam_policy_document.ebs_encryption_key.json]
-  tags                    = local.tags
+  tags                    = merge(local.tags, { "Name" = var.ebs_encryption.key_alias })
 
   providers = {
     aws = aws.tenant

@@ -10,7 +10,7 @@ resource "aws_cloudwatch_event_rule" "securityhub_findings" {
 
   name        = format("%s-%s", var.notifications.services.securityhub.eventbridge_rule_name, local.region)
   description = "Capture Security Hub findings of a specific severities and publish to the SNS topic"
-  tags        = local.tags
+  tags        = merge(local.tags, { "Name" = format("%s-%s", var.notifications.services.securityhub.eventbridge_rule_name, local.region) })
 
   event_pattern = jsonencode({
     detail = {
