@@ -4,6 +4,10 @@ locals {
   transit_gateway_associations = {
     for k, v in var.networks : k => v.transit_gateway.gateway_route_table_id if v.vpc.enable_transit_gateway && v.transit_gateway.gateway_id != null && v.transit_gateway.gateway_route_table_id != null
   }
+  # The default routes to be used for transit gateways if none are specified
+  transit_gateway_routes_default = {
+    "private" = "10.0.0.0/8"
+  }
 }
 
 ## Provision the networks within the account
@@ -28,7 +32,7 @@ module "networks" {
   subnets                                = { for k, v in each.value.subnets : k => v if !contains(["public", "private"], k) }
   tags                                   = merge(local.tags, each.value.tags)
   transit_gateway_id                     = try(each.value.transit_gateway.gateway_id, null)
-  transit_gateway_routes                 = try(each.value.transit_gateway.gateway_routes, null) != null ? each.value.transit_gateway.gateway_routes : {}
+  transit_gateway_routes                 = try(each.value.transit_gateway.gateway_routes, null) != null ? each.value.transit_gateway.gateway_routes : local.transit_gateway_routes_default
   vpc_cidr                               = each.value.vpc.cidr
   vpc_netmask                            = each.value.vpc.netmask
 
