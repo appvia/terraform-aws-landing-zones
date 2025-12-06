@@ -18,7 +18,7 @@ module "networks" {
   enable_private_endpoints               = each.value.vpc.enable_private_endpoints
   enable_route53_resolver_rules          = each.value.vpc.enable_shared_endpoints
   enable_transit_gateway_appliance_mode  = each.value.vpc.enable_transit_gateway_appliance_mode
-  ipam_pool_id                           = each.value.vpc.ipam_pool_name != null ? local.ipam_pools_by_name[each.value.vpc.ipam_pool_name] : null
+  ipam_pool_id                           = try(each.value.vpc.ipam_pool_name, null) != null ? local.ipam_pools_by_name[each.value.vpc.ipam_pool_name] : null
   name                                   = each.key
   nat_gateway_mode                       = each.value.vpc.nat_gateway_mode
   private_subnet_netmask                 = coalesce(try(each.value.subnets["private"].netmask, null), 0)
@@ -27,8 +27,8 @@ module "networks" {
   public_subnet_tags                     = each.value.public_subnet_tags
   subnets                                = { for k, v in each.value.subnets : k => v if !contains(["public", "private"], k) }
   tags                                   = merge(local.tags, each.value.tags)
-  transit_gateway_id                     = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway.gateway_id : null
-  transit_gateway_routes                 = each.value.vpc.enable_transit_gateway ? try(each.value.transit_gateway.gateway_routes, {}) : {}
+  transit_gateway_id                     = try(each.value.transit_gateway.gateway_id, null)
+  transit_gateway_routes                 = try(each.value.transit_gateway.gateway_routes, null) != null ? each.value.transit_gateway.gateway_routes : {}
   vpc_cidr                               = each.value.vpc.cidr
   vpc_netmask                            = each.value.vpc.netmask
 
