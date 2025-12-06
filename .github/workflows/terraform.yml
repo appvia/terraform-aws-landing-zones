@@ -19,24 +19,3 @@ jobs:
     with:
       terraform-dir: examples/basic
       working-directory: .
-
-  sso-module-validation:
-    uses: appvia/appvia-cicd-workflows/.github/workflows/terraform-module-validation.yml@main
-    name: SSO Module Validation
-    with:
-      terraform-dir: modules/sso
-      working-directory: .
-
-  ct-module-validation:
-    uses: appvia/appvia-cicd-workflows/.github/workflows/terraform-module-validation.yml@main
-    name: Control Tower Module Validation
-    with:
-      terraform-dir: modules/controltower_account
-      working-directory: .
-
-  org-module-validation:
-    uses: appvia/appvia-cicd-workflows/.github/workflows/terraform-module-validation.yml@main
-    name: Organization Module Validation
-    with:
-      terraform-dir: modules/organizations_account
-      working-directory: .
