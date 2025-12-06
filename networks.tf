@@ -28,7 +28,7 @@ module "networks" {
   subnets                                = { for k, v in each.value.subnets : k => v if !contains(["public", "private"], k) }
   tags                                   = merge(local.tags, each.value.tags)
   transit_gateway_id                     = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway.gateway_id : null
-  transit_gateway_routes                 = each.value.vpc.enable_transit_gateway ? each.value.transit_gateway.gateway_routes : {}
+  transit_gateway_routes                 = each.value.vpc.enable_transit_gateway ? try(each.value.transit_gateway.gateway_routes, {}) : {}
   vpc_cidr                               = each.value.vpc.cidr
   vpc_netmask                            = each.value.vpc.netmask
 

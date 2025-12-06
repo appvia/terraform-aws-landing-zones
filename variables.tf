@@ -27,11 +27,11 @@ variable "resilience_hub" {
   type = object({
     # Enable the service within the account, creating the IAM Role
     enable = optional(bool, false)
-    # A collection of policies to apply to the resilience hub 
+    # A collection of policies to apply to the resilience hub
     policies = optional(map(object({
       # The name of the policy, else we use the map key
       name = optional(string, null)
-      # The description of the policy 
+      # The description of the policy
       description = string
       # The tier associated the policy (MissionCritical, Critical, Important, CoreServices, NonCritical, and NotApplicable)
       tier = optional(string, "Important")
