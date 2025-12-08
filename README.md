@@ -282,6 +282,235 @@ module "account" {
 }
 ```
 
+### AWS GuardDuty
+
+AWS GuardDuty is a threat detection service that continuously monitors for malicious activity and unauthorized behavior to protect your AWS accounts, workloads, and data. This module provides the ability to configure GuardDuty detectors, features, and filters.
+
+#### GuardDuty with Existing Detector (Lookup Mode)
+
+By default, the module will look up an existing GuardDuty detector in the account. This is useful when GuardDuty has been enabled at the organization level:
+
+```hcl
+module "account" {
+  guardduty = {
+    create                       = false  # Default: look up existing detector
+    finding_publishing_frequency = "FIFTEEN_MINUTES"
+  }
+}
+```
+
+#### GuardDuty with New Detector Creation
+
+If you need to create a new GuardDuty detector in the account, set the `create` flag to `true`:
+
+```hcl
+module "account" {
+  guardduty = {
+    create                       = true
+    finding_publishing_frequency = "FIFTEEN_MINUTES"
+  }
+}
+```
+
+#### GuardDuty with Detector Features
+
+GuardDuty supports various protection features that can be enabled or disabled individually. Common features include:
+
+- **S3_DATA_EVENTS**: Monitors S3 data plane operations
+- **EKS_AUDIT_LOGS**: Monitors EKS audit logs for suspicious activity
+- **RDS_LOGIN_EVENTS**: Monitors RDS login attempts
+- **EBS_MALWARE_PROTECTION**: Scans EBS volumes for malware
+- **LAMBDA_NETWORK_LOGS**: Monitors Lambda function network activity
+
+```hcl
+module "account" {
+  guardduty = {
+    create                       = true
+    finding_publishing_frequency = "FIFTEEN_MINUTES"
+    detectors = [
+      {
+        name                     = "S3_DATA_EVENTS"
+        enable                   = true
+        additional_configuration = []
+      },
+      {
+        name   = "EKS_AUDIT_LOGS"
+        enable = true
+        additional_configuration = [
+          {
+            name   = "EKS_ADDON_MANAGEMENT"
+            enable = true
+          }
+        ]
+      },
+      {
+        name                     = "RDS_LOGIN_EVENTS"
+        enable                   = true
+        additional_configuration = []
+      }
+    ]
+  }
+}
+```
+
+#### GuardDuty with Filters
+
+GuardDuty filters allow you to automatically archive or suppress findings based on criteria such as severity, resource type, or other attributes:
+
+```hcl
+module "account" {
+  guardduty = {
+    create                       = true
+    finding_publishing_frequency = "FIFTEEN_MINUTES"
+    filters = {
+      "low-severity-archive" = {
+        action      = "ARCHIVE"
+        rank        = 1
+        description = "Automatically archive low severity findings"
+        criterion = [
+          {
+            field                 = "severity"
+            less_than             = "4"
+            equals                = null
+            not_equals            = null
+            greater_than          = null
+            greater_than_or_equal = null
+            less_than_or_equal    = null
+          }
+        ]
+      }
+      "production-critical" = {
+        action      = "NOOP"
+        rank        = 2
+        description = "Flag high severity findings in production"
+        criterion = [
+          {
+            field                 = "severity"
+            greater_than_or_equal = "7"
+            equals                = null
+            not_equals            = null
+            greater_than          = null
+            less_than             = null
+            less_than_or_equal    = null
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+#### GuardDuty Comprehensive Configuration
+
+Here's a complete example combining detector creation, features, and filters:
+
+```hcl
+module "account" {
+  guardduty = {
+    create                       = true
+    finding_publishing_frequency = "FIFTEEN_MINUTES"
+
+    detectors = [
+      {
+        name                     = "S3_DATA_EVENTS"
+        enable                   = true
+        additional_configuration = []
+      },
+      {
+        name   = "EKS_AUDIT_LOGS"
+        enable = true
+        additional_configuration = [
+          {
+            name   = "EKS_ADDON_MANAGEMENT"
+            enable = true
+          }
+        ]
+      },
+      {
+        name                     = "RDS_LOGIN_EVENTS"
+        enable                   = true
+        additional_configuration = []
+      },
+      {
+        name                     = "EBS_MALWARE_PROTECTION"
+        enable                   = true
+        additional_configuration = []
+      }
+    ]
+
+    filters = {
+      "archive-low-severity" = {
+        action      = "ARCHIVE"
+        rank        = 1
+        description = "Archive findings with severity less than 4"
+        criterion = [
+          {
+            field                 = "severity"
+            less_than             = "4"
+            equals                = null
+            not_equals            = null
+            greater_than          = null
+            greater_than_or_equal = null
+            less_than_or_equal    = null
+          }
+        ]
+      }
+      "exclude-instance-type" = {
+        action      = "ARCHIVE"
+        rank        = 2
+        description = "Exclude specific EC2 instance types from alerts"
+        criterion = [
+          {
+            field                 = "resource.instanceDetails.instanceType"
+            equals                = "t2.micro"
+            not_equals            = null
+            greater_than          = null
+            greater_than_or_equal = null
+            less_than             = null
+            less_than_or_equal    = null
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+#### GuardDuty Configuration Options
+
+- **create**: (Optional) Set to `true` to create a new GuardDuty detector, or `false` to look up an existing detector. Defaults to `false`.
+- **finding_publishing_frequency**: (Optional) The frequency of findings publishing. Valid values: `FIFTEEN_MINUTES`, `ONE_HOUR`, `SIX_HOURS`. Defaults to `FIFTEEN_MINUTES`.
+- **detectors**: (Optional) A list of GuardDuty detector features to enable or disable:
+  - **name**: The name of the detector feature (e.g., `S3_DATA_EVENTS`, `EKS_AUDIT_LOGS`)
+  - **enable**: Whether to enable the feature. Defaults to `true`.
+  - **additional_configuration**: Optional list of additional configurations for the feature
+- **filters**: (Optional) A map of filters to automatically process findings:
+  - **action**: The action to take on matching findings. Valid values: `ARCHIVE`, `NOOP`
+  - **rank**: The rank of the filter (lower numbers are processed first)
+  - **description**: A description of what the filter does
+  - **criterion**: A list of criteria to match findings against
+
+#### Filter Criterion Fields
+
+Common filter criterion fields include:
+
+- `severity`: Finding severity (0-9, where 7-9 is high, 4-6 is medium, 0-3 is low)
+- `type`: Finding type (e.g., `Recon:EC2/PortProbeUnprotectedPort`)
+- `resource.instanceDetails.instanceType`: EC2 instance type
+- `resource.s3BucketDetails.name`: S3 bucket name
+- `accountId`: AWS account ID
+- `region`: AWS region
+
+For each criterion, you can specify:
+- `equals`: Exact match (converted to list internally)
+- `not_equals`: Negative match (converted to list internally)
+- `greater_than`: Numeric greater than
+- `greater_than_or_equal`: Numeric greater than or equal
+- `less_than`: Numeric less than
+- `less_than_or_equal`: Numeric less than or equal
+
+**Note**: When GuardDuty is configured at the organization level, you typically want to use `create = false` (the default) to use the existing detector. Set `create = true` only when you need to create a standalone detector for the account.
+
 ### AWS Resilience Hub
 
 AWS Resilience Hub helps you define, validate, and track the resilience of your applications so you can avoid unnecessary downtime caused by software, infrastructure, or operational disruptions. You can enable Resilience Hub and configure resiliency policies that define recovery objectives for your applications.
