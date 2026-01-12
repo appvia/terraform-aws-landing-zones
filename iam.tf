@@ -42,7 +42,7 @@ resource "aws_iam_policy" "iam_policies" {
 module "iam_users" {
   for_each = local.iam_users
   source   = "terraform-aws-modules/iam/aws//modules/iam-user"
-  version  = "6.2.3"
+  version  = "6.3.0"
 
   create_access_key    = false
   create_login_profile = false
@@ -62,7 +62,7 @@ module "iam_users" {
 module "iam_groups" {
   for_each = local.iam_groups
   source   = "terraform-aws-modules/iam/aws//modules/iam-group"
-  version  = "6.2.3"
+  version  = "6.3.0"
 
   enable_mfa_enforcement             = each.value.enforce_mfa
   enable_self_management_permissions = true
@@ -125,7 +125,7 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
 module "iam_roles" {
   for_each = local.home_region ? var.iam_roles : {}
   source   = "terraform-aws-modules/iam/aws//modules/iam-role"
-  version  = "6.2.3"
+  version  = "6.3.0"
 
   create_inline_policy           = length(each.value.policies) > 0 ? true : false
   description                    = each.value.description
@@ -171,7 +171,7 @@ module "iam_roles" {
 module "security_auditor_iam_role" {
   count   = local.home_region && try(var.include_iam_roles.security_auditor.enable, false) ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role"
-  version = "6.2.3"
+  version = "6.3.0"
 
   description = "Used by the security team to audit the accounts"
   name        = var.include_iam_roles.security_auditor.name
@@ -194,7 +194,7 @@ module "security_auditor_iam_role" {
 module "ssm_automation_iam_role" {
   count   = local.home_region && try(var.include_iam_roles.ssm_instance.enable, false) ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role"
-  version = "6.2.3"
+  version = "6.3.0"
 
   description = "Used by instances to access the ssm service"
   name        = var.include_iam_roles.ssm_instance.name

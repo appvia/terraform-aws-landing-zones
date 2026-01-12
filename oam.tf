@@ -58,7 +58,7 @@ resource "aws_oam_sink_policy" "observability_sink" {
 module "observability_source" {
   count   = local.enable_observability_source ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role"
-  version = "6.2.3"
+  version = "6.3.0"
 
   name            = "cloudwatch-cao-"
   description     = "IAM role used for cross account observability of the cloudwatch service"
