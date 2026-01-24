@@ -45,7 +45,7 @@ locals {
 module "kms_key_administrator" {
   count   = local.enable_kms_key_administrator && local.home_region ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role"
-  version = "6.3.0"
+  version = "6.4.0"
 
   description          = var.kms_administrator.description
   create_inline_policy = true
