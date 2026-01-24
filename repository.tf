@@ -25,7 +25,7 @@ resource "aws_iam_policy" "permissions_boundary" {
 module "repository_permissions" {
   count   = local.enable_infrastructure_repository ? 1 : 0
   source  = "appvia/oidc/aws//modules/role"
-  version = "3.0.1"
+  version = "3.0.2"
 
   name                    = local.repository.name
   account_id              = local.account_id
