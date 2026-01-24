@@ -10,7 +10,7 @@ module "resilience_hub_iam_role" {
   count = local.enable_resilience_hub_iam_role ? 1 : 0
 
   source  = "terraform-aws-modules/iam/aws//modules/iam-role"
-  version = "6.3.0"
+  version = "6.4.0"
 
   name        = "lza-resilience-hub-role"
   description = "Used by the AWS Resilience Hub to assess applications against policy"
