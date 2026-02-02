@@ -48,7 +48,7 @@ module "repository_permissions" {
 module "github_repository" {
   count   = local.enable_infrastructure_repository && try(local.repository.create, false) ? 1 : 0
   source  = "appvia/repository/github"
-  version = "1.1.3"
+  version = "1.2.3"
 
   repository                  = local.repository.name
   description                 = try(local.repository.description, format("Infrastructure repository for the %s landing zone.", local.repository.name))
