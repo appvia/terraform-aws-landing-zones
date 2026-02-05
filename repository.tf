@@ -60,7 +60,6 @@ module "github_repository" {
   default_branch              = try(local.repository.default_branch, "main")
   enable_archived             = try(local.repository.enable_archived, false)
   enable_discussions          = try(local.repository.enable_discussions, false)
-  enable_downloads            = try(local.repository.enable_downloads, false)
   enable_issues               = try(local.repository.enable_issues, true)
   enable_projects             = try(local.repository.enable_projects, false)
   enable_vulnerability_alerts = try(local.repository.enable_vulnerability_alerts, null)

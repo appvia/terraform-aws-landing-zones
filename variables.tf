@@ -747,8 +747,6 @@ variable "infrastructure_repository" {
     enable_archived = optional(bool, false)
     # A flag indicating if the repository should be archived
     enable_discussions = optional(bool, false)
-    # A flag indicating if the repository should enable discussions
-    enable_downloads = optional(bool, false)
     # A flag indicating if the repository should enable downloads
     enable_issues = optional(bool, true)
     # A flag indicating if the repository should enable issues
