@@ -3,7 +3,7 @@ locals {
   enable_infrastructure_repository = var.infrastructure_repository != null ? true : false
   ## Indicates we should create a permissions boundary for the repository
   enable_permissions_boundary = local.enable_infrastructure_repository ? (var.infrastructure_repository.permissions_boundary != null ? true : false) : false
-  ## Indictaes we should create a policy from the permissions boundary
+  ## Indicates we should create a policy from the permissions boundary
   enable_permissions_boundary_policy = local.enable_permissions_boundary ? var.infrastructure_repository.permissions_boundary.policy != null ? true : false : false
   ## The infrastructure repository configuration
   repository = var.infrastructure_repository
@@ -57,7 +57,6 @@ module "github_repository" {
   allow_rebase_merge          = try(local.repository.allow_rebase_merge, true)
   allow_squash_merge          = try(local.repository.allow_squash_merge, true)
   branch_protection           = try(local.repository.branch_protection, null)
-  default_branch              = try(local.repository.default_branch, "main")
   enable_archived             = try(local.repository.enable_archived, false)
   enable_discussions          = try(local.repository.enable_discussions, false)
   enable_issues               = try(local.repository.enable_issues, true)
