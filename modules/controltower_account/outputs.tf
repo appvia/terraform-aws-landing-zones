@@ -24,6 +24,11 @@ output "name" {
   value       = aws_servicecatalog_provisioned_product.control_tower_account.name
 }
 
+output "organizational_unit_id" {
+  description = "The organizational unit ID associated to the provisioned account"
+  value       = var.organizational_unit_id
+}
+
 output "product_id" {
   description = "The ID of the product used to provision the service catalog product"
   value       = aws_servicecatalog_provisioned_product.control_tower_account.product_id
