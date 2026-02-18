@@ -368,8 +368,8 @@ run "guardduty_comprehensive_create" {
       finding_publishing_frequency = "FIFTEEN_MINUTES"
       detectors = [
         {
-          name   = "S3_DATA_EVENTS"
-          enable = true
+          name                     = "S3_DATA_EVENTS"
+          enable                   = true
           additional_configuration = []
         },
         {
@@ -452,8 +452,8 @@ run "guardduty_comprehensive_lookup" {
       finding_publishing_frequency = "FIFTEEN_MINUTES"
       detectors = [
         {
-          name   = "S3_DATA_EVENTS"
-          enable = true
+          name                     = "S3_DATA_EVENTS"
+          enable                   = true
           additional_configuration = []
         }
       ]

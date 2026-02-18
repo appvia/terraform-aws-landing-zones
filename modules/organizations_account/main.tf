@@ -7,4 +7,10 @@ resource "aws_organizations_account" "account" {
   name                       = var.account_name
   parent_id                  = var.organizational_unit_id
   tags                       = var.tags
+
+  lifecycle {
+    ## Organizations does not allow rereading the role name, so we 
+    ## need to ignore changes to it
+    ignore_changes = [role_name]
+  }
 }

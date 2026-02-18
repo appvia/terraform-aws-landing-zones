@@ -243,6 +243,7 @@ If account provisioning takes longer than expected:
 | <a name="output_arn"></a> [arn](#output\_arn) | The ARN of the provisioned service catalog product |
 | <a name="output_id"></a> [id](#output\_id) | The ID of the provisioned service catalog product |
 | <a name="output_name"></a> [name](#output\_name) | The name of the provisioned service catalog product |
+| <a name="output_organizational_unit_id"></a> [organizational\_unit\_id](#output\_organizational\_unit\_id) | The organizational unit ID associated to the provisioned account |
 | <a name="output_product_id"></a> [product\_id](#output\_product\_id) | The ID of the product used to provision the service catalog product |
 | <a name="output_provisioning_artifact_id"></a> [provisioning\_artifact\_id](#output\_provisioning\_artifact\_id) | The ID of the provisioning artifact used to provision the service catalog product |
 | <a name="output_provisioning_artifact_name"></a> [provisioning\_artifact\_name](#output\_provisioning\_artifact\_name) | The name of the provisioning artifact used to provision the service catalog product |
