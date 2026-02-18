@@ -333,5 +333,5 @@ Solution:
 | <a name="output_account_email"></a> [account\_email](#output\_account\_email) | The email address of the account |
 | <a name="output_account_id"></a> [account\_id](#output\_account\_id) | The ID of the account |
 | <a name="output_account_name"></a> [account\_name](#output\_account\_name) | The name of the account |
-| <a name="output_account_status"></a> [account\_status](#output\_account\_status) | The status of the account |
+| <a name="output_account_state"></a> [account\_state](#output\_account\_state) | The state of the account |
 <!-- END_TF_DOCS -->

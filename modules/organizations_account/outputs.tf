@@ -9,9 +9,9 @@ output "account_id" {
   value       = aws_organizations_account.account.id
 }
 
-output "account_status" {
-  description = "The status of the account"
-  value       = aws_organizations_account.account.status
+output "account_state" {
+  description = "The state of the account"
+  value       = aws_organizations_account.account.state
 }
 
 output "account_name" {

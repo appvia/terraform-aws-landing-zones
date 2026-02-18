@@ -82,7 +82,7 @@ variable "organizational_unit_id" {
 
   validation {
     condition     = can(regex("ou-[a-z0-9]{4,32}-[a-z0-9]{8,32}", var.organizational_unit_id))
-    error_message = "The organizational_unit_id must be in the format ou-<32 characters>-<32 characters>"
+    error_message = "The organizational_unit_id must be in the format ou-<4-32 characters>-<8-32 characters>"
   }
 }
 
