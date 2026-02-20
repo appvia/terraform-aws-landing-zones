@@ -14,6 +14,9 @@ locals {
 
   ## Indicates if EBS encryption is enabled
   enable_ebs_encryption = local.ebs_managed ? try(var.ebs_encryption.enable, null) : null
+
+  ## The state of the 
+  ebs_control_snapshot_block = try(var.ebs_snapshots_block.state, null)
 }
 
 ## Additional IAM policy document for EBS encryption kms key
@@ -79,7 +82,17 @@ data "aws_iam_policy_document" "ebs_encryption_key" {
   }
 }
 
-## Provision am EBS encrytions key
+## EBS Snapshot block configuration
+resource "aws_ebs_snapshot_block_public_access" "ebs_snapshot_block" {
+  count = local.ebs_control_snapshot_block != null ? 1 : 0
+
+  state = local.ebs_control_snapshot_block
+
+  provider = aws.tenant
+}
+
+
+## Provision am EBS encryption key
 module "ebs_kms" {
   count   = local.ebs_create_kms_key ? 1 : 0
   source  = "terraform-aws-modules/kms/aws"

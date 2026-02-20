@@ -48,6 +48,60 @@ run "basic" {
   }
 }
 
+run "ebs_snapshot_public_null" {
+  command = plan
+
+  variables {
+    environment    = "Production"
+    owner          = "Support"
+    product        = "LandingZone"
+    home_region    = "eu-west-2"
+    tags           = {}
+    git_repository = "test"
+
+    notifications = {
+      email = {
+        addresses = ["info@appvia.io"]
+      }
+    }
+
+    ebs_snapshots_block = null
+  }
+
+  assert {
+    condition     = length(aws_ebs_snapshot_block_public_access.ebs_snapshot_block) == 0
+    error_message = "The EBS snapshot block public access resource should not be created when ebs_snapshots is null"
+  }
+}
+
+run "ebs_snapshot_public_enabled" {
+  command = plan
+
+  variables {
+    environment    = "Production"
+    owner          = "Support"
+    product        = "LandingZone"
+    home_region    = "eu-west-2"
+    tags           = {}
+    git_repository = "test"
+
+    notifications = {
+      email = {
+        addresses = ["info@appvia.io"]
+      }
+    }
+
+    ebs_snapshots_block = {
+      state = "block-all-sharing"
+    }
+  }
+
+  assert {
+    condition     = aws_ebs_snapshot_block_public_access.ebs_snapshot_block[0].state == "block-all-sharing"
+    error_message = "The EBS snapshot block public access resource should be created with the correct state value"
+  }
+}
+
 mock_provider "aws" {}
 
 mock_provider "aws" {

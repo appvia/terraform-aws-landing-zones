@@ -282,6 +282,41 @@ module "account" {
 }
 ```
 
+### EBS Snapshot Public Access Block
+
+The EBS Snapshot Public Access Block feature allows you to prevent EBS snapshots from being shared publicly. This is a critical security control to ensure that snapshots containing sensitive data cannot be accidentally or maliciously exposed to the public.
+
+You can control public access to EBS snapshots using the `var.ebs_snapshots` variable. When configured, this feature will create an `aws_ebs_snapshot_block_public_access` resource that validates public sharing is properly restricted.
+
+#### EBS Snapshot Public Access Block Configuration
+
+```hcl
+module "account" {
+  ebs_snapshots = {
+    ebs_snapshot_block = {
+      state = "block-all-sharing"  # or "block-new-sharing"
+    }
+  }
+}
+```
+
+#### EBS Snapshot Public Access Block States
+
+The `state` parameter supports the following values:
+
+- **block-all-sharing**: Blocks all public sharing of snapshots, both existing and new
+- **block-new-sharing**: Only blocks newly created snapshots from being publicly shared, existing public shares are allowed
+
+#### Disabling EBS Snapshot Public Access Block
+
+To disable the EBS Snapshot Public Access Block feature, set `ebs_snapshots` to `null`:
+
+```hcl
+module "account" {
+  ebs_snapshots = null  # Feature is disabled
+}
+```
+
 ### AWS GuardDuty
 
 AWS GuardDuty is a threat detection service that continuously monitors for malicious activity and unauthorized behavior to protect your AWS accounts, workloads, and data. This module provides the ability to configure GuardDuty detectors, features, and filters.
@@ -1613,6 +1648,7 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_cost_center"></a> [cost\_center](#input\_cost\_center) | The cost center of the product, and injected into all resource tags | `string` | `null` | no |
 | <a name="input_dns"></a> [dns](#input\_dns) | A collection of DNS zones to provision and associate with networks | <pre>map(object({<br/>    comment = optional(string, "Managed by zone created by terraform")<br/>    # A comment associated with the DNS zone<br/>    network = string<br/>    # A list of network names to associate with the DNS zone<br/>    private = optional(bool, true)<br/>    # A flag indicating if the DNS zone is private or public<br/>  }))</pre> | `{}` | no |
 | <a name="input_ebs_encryption"></a> [ebs\_encryption](#input\_ebs\_encryption) | A collection of EBS encryption settings to apply to the account | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if EBS encryption should be enabled<br/>    create_kms_key = optional(bool, true)<br/>    # A flag indicating if an EBS encryption key should be created<br/>    key_deletion_window_in_days = optional(number, 10)<br/>    # The number of days to retain the key before deletion when the key is removed<br/>    key_alias = optional(string, "lza/ebs/default")<br/>    # The alias of the EBS encryption key when provisioning a new key<br/>    key_arn = optional(string, null)<br/>    # The ARN of an existing EBS encryption key to use for EBS encryption<br/>  })</pre> | `null` | no |
+| <a name="input_ebs_snapshots_block"></a> [ebs\_snapshots\_block](#input\_ebs\_snapshots\_block) | Configuration for blocking EBS snapshots in the account, either block for all volumes, only new volumes, or allow snapshots as normal | <pre>object({<br/>    ## The state of the ebs snapshot block, if enabled, all EBS volumes will have snapshot creation blocked (block-all-sharing, block-new-sharing or unblocked)<br/>    state = optional(string, "block-all-sharing")<br/>  })</pre> | `null` | no |
 | <a name="input_guardduty"></a> [guardduty](#input\_guardduty) | A collection of GuardDuty settings to apply to the account | <pre>object({<br/>    # A flag indicating if GuardDuty should be created<br/>    create = optional(bool, false)<br/>    # A flag indicating if GuardDuty should be created<br/>    finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")<br/>    # The frequency of finding publishing<br/>    detectors = optional(list(object({<br/>      name = string<br/>      # The name of the detector<br/>      enable = optional(bool, true)<br/>      # The frequency of finding publishing<br/>      additional_configuration = optional(list(object({<br/>        name = string<br/>        # The name of the additional configuration<br/>        enable = optional(bool, true)<br/>        # The status of the additional configuration<br/>      })), [])<br/>    })), [])<br/>    # Configuration for the detector<br/>    filters = optional(map(object({<br/>      # The name of the filter<br/>      action = string<br/>      # The action of the filter<br/>      rank = number<br/>      # The rank of the filter<br/>      description = string<br/>      # The description of the filter<br/>      criterion = list(object({<br/>        field = string<br/>        # The field of the criterion<br/>        equals = optional(string, null)<br/>        # The equals of the criterion<br/>        not_equals = optional(string, null)<br/>        # The not equals of the criterion<br/>        greater_than = optional(string, null)<br/>        # The greater than of the criterion<br/>        greater_than_or_equal = optional(string, null)<br/>        # The greater than or equal of the criterion<br/>        less_than = optional(string, null)<br/>        # The less than of the criterion<br/>        less_than_or_equal = optional(string, null)<br/>        # The less than or equal of the criterion<br/>      }))<br/>      # The criterion of the filter<br/>    })), {})<br/>  })</pre> | `null` | no |
 | <a name="input_iam_access_analyzer"></a> [iam\_access\_analyzer](#input\_iam\_access\_analyzer) | The IAM access analyzer configuration to apply to the account | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if IAM access analyzer should be enabled<br/>    analyzer_name = optional(string, "lza-iam-access-analyzer")<br/>    # The name of the IAM access analyzer<br/>    analyzer_type = optional(string, "ORGANIZATION")<br/>    # The type of the IAM access analyzer<br/>  })</pre> | <pre>{<br/>  "analyzer_name": "lza-iam-access-analyzer",<br/>  "analyzer_type": "ORGANIZATION",<br/>  "enable": true<br/>}</pre> | no |
 | <a name="input_iam_groups"></a> [iam\_groups](#input\_iam\_groups) | A collection of IAM groups to apply to the account | <pre>list(object({<br/>    enforce_mfa = optional(bool, true)<br/>    # A flag indicating if MFA should be enforced<br/>    name = optional(string, null)<br/>    # The name prefix of the IAM group<br/>    path = optional(string, "/")<br/>    # The path of the IAM group<br/>    policies = optional(list(string), [])<br/>    # A list of policies to apply to the IAM group<br/>    users = optional(list(string), [])<br/>    # A list of users to apply to the IAM group<br/>  }))</pre> | `[]` | no |

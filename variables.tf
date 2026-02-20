@@ -703,6 +703,15 @@ variable "ebs_encryption" {
   default = null
 }
 
+variable "ebs_snapshots_block" {
+  description = "Configuration for blocking EBS snapshots in the account, either block for all volumes, only new volumes, or allow snapshots as normal"
+  type = object({
+    ## The state of the ebs snapshot block, if enabled, all EBS volumes will have snapshot creation blocked (block-all-sharing, block-new-sharing or unblocked)
+    state = optional(string, "block-all-sharing")
+  }) 
+  default = null
+}
+
 variable "service_control_policies" {
   description = "Provides the ability to associate one of more service control policies with an account"
   type = map(object({
