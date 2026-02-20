@@ -286,16 +286,14 @@ module "account" {
 
 The EBS Snapshot Public Access Block feature allows you to prevent EBS snapshots from being shared publicly. This is a critical security control to ensure that snapshots containing sensitive data cannot be accidentally or maliciously exposed to the public.
 
-You can control public access to EBS snapshots using the `var.ebs_snapshots` variable. When configured, this feature will create an `aws_ebs_snapshot_block_public_access` resource that validates public sharing is properly restricted.
+You can control public access to EBS snapshots using the `var.ebs_snapshots_block` variable. When configured, this feature will create an `aws_ebs_snapshot_block_public_access` resource that validates public sharing is properly restricted.
 
 #### EBS Snapshot Public Access Block Configuration
 
 ```hcl
 module "account" {
-  ebs_snapshots = {
-    ebs_snapshot_block = {
-      state = "block-all-sharing"  # or "block-new-sharing"
-    }
+  ebs_snapshots_block = {
+    state = "block-all-sharing"  # or "block-new-sharing"
   }
 }
 ```
@@ -309,11 +307,11 @@ The `state` parameter supports the following values:
 
 #### Disabling EBS Snapshot Public Access Block
 
-To disable the EBS Snapshot Public Access Block feature, set `ebs_snapshots` to `null`:
+To disable the EBS Snapshot Public Access Block feature, set `ebs_snapshots_block` to `null`:
 
 ```hcl
 module "account" {
-  ebs_snapshots = null  # Feature is disabled
+  ebs_snapshots_block = null  # Feature is disabled
 }
 ```
 
