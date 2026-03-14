@@ -334,4 +334,5 @@ Solution:
 | <a name="output_account_id"></a> [account\_id](#output\_account\_id) | The ID of the account |
 | <a name="output_account_name"></a> [account\_name](#output\_account\_name) | The name of the account |
 | <a name="output_account_state"></a> [account\_state](#output\_account\_state) | The state of the account |
+| <a name="output_organizational_unit_id"></a> [organizational\_unit\_id](#output\_organizational\_unit\_id) | The organizational unit ID of the account |
 <!-- END_TF_DOCS -->
