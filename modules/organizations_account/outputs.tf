@@ -23,3 +23,8 @@ output "account_email" {
   description = "The email address of the account"
   value       = aws_organizations_account.account.email
 }
+
+output "organizational_unit_id" {
+  description = "The organizational unit ID of the account"
+  value       = var.organizational_unit_id
+}
