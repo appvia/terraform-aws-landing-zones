@@ -3,7 +3,7 @@
 module "budgets" {
   count   = length(var.budgets) > 0 ? 1 : 0
   source  = "appvia/budgets/aws//modules/budgets"
-  version = "3.0.3"
+  version = "4.0.0"
 
   budgets = var.budgets
   tags    = local.tags
