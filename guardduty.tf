@@ -28,8 +28,9 @@ data "aws_guardduty_detector" "guardduty" {
 resource "aws_guardduty_detector" "guardduty" {
   count = local.create_guardduty ? 1 : 0
 
-  enable = true
-  tags   = merge(local.tags, { "Name" = "guardduty-detector" })
+  enable                       = true
+  finding_publishing_frequency = try(var.guardduty.finding_publishing_frequency, "FIFTEEN_MINUTES")
+  tags                         = merge(local.tags, { "Name" = "guardduty-detector" })
 
   provider = aws.tenant
 }

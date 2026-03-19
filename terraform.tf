@@ -7,8 +7,6 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 6.0.0"
       configuration_aliases = [
-        aws.identity,
-        aws.management,
         aws.network,
         aws.tenant,
       ]

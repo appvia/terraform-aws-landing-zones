@@ -74,17 +74,6 @@ mock_provider "aws" {
   source = "./tests/providers/tenant"
 }
 
-
-mock_provider "aws" {
-  alias  = "management"
-  source = "./tests/providers/management"
-}
-
-mock_provider "aws" {
-  alias  = "identity"
-  source = "./tests/providers/identity"
-}
-
 mock_provider "aws" {
   alias  = "network"
   source = "./tests/providers/network"

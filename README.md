@@ -17,10 +17,16 @@ Tenants are able to provision notifications within the designated region. This f
 ```hcl
 notifications = {
   email = {
-    addresses = ["MY_EMAIL_ADDRESS"]
+    addresses = ["team@example.com"]
   }
   slack = {
-    webhook = "MY_SLACK_WEBHOOK"
+    webhook_url = "https://hooks.slack.com/services/XXX/YYY/ZZZ"
+  }
+  services = {
+    securityhub = {
+      enable   = true
+      severity = ["CRITICAL", "HIGH"]
+    }
   }
 }
 ```
@@ -28,31 +34,6 @@ notifications = {
 ## Security Features
 
 The notifications can used to send notifications to users via email or slack, for events related to costs, security and budgets.
-
-### Service Control Policies
-
-Additional service control policies can be applied to the account. This is useful for ensuring that the account is compliant with the organization's security policies, specific to the accounts requirements.
-
-You can configure additional service control policies using the `var.service_control_policies` variable, such as the below example
-
-```hcl
-data "aws_iam_policy_document" "deny_s3" {
-  statement {
-    effect    = "Deny"
-    actions = ["s3:*"]
-    resources = ["*"]
-  }
-}
-
-module "account" {
-  service_control_policies = {
-    "MY_POLICY_NAME" = {
-      name   = "deny-s3"
-      policy = data.aws_iam_policy_document.deny_s3.json
-    }
-  }
-}
-```
 
 ### AWS Config Compliance Packs
 
@@ -78,16 +59,12 @@ module "account" {
 #### Compliance Pack with Template URL
 
 ```hcl
-data "http" "security_hub_enabled" {
-  url = "https://s3.amazonaws.com/aws-service-catalog-reference-architectures/AWS_Config_Rules/Security/SecurityHub/SecurityHub-Enabled.json"
-}
-
 module "account" {
   aws_config = {
     enable = true
     compliance_packs = {
       "security-hub-enabled" = {
-        template_body = data.http.security_hub_enabled.body
+        template_url = "s3://aws-service-catalog-reference-architectures/AWS_Config_Rules/Security/SecurityHub/SecurityHub-Enabled.json"
       }
     }
   }
@@ -106,12 +83,12 @@ module "account" {
       "hipaa-compliance" = {
         template_body = file("${path.module}/templates/hipaa-compliance.yml")
         parameter_overrides = {
-          "AccessKeysRotatedParamMaxAccessKeyAge" = "45"
-          "PasswordPolicyParamMinimumPasswordLength" = "14"
-          "PasswordPolicyParamRequireUppercaseCharacters" = "true"
-          "PasswordPolicyParamRequireLowercaseCharacters" = "true"
-          "PasswordPolicyParamRequireNumbers" = "true"
-          "PasswordPolicyParamRequireSymbols" = "true"
+          "AccessKeysRotatedParamMaxAccessKeyAge"              = "45"
+          "PasswordPolicyParamMinimumPasswordLength"           = "14"
+          "PasswordPolicyParamRequireLowercaseCharacters"      = "true"
+          "PasswordPolicyParamRequireNumbers"                  = "true"
+          "PasswordPolicyParamRequireSymbols"                  = "true"
+          "PasswordPolicyParamRequireUppercaseCharacters"      = "true"
         }
       }
       "pci-dss-compliance" = {
@@ -129,7 +106,7 @@ module "account" {
 
 The compliance pack configuration supports the following options:
 
-- **template_body**: (Required) The YAML or JSON template body for the compliance pack. This can be provided directly as a string, loaded from a file using `file()`, or fetched from a URL using `data.http`.
+- **template_body**: (Optional) The YAML or JSON template body for the compliance pack. This can be provided directly as a string, loaded from a file using `file()`, or fetched externally before being passed to the module.
 - **template_url**: (Optional) The URL of the compliance pack template. Note: Either `template_body` or `template_url` must be provided, but not both.
 - **parameter_overrides**: (Optional) A map of parameter overrides to customize the compliance pack rules. The keys should match the parameter names defined in the compliance pack template, and the values are the custom values you want to apply.
 
@@ -160,7 +137,7 @@ module "account" {
       "security-best-practices" = {
         template_body = file("${path.module}/templates/security-best-practices.yml")
         parameter_overrides = {
-          "CheckPublicReadAclParam" = "true"
+          "CheckPublicReadAclParam"  = "true"
           "CheckPublicWriteAclParam" = "true"
         }
       }
@@ -244,7 +221,7 @@ The IAM password policy can be configured to enforce password policies on the ac
 
 ```hcl
 iam_password_policy = {
-  enabled = true
+  enable = true
   allow_users_to_change_password = true
   hard_expiry = false
   max_password_age = 90
@@ -263,7 +240,7 @@ The IAM access analyzer can be configured to analyze access to resources within 
 
 ```hcl
 iam_access_analyzer = {
-  enabled = true
+  enable = true
   analyzer_name = "lza-iam-access-analyzer" # optional
   analyzer_type = "ORGANIZATION" # optional but default
 }
@@ -326,8 +303,7 @@ By default, the module will look up an existing GuardDuty detector in the accoun
 ```hcl
 module "account" {
   guardduty = {
-    create                       = false  # Default: look up existing detector
-    finding_publishing_frequency = "FIFTEEN_MINUTES"
+    create = false # Default: look up existing detector
   }
 }
 ```
@@ -339,8 +315,7 @@ If you need to create a new GuardDuty detector in the account, set the `create` 
 ```hcl
 module "account" {
   guardduty = {
-    create                       = true
-    finding_publishing_frequency = "FIFTEEN_MINUTES"
+    create = true
   }
 }
 ```
@@ -358,8 +333,7 @@ GuardDuty supports various protection features that can be enabled or disabled i
 ```hcl
 module "account" {
   guardduty = {
-    create                       = true
-    finding_publishing_frequency = "FIFTEEN_MINUTES"
+    create = true
     detectors = [
       {
         name                     = "S3_DATA_EVENTS"
@@ -393,8 +367,7 @@ GuardDuty filters allow you to automatically archive or suppress findings based 
 ```hcl
 module "account" {
   guardduty = {
-    create                       = true
-    finding_publishing_frequency = "FIFTEEN_MINUTES"
+    create = true
     filters = {
       "low-severity-archive" = {
         action      = "ARCHIVE"
@@ -440,8 +413,7 @@ Here's a complete example combining detector creation, features, and filters:
 ```hcl
 module "account" {
   guardduty = {
-    create                       = true
-    finding_publishing_frequency = "FIFTEEN_MINUTES"
+    create = true
 
     detectors = [
       {
@@ -512,7 +484,6 @@ module "account" {
 #### GuardDuty Configuration Options
 
 - **create**: (Optional) Set to `true` to create a new GuardDuty detector, or `false` to look up an existing detector. Defaults to `false`.
-- **finding_publishing_frequency**: (Optional) The frequency of findings publishing. Valid values: `FIFTEEN_MINUTES`, `ONE_HOUR`, `SIX_HOURS`. Defaults to `FIFTEEN_MINUTES`.
 - **detectors**: (Optional) A list of GuardDuty detector features to enable or disable:
   - **name**: The name of the detector feature (e.g., `S3_DATA_EVENTS`, `EKS_AUDIT_LOGS`)
   - **enable**: Whether to enable the feature. Defaults to `true`.
@@ -535,6 +506,7 @@ Common filter criterion fields include:
 - `region`: AWS region
 
 For each criterion, you can specify:
+
 - `equals`: Exact match (converted to list internally)
 - `not_equals`: Negative match (converted to list internally)
 - `greater_than`: Numeric greater than
@@ -645,7 +617,7 @@ module "account" {
 
 When Resilience Hub is enabled, an IAM role is automatically created in the home region. This role:
 
-- Uses the name from `var.include_iam_roles.ssm_instance.name` (if configured)
+- Uses the fixed name `lza-resilience-hub-role`
 - Allows the Resilience Hub service to assume the role
 - Includes the `AWSResilienceHubAsssessmentExecutionPolicy` managed policy
 
@@ -793,9 +765,9 @@ The EBS encryption can be configured to encrypt all EBS volumes within the accou
 
 ```hcl
 ebs_encryption = {
-  enabled = true
+  enable         = true
   create_kms_key = true
-  key_alias = "lza/ebs/default"
+  key_alias      = "lza/ebs/default"
 }
 ```
 
@@ -805,10 +777,10 @@ The S3 block public access can be configured to block public access to S3 bucket
 
 ```hcl
 s3_block_public_access = {
-  enabled = true
-  enable_block_public_policy = true
-  enable_block_public_acls = true
-  enable_ignore_public_acls = true
+  enable                         = true
+  enable_block_public_policy     = true
+  enable_block_public_acls       = true
+  enable_ignore_public_acls      = true
   enable_restrict_public_buckets = true
 }
 ```
@@ -847,66 +819,34 @@ You can configure additional IAM roles using the `var.iam_roles` variable, such 
 module "account" {
   iam_roles = {
     "s3_administrator" = {
-      name = "MY_ROLE_NAME"
-      assume_roles = ["arn:aws:iam::123456789012:role/role-name"]
+      name        = "my-role-name"
       description = "Administrator role for S3"
-      path = "/"
-      permissions_boundary_arn = null
-      permissions_arns = [
+      path        = "/"
+      permission_arns = [
         "arn:aws:iam::aws:policy/AmazonS3FullAccess"
       ]
-      #policies = [data.aws_iam_policy_document.deny_s3.json]
+      policies = [data.aws_iam_policy_document.deny_s3.json]
     }
-    "ec2_instance_profile" {
-      name = "lza-ssm-instance-profile"
+    "ec2_instance_role" = {
+      name            = "lza-ssm-instance-role"
       assume_services = ["ec2.amazonaws.com"]
-      description = "Instance profiles for ec2 compute machine"
-      path = "/"
-      permissions_arns = [
+      description     = "Role assumed by EC2 instances"
+      path            = "/"
+      permission_arns = [
         "arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess",
         "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
         "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
       ]
     }
-    "kms_admin" = {
-      name = "kms-admin"
-      assume_accounts = ["123456789012"]
-      description = "Administrator role for KMS"
-      path = "/"
-      permissions_arns = [
+    "kms_admin_service" = {
+      name            = "kms-admin-service"
+      assume_services = ["lambda.amazonaws.com"]
+      description     = "Service role for KMS administration workflows"
+      path            = "/"
+      permission_arns = [
         "arn:aws:iam::aws:policy/AmazonKMSFullAccess"
       ]
     }
-  }
-}
-```
-
-### RBAC & Identity Center Assignment
-
-This module provides the ability for tenants to manage the assignment of prescribed roles to users and groups within the account. The `sso_assignment` module is used to manage the assignment of roles to users and groups within the account.
-
-Note, the roles permitted for assignment can be found within `local.sso_permitted_permission_sets`, an example of the permitted roles can be found below:
-
-```hcl
-sso_permitted_permission_sets = {
-  "devops_engineer"   = "DevOpsEngineer"
-  "finops_engineer"   = "FinOpsEngineer"
-  "network_engineer"  = "NetworkEngineer"
-  "network_viewer"    = "NetworkViewer"
-  "platform_engineer" = "PlatformEngineer"
-  "security_auditor"  = "SecurityAuditor"
-}
-```
-
-This maps the exposed name used in the `var.rbac` to the name of the role within the AWS Identity Center.
-
-Tenants can assign roles to users and groups by providing a map of users and groups to roles within the `var.rbac` variable. An example of this can be found below:
-
-```hcl
-rbac = {
-  "devops_engineer" = {
-    users  = ["MY_SSO_USER"]
-    groups = ["MY_SSO_GROUP"]
   }
 }
 ```
@@ -1133,72 +1073,68 @@ module "account" {
 
 **Note**: Resource groups are dynamic and automatically update as resources are created, modified, or deleted based on the resource query criteria. Ensure your resources are properly tagged to be included in the appropriate resource groups. When using the `query` object, if `resource_type_filters` is not specified, it defaults to `["AWS::AllSupported"]`.
 
-## GitHub Repository Management
+## Infrastructure Repository
 
-This module includes comprehensive GitHub repository management capabilities through the `modules/github_repository` module. This allows tenants to create and manage GitHub repositories with enterprise-grade security and compliance features.
+This module can provision the tenant's GitHub infrastructure repository and the AWS permissions used to deploy it through GitHub OIDC.
 
-### GitHub Repository Features
+### Infrastructure Repository Features
 
-- **Repository Creation**: Create GitHub repositories with customizable names, descriptions, and visibility
-- **Security & Compliance**: Branch protection, required reviews, status checks, vulnerability alerts
-- **Collaboration Management**: User and team access control, environment protection
-- **Automation**: Repository templates, merge strategies, and automated workflows
+- **Repository Creation**: Create a GitHub repository for the landing zone when `create = true`
+- **Security Defaults**: Apply branch protection and vulnerability alert settings
+- **Bootstrap from a Template**: Seed the repository from an existing GitHub template repository
+- **Deployment Access**: Provision read-only and read-write AWS OIDC roles for the repository
 
-### Basic GitHub Repository Usage
-
-```hcl
-module "my_repository" {
-  source = "./modules/github_repository"
-
-  repository  = "my-project"
-  description = "My awesome project"
-  visibility  = "private"
-}
-```
-
-### Advanced GitHub Repository Configuration
+### Basic Infrastructure Repository Usage
 
 ```hcl
-module "enterprise_repository" {
-  source = "./modules/github_repository"
-
-  repository  = "enterprise-critical-system"
-  description = "Enterprise critical system with strict controls"
-  
-  # Security settings
+infrastructure_repository = {
+  name       = "my-product-infrastructure"
+  create     = true
   visibility = "private"
-  
-  # Branch protection
-  enforce_branch_protection_for_admins = true
-  required_approving_review_count      = 3
-  dismiss_stale_reviews                = true
-  prevent_self_review                  = true
-  
-  # Status checks
-  required_status_checks = [
-    "CI / Build and Test",
-    "Security / Security Scan",
-    "Compliance / Compliance Check"
-  ]
-  
-  # Environments
-  repository_environments          = ["staging", "production"]
-  default_environment_review_users = ["senior-dev1", "senior-dev2"]
-  
-  # Collaborators
-  repository_collaborators = [
-    {
-      username   = "senior-dev1"
-      permission = "admin"
-    }
-  ]
-  
-  # Topics
-  repository_topics = ["enterprise", "terraform", "aws", "critical"]
 }
 ```
 
-For complete GitHub repository management examples, see the `examples/github_repository/` directory.
+### Advanced Infrastructure Repository Configuration
+
+```hcl
+infrastructure_repository = {
+  name                        = "enterprise-critical-system"
+  create                      = true
+  visibility                  = "private"
+  enable_issues               = true
+  enable_vulnerability_alerts = true
+  topics                      = ["enterprise", "terraform", "aws", "landing-zone"]
+
+  branch_protection = {
+    main = {
+      enforce_admins                  = true
+      require_conversation_resolution = true
+      require_signed_commits          = true
+
+      required_status_checks = {
+        strict   = true
+        contexts = ["terraform-plan", "terraform-apply"]
+      }
+
+      required_pull_request_reviews = {
+        dismiss_stale_reviews           = true
+        require_code_owner_reviews      = true
+        required_approving_review_count = 2
+      }
+    }
+  }
+
+  permissions = {
+    read_only_policy_arns  = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
+    read_write_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+  }
+
+  template = {
+    owner      = "appvia"
+    repository = "terraform-repository-template"
+  }
+}
+```
 
 ## Cost Management Features
 
@@ -1210,7 +1146,7 @@ Tenants are able to provision anomaly detection rules within the designated regi
 
 ```hcl
 cost_anomaly_detection = {
-  enabled = true
+  enable = true
   monitors = [
     {
       name      = lower("lza-${local.region}")
@@ -1530,8 +1466,10 @@ networks = {
 
     vpc = {
       availability_zones     = 2
-      enable_ipam            = true
+      ipam_pool_name         = "development"
+      netmask                = 21
       enable_transit_gateway = true
+      nat_gateway_mode       = "single_az"
     }
   }
 
@@ -1543,7 +1481,8 @@ networks = {
     }
 
     vpc = {
-      enable_ipam            = true
+      ipam_pool_name         = "shared-services"
+      netmask                = 21
       enable_transit_gateway = true
     }
   }
@@ -1612,9 +1551,9 @@ module "my_account" {
 
 The `terraform-docs` utility is used to generate this README. Follow the below steps to update:
 
-1. Make changes to the `.terraform-docs.yml` file
-2. Fetch the `terraform-docs` binary (<https://terraform-docs.io/user-guide/installation/>)
-3. Run `terraform-docs markdown table --output-file ${PWD}/README.md --output-mode inject .`
+1. Update the Terraform code or hand-written sections above the generated block
+2. Ensure `terraform-docs` is installed (<https://terraform-docs.io/user-guide/installation/>)
+3. Run `make documentation`
 
 <!-- BEGIN_TF_DOCS -->
 ## Providers
@@ -1622,8 +1561,6 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
-| <a name="provider_aws.identity"></a> [aws.identity](#provider\_aws.identity) | >= 6.0.0 |
-| <a name="provider_aws.management"></a> [aws.management](#provider\_aws.management) | >= 6.0.0 |
 | <a name="provider_aws.network"></a> [aws.network](#provider\_aws.network) | >= 6.0.0 |
 | <a name="provider_aws.tenant"></a> [aws.tenant](#provider\_aws.tenant) | >= 6.0.0 |
 
@@ -1656,7 +1593,6 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_iam_roles"></a> [iam\_roles](#input\_iam\_roles) | A collection of IAM roles to apply to the account | <pre>map(object({<br/>    name = optional(string, null)<br/>    # The name of the IAM role<br/>    name_prefix = optional(string, null)<br/>    # The name prefix of the IAM role<br/>    assume_accounts = optional(list(string), [])<br/>    # List of accounts to assume the role<br/>    assume_roles = optional(list(string), [])<br/>    # List of principals to assume the role<br/>    assume_services = optional(list(string), [])<br/>    # List of services to assume the role<br/>    description = string<br/>    # The description of the IAM role<br/>    path = optional(string, "/")<br/>    # The path of the IAM role<br/>    permission_boundary_arn = optional(string, "")<br/>    # A collection of tags to apply to the IAM role<br/>    permission_arns = optional(list(string), [])<br/>    # A list of additional permissions to apply to the IAM role<br/>    policies = optional(any, [])<br/>  }))</pre> | `{}` | no |
 | <a name="input_iam_service_linked_roles"></a> [iam\_service\_linked\_roles](#input\_iam\_service\_linked\_roles) | A collection of service linked roles to apply to the account | `list(string)` | <pre>[<br/>  "autoscaling.amazonaws.com",<br/>  "spot.amazonaws.com",<br/>  "spotfleet.amazonaws.com"<br/>]</pre> | no |
 | <a name="input_iam_users"></a> [iam\_users](#input\_iam\_users) | A collection of IAM users to apply to the account | <pre>list(object({<br/>    name = optional(string, null)<br/>    # The name of the IAM user<br/>    name_prefix = optional(string, null)<br/>    # The name prefix of the IAM user<br/>    path = optional(string, "/")<br/>    # The path of the IAM user<br/>    permission_boundary_name = optional(string, null)<br/>    # A list of additional permissions to apply to the IAM user<br/>    policy_arns = optional(list(string), [])<br/>  }))</pre> | `[]` | no |
-| <a name="input_identity_center_permitted_roles"></a> [identity\_center\_permitted\_roles](#input\_identity\_center\_permitted\_roles) | A map of permitted SSO roles, with the name of the permitted SSO role as the key, and value the permissionset | `map(string)` | <pre>{<br/>  "network_viewer": "NetworkViewer",<br/>  "security_auditor": "SecurityAuditor"<br/>}</pre> | no |
 | <a name="input_include_iam_roles"></a> [include\_iam\_roles](#input\_include\_iam\_roles) | Collection of IAM roles to include in the account | <pre>object({<br/>    security_auditor = optional(object({<br/>      enable = optional(bool, false)<br/>      name   = optional(string, "lza-security-auditor")<br/>    }), {})<br/>    ssm_instance = optional(object({<br/>      enable = optional(bool, false)<br/>      name   = optional(string, "lza-ssm-instance")<br/>    }), {})<br/>  })</pre> | <pre>{<br/>  "security_auditor": {<br/>    "enable": false,<br/>    "name": "lza-security-auditor"<br/>  },<br/>  "ssm_instance": {<br/>    "enable": false,<br/>    "name": "lza-ssm-instance"<br/>  }<br/>}</pre> | no |
 | <a name="input_infrastructure_repository"></a> [infrastructure\_repository](#input\_infrastructure\_repository) | The infrastructure repository provisions and configures a pipeline repository for the landing zone | <pre>object({<br/>    name = optional(string, null)<br/>    # The name prefix of the repository<br/>    create = optional(bool, true)<br/>    # A flag indicating if the repository should be created<br/>    visibility = optional(string, "private")<br/>    # The visibility of the repository<br/>    default_branch = optional(string, "main")<br/>    # home page url of the repository<br/>    homepage_url = optional(string, null)<br/>    # The home page url of the repository<br/>    enable_archived = optional(bool, false)<br/>    # A flag indicating if the repository should be archived<br/>    enable_discussions = optional(bool, false)<br/>    # A flag indicating if the repository should enable downloads<br/>    enable_issues = optional(bool, true)<br/>    # A flag indicating if the repository should enable issues<br/>    enable_projects = optional(bool, false)<br/>    # A flag indicating if the repository should enable projects<br/>    enable_wiki = optional(bool, false)<br/>    # A flag indicating if the repository should enable wiki<br/>    enable_vulnerability_alerts = optional(bool, null)<br/>    # A flag indicating if the repository should enable vulnerability alerts<br/>    topics = optional(list(string), ["aws", "terraform", "landing-zone"])<br/>    # The topics of the repository<br/>    collaborators = optional(list(object({<br/>      # The username of the collaborator<br/>      username = string<br/>      # The permission of the collaborator<br/>      permission = optional(string, "write")<br/>    })), [])<br/>    # The collaborators of the repository<br/>    template = optional(object({<br/>      # The owner of the repository template<br/>      owner = string<br/>      # The repository template to use for the repository<br/>      repository = string<br/>      # Include all branches<br/>      include_all_branches = optional(bool, false)<br/>    }), null)<br/>    # Configure webhooks for the repository<br/>    webhooks = optional(list(object({<br/>      # The content type of the webhook<br/>      content_type = optional(string, "json")<br/>      # The enable flag of the webhook<br/>      enable = optional(bool, true)<br/>      # The events of the webhook<br/>      events = optional(list(string), ["push", "pull_request"])<br/>      # The insecure SSL flag of the webhook<br/>      insecure_ssl = optional(bool, false)<br/>      # The secret of the webhook<br/>      secret = optional(string, null)<br/>      # The URL of the webhook<br/>      url = string<br/>    })), null)<br/>    # The branch protection to use for the repository<br/>    branch_protection = optional(map(object({<br/>      allows_force_pushes             = optional(bool, false)<br/>      allows_deletions                = optional(bool, false)<br/>      dismiss_stale_reviews           = optional(bool, true)<br/>      enforce_admins                  = optional(bool, true)<br/>      lock_branch                     = optional(bool, false)<br/>      require_conversation_resolution = optional(bool, false)<br/>      require_last_push_approval      = optional(bool, false)<br/>      require_signed_commits          = optional(bool, true)<br/>      required_linear_history         = optional(bool, false)<br/><br/>      required_status_checks = optional(object({<br/>        strict   = optional(bool, true)<br/>        contexts = optional(list(string), null)<br/>      }), null)<br/><br/>      required_pull_request_reviews = optional(object({<br/>        dismiss_stale_reviews           = optional(bool, true)<br/>        dismissal_restrictions          = optional(list(string), null)<br/>        pull_request_bypassers          = optional(list(string), null)<br/>        require_code_owner_reviews      = optional(bool, true)<br/>        require_last_push_approval      = optional(bool, false)<br/>        required_approving_review_count = optional(number, 1)<br/>        restrict_dismissals             = optional(bool, false)<br/>      }), null)<br/>      })), {<br/>      main = {<br/>        allows_force_pushes             = false<br/>        allows_deletions                = false<br/>        dismiss_stale_reviews           = true<br/>        enforce_admins                  = true<br/>        require_conversation_resolution = true<br/>        require_signed_commits          = true<br/>        required_approving_review_count = 2<br/><br/>        required_status_checks = {<br/>          strict   = true<br/>          contexts = null<br/>        }<br/>      }<br/>    })<br/><br/>    # The branch protection to use for the repository<br/>    permissions = optional(object({<br/>      read_only_policy_arns = list(string)<br/>      # The policy ARNs to associate with the repository<br/>      read_write_policy_arns = list(string)<br/>      # The policy ARNs to associate with the repository<br/>      }), {<br/>      read_only_policy_arns  = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]<br/>      read_write_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]<br/>    })<br/><br/>    # The permissions to use for the repository<br/>    permissions_boundary = optional(object({<br/>      arn = optional(string, null)<br/>      # The ARN of the permissions boundary to use for the repository<br/>      policy = optional(string, null)<br/>      # The policy of the permissions boundary to use for the repository<br/>    }), null)<br/>    # The permissions boundary to use for the repository<br/>  })</pre> | `null` | no |
 | <a name="input_inspector"></a> [inspector](#input\_inspector) | Configuration for the AWS Inspector service | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if AWS Inspector should be enabled<br/>    delegate_account_id = optional(string, null)<br/>    # The account ID we should associate the service to<br/>  })</pre> | `null` | no |
@@ -1665,11 +1601,9 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="input_macie"></a> [macie](#input\_macie) | A collection of Macie settings to apply to the account | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if Macie should be enabled<br/>    frequency = optional(string, "FIFTEEN_MINUTES")<br/>    # The frequency of Macie findings<br/>    admin_account_id = optional(string, null)<br/>    # Is defined the member account will accept any invitations from the management account<br/>  })</pre> | `null` | no |
 | <a name="input_networks"></a> [networks](#input\_networks) | A collection of networks to provision within the designated region | <pre>map(object({<br/>    firewall = optional(object({<br/>      capacity = number<br/>      # The capacity of the firewall rule group<br/>      rules_source = string<br/>      # The content of the suracata rules<br/>      ip_sets = map(list(string))<br/>      # A map of IP sets to apply to the firewall rule ie. WEBSERVERS = ["100.0.0.0/16"]<br/>      port_sets = map(list(number))<br/>      # A map of port sets to apply to the firewall rule ie. WEBSERVERS = [80, 443]<br/>      domains_whitelist = list(string)<br/>    }), null)<br/><br/>    private_subnet_tags = optional(map(string), {})<br/>    # Additional tags to apply to the private subnet<br/>    public_subnet_tags = optional(map(string), {})<br/>    # Additional tags to apply to the public subnet<br/><br/>    subnets = map(object({<br/>      cidr = optional(string, null)<br/>      # The CIDR block of the subnet<br/>      netmask = optional(number, 0)<br/>      # Additional tags to apply to the subnet<br/>      tags = optional(map(string), {})<br/>    }))<br/><br/>    tags = optional(map(string), {})<br/>    # A collection of tags to apply to the network - these will be merged with the global tags<br/><br/>    transit_gateway = optional(object({<br/>      gateway_id = optional(string, null)<br/>      # The transit gateway ID to associate with the network<br/>      gateway_route_table_id = optional(string, null)<br/>      ## Optional id of the transit gateway route table to associate with the network<br/>      gateway_routes = optional(map(string), null)<br/>      # A map used to associate routes with subnets provisioned by the module - i.e ensure<br/>      # all private subnets push<br/>      }), {<br/>      gateway_id             = null<br/>      gateway_route_table_id = null<br/>      gateway_routes         = null<br/>    })<br/>    ## Configuration for the transit gateway for this network<br/><br/>    vpc = object({<br/>      availability_zones = optional(string, 2)<br/>      # The availability zone in which to provision the network, defaults to 2<br/>      cidr = optional(string, null)<br/>      # The CIDR block of the VPC network if not using IPAM<br/>      enable_private_endpoints = optional(list(string), [])<br/>      # An optional list of private endpoints to associate with the network i.e ["s3", "dynamodb"]<br/>      enable_shared_endpoints = optional(bool, true)<br/>      # Indicates if the network should accept shared endpoints<br/>      enable_transit_gateway = optional(bool, true)<br/>      # A flag indicating if the network should be associated with the transit gateway<br/>      enable_transit_gateway_appliance_mode = optional(bool, false)<br/>      # A flag indicating if the transit gateway should be in appliance mode<br/>      enable_default_route_table_association = optional(bool, true)<br/>      # A flag indicating if the default route table should be associated with the network<br/>      enable_default_route_table_propagation = optional(bool, true)<br/>      # A flag indicating if the default route table should be propagated to the network<br/>      flow_logs = optional(object({<br/>        destination_type = optional(string, "none")<br/>        # The destination type of the flow logs<br/>        destination_arn = optional(string, null)<br/>        # The ARN of the destination of the flow logs<br/>        log_format = optional(string, "plain-text")<br/>        # The format of the flow logs<br/>        traffic_type = optional(string, "ALL")<br/>        # The type of traffic to capture<br/>        destination_options = optional(object({<br/>          file_format = optional(string, "plain-text")<br/>          # The format of the flow logs<br/>          hive_compatible_partitions = optional(bool, false)<br/>          # Whether to use hive compatible partitions<br/>          per_hour_partition = optional(bool, false)<br/>          # Whether to partition the flow logs per hour<br/>        }), null)<br/>        # The destination options of the flow logs<br/>      }), null)<br/>      ipam_pool_name = optional(string, null)<br/>      # The name of the IPAM pool to use for the network<br/>      nat_gateway_mode = optional(string, "none")<br/>      # The NAT gateway mode to use for the network, defaults to none<br/>      netmask = optional(number, null)<br/>      # The netmask of the VPC network if using IPAM<br/>      transit_gateway_routes = optional(map(string), null)<br/>    })<br/>  }))</pre> | `{}` | no |
 | <a name="input_notifications"></a> [notifications](#input\_notifications) | Configuration for the notifications to the owner of the account | <pre>object({<br/>    email = optional(object({<br/>      addresses = optional(list(string), [])<br/>      # A list of email addresses to send notifications to<br/>      }), {<br/>      addresses = []<br/>    })<br/><br/>    slack = optional(object({<br/>      # The slack webhook_arn to a secret in secrets manager containing the webhook_url<br/>      webhook_arn = optional(string, null)<br/>      # The slack webhook_url to send notifications to<br/>      webhook_url = optional(string, null)<br/>    }), null)<br/><br/>    teams = optional(object({<br/>      # The teams webhook_arn to a secret in secrets manager containing the webhook_url<br/>      webhook_arn = optional(string, null)<br/>      # The teams webhook_url to send notifications to<br/>      webhook_url = optional(string, null)<br/>    }), null)<br/><br/>    # The services to configure for notifications<br/>    services = optional(object({<br/>      # The security hub notifications to configure<br/>      securityhub = object({<br/>        # A flag indicating if security hub notifications should be enabled<br/>        enable = optional(bool, false)<br/>        # The sns topic name which is created per region in the account,<br/>        # this is used to receive notifications, and forward them on via email or other means.<br/>        eventbridge_rule_name = optional(string, "lza-securityhub-eventbridge")<br/>        # The severity of the security hub events to forward<br/>        severity = optional(list(string), ["CRITICAL"])<br/>      })<br/>      }), {<br/>      securityhub = {<br/>        enable                = false<br/>        eventbridge_rule_name = "lza-securityhub-eventbridge"<br/>        severity              = ["CRITICAL"]<br/>      }<br/>    })<br/>  })</pre> | <pre>{<br/>  "email": {<br/>    "addresses": []<br/>  },<br/>  "slack": null,<br/>  "teams": null<br/>}</pre> | no |
-| <a name="input_rbac"></a> [rbac](#input\_rbac) | Provides the ability to associate one of more groups with a sso role in the account | <pre>map(object({<br/>    users = optional(list(string), [])<br/>    # A list of users to associate with the developer role<br/>    groups = optional(list(string), [])<br/>    # A list of groups to associate with the developer role<br/>  }))</pre> | `{}` | no |
 | <a name="input_resilience_hub"></a> [resilience\_hub](#input\_resilience\_hub) | Configuration for the resilience hub service | <pre>object({<br/>    # Enable the service within the account, creating the IAM Role<br/>    enable = optional(bool, false)<br/>    # A collection of policies to apply to the resilience hub<br/>    policies = optional(map(object({<br/>      # The name of the policy, else we use the map key<br/>      name = optional(string, null)<br/>      # The description of the policy<br/>      description = string<br/>      # The tier associated the policy (MissionCritical, Critical, Important, CoreServices, NonCritical, and NotApplicable)<br/>      tier = optional(string, "Important")<br/>      # The policy document to apply to the policy<br/>      policy = optional(object({<br/>        # Availability zone recovery point objectives<br/>        az = optional(object({<br/>          # The RPO or recommended recovery point objective<br/>          rpo = optional(string, "1h")<br/>          # The RTO or recommended recovery time<br/>          rto = optional(string, "1h")<br/>        }), {})<br/>        # The policy associated the hardware<br/>        hardware = optional(object({<br/>          # The RPO or recommended recovery point objective<br/>          rpo = optional(string, "1h")<br/>          # The RTO or recommended recovery time<br/>          rto = optional(string, "1h")<br/>        }), {})<br/>        # The policy associated the software recovery<br/>        software = optional(object({<br/>          # The RPO or recommended recovery point objective<br/>          rpo = optional(string, "1h")<br/>          # The RTO or recommended recovery time<br/>          rto = optional(string, "1h")<br/>        }), {})<br/>        # The policy associated the regional recovery<br/>        region = optional(object({<br/>          # The RPO or recommended recovery point objective<br/>          rpo = optional(string, "1 hour")<br/>          # The RTO or recommended recovery time<br/>          rto = optional(string, "1 hour")<br/>        }), {})<br/>      }), {})<br/>    })), {})<br/>  })</pre> | <pre>{<br/>  "enable": false<br/>}</pre> | no |
 | <a name="input_resource_groups"></a> [resource\_groups](#input\_resource\_groups) | Configuration for the resource groups service | <pre>map(object({<br/>    # The name of the resource group<br/>    description = string<br/>    # The type of the of group configuration<br/>    type = optional(string, "TAG_FILTERS_1_0")<br/>    # An optional configuration for the resource group<br/>    configuration = optional(object({<br/>      # The type of the of group configuration<br/>      type = string<br/>      # The parameters of the group configuration<br/>      parameters = optional(list(object({<br/>        # The name of the parameter<br/>        name = string<br/>        # The list of values for the parameter<br/>        values = list(string)<br/>      })), [])<br/>    }), null)<br/>    # The resource query to configure the resource group<br/>    query = optional(object({<br/>      # A collection of resource types to scope the resource query<br/>      resource_type_filters = optional(list(string), ["AWS::AllSupported"])<br/>      # A collection of tag filters to scope the resource query<br/>      tag_filters = optional(map(list(string)), {})<br/>    }), null)<br/>    # The resource query in json format https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/resourcegroups_group<br/>    resource_query = optional(string, null)<br/>  }))</pre> | `{}` | no |
 | <a name="input_s3_block_public_access"></a> [s3\_block\_public\_access](#input\_s3\_block\_public\_access) | A collection of S3 public block access settings to apply to the account | <pre>object({<br/>    enable = optional(bool, false)<br/>    # A flag indicating if S3 block public access should be enabled<br/>    enable_block_public_policy = optional(bool, true)<br/>    # A flag indicating if S3 block public policy should be enabled<br/>    enable_block_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 block public ACLs should be enabled<br/>    enable_ignore_public_acls = optional(bool, true)<br/>    # A flag indicating if S3 ignore public ACLs should be enabled<br/>    enable_restrict_public_buckets = optional(bool, true)<br/>    # A flag indicating if S3 restrict public buckets should be enabled<br/>  })</pre> | <pre>{<br/>  "enable": false,<br/>  "enable_block_public_acls": true,<br/>  "enable_block_public_policy": true,<br/>  "enable_ignore_public_acls": true,<br/>  "enable_restrict_public_buckets": true<br/>}</pre> | no |
-| <a name="input_service_control_policies"></a> [service\_control\_policies](#input\_service\_control\_policies) | Provides the ability to associate one of more service control policies with an account | <pre>map(object({<br/>    name = string<br/>    # The policy name to associate with the account<br/>    policy = string<br/>    # The policy document to associate with the account<br/>  }))</pre> | `{}` | no |
 | <a name="input_service_quotas"></a> [service\_quotas](#input\_service\_quotas) | Configuration for the service quotas service | <pre>list(object({<br/>    # The service code of the service quota<br/>    service_code = string<br/>    # The quota code of the service quota<br/>    quota_code = string<br/>    # The value of the service quota<br/>    value = number<br/>  }))</pre> | `[]` | no |
 | <a name="input_ssm"></a> [ssm](#input\_ssm) | Configuration for the SSM service | <pre>object({<br/>    # A flag indicating if SSM public sharing should be blocked<br/>    enable_block_public_sharing = optional(bool, true)<br/>  })</pre> | `{}` | no |
 
@@ -1678,19 +1612,17 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | Name | Description |
 |------|-------------|
 | <a name="output_account_id"></a> [account\_id](#output\_account\_id) | The account id where the pipeline is running |
-| <a name="output_auditor_account_id"></a> [auditor\_account\_id](#output\_auditor\_account\_id) | The account id for the audit account |
 | <a name="output_environment"></a> [environment](#output\_environment) | The environment name for the tenant |
 | <a name="output_infrastructure_repository_git_clone_url"></a> [infrastructure\_repository\_git\_clone\_url](#output\_infrastructure\_repository\_git\_clone\_url) | The URL of the infrastructure repository for the landing zone |
-| <a name="output_infrastructure_repository_url"></a> [infrastructure\_repository\_url](#output\_infrastructure\_repository\_url) | The SSH URL of the infrastructure repository for the landing zone |
+| <a name="output_infrastructure_repository_url"></a> [infrastructure\_repository\_url](#output\_infrastructure\_repository\_url) | The HTML URL of the infrastructure repository for the landing zone |
 | <a name="output_ipam_pools_by_name"></a> [ipam\_pools\_by\_name](#output\_ipam\_pools\_by\_name) | A map of the ipam pool name to id |
-| <a name="output_log_archive_account_id"></a> [log\_archive\_account\_id](#output\_log\_archive\_account\_id) | The account id for the log archive account |
 | <a name="output_networks"></a> [networks](#output\_networks) | A map of the network name to network details |
 | <a name="output_private_hosted_zones"></a> [private\_hosted\_zones](#output\_private\_hosted\_zones) | A map of the private hosted zones |
 | <a name="output_private_hosted_zones_by_id"></a> [private\_hosted\_zones\_by\_id](#output\_private\_hosted\_zones\_by\_id) | A map of the hosted zone name to id |
 | <a name="output_sns_notification_arn"></a> [sns\_notification\_arn](#output\_sns\_notification\_arn) | The SNS topic ARN for notifications |
 | <a name="output_sns_notification_name"></a> [sns\_notification\_name](#output\_sns\_notification\_name) | Name of the SNS topic used to channel notifications |
 | <a name="output_tags"></a> [tags](#output\_tags) | The tags to apply to all resources |
-| <a name="output_tenant_account_id"></a> [tenant\_account\_id](#output\_tenant\_account\_id) | The region of the tenant account |
+| <a name="output_tenant_account_id"></a> [tenant\_account\_id](#output\_tenant\_account\_id) | The account id of the tenant account |
 | <a name="output_vpc_ids"></a> [vpc\_ids](#output\_vpc\_ids) | A map of the network name to vpc id |
 <!-- END_TF_DOCS -->
 

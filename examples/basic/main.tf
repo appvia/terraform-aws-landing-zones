@@ -42,12 +42,6 @@ module "dev_apps" {
     }
   }
 
-  rbac = {
-    platform_engineer = {
-      groups = ["my_group"]
-    }
-  }
-
   budgets = [
     {
       name         = "AWS Monthly Budget for ${local.region} (Actual)"
@@ -177,10 +171,8 @@ module "dev_apps" {
 
 
   providers = {
-    aws            = aws
-    aws.identity   = aws.identity
-    aws.network    = aws.network
-    aws.management = aws.management
-    aws.tenant     = aws.tenant
+    aws         = aws
+    aws.network = aws.network
+    aws.tenant  = aws.tenant
   }
 }

@@ -9,11 +9,12 @@ locals {
 resource "aws_config_conformance_pack" "default" {
   for_each = local.enable_aws_config ? var.aws_config.compliance_packs : {}
 
-  name          = each.key
-  template_body = each.value.template_body
+  name            = each.key
+  template_body   = each.value.template_body != "" ? each.value.template_body : null
+  template_s3_uri = each.value.template_url != "" ? each.value.template_url : null
 
   dynamic "input_parameter" {
-    for_each = each.value.parameters
+    for_each = each.value.parameter_overrides
 
     content {
       parameter_name  = input_parameter.key

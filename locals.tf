@@ -13,17 +13,6 @@ locals {
   ## The account role arn - this is the ARN in the TENANT we are using
   tenant_role_arn = data.aws_caller_identity.tenant.arn
 
-  ## Map of account name to account id
-  account_id_by_name = {
-    for account in data.aws_organizations_organizational_unit_descendant_accounts.current.accounts : account.name => account.id
-  }
-
-  ## The account id for the audit account
-  audit_account_id = try(local.account_id_by_name["Audit"], null)
-
-  ## The account id for the log archive account
-  log_archive_account_id = try(local.account_id_by_name["LogArchive"], null)
-
   ## Autoscale service linked role name
   autoscale_service_linked_role_arn = format("arn:aws:iam::%s:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling", local.account_id)
 

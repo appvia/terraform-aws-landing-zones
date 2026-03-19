@@ -30,7 +30,7 @@ output "account_id" {
 }
 
 output "tenant_account_id" {
-  description = "The region of the tenant account"
+  description = "The account id of the tenant account"
   value       = data.aws_caller_identity.tenant.id
 }
 
@@ -49,16 +49,6 @@ output "sns_notification_arn" {
   value       = module.notifications.sns_topic_arn
 }
 
-output "auditor_account_id" {
-  description = "The account id for the audit account"
-  value       = local.audit_account_id
-}
-
-output "log_archive_account_id" {
-  description = "The account id for the log archive account"
-  value       = local.log_archive_account_id
-}
-
 output "ipam_pools_by_name" {
   description = "A map of the ipam pool name to id"
   value       = local.ipam_pools_by_name
@@ -70,6 +60,6 @@ output "infrastructure_repository_git_clone_url" {
 }
 
 output "infrastructure_repository_url" {
-  description = "The SSH URL of the infrastructure repository for the landing zone"
+  description = "The HTML URL of the infrastructure repository for the landing zone"
   value       = local.enable_infrastructure_repository ? module.github_repository[0].repository_html_url : null
 }

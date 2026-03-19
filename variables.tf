@@ -603,15 +603,6 @@ variable "git_repository" {
   type        = string
 }
 
-variable "identity_center_permitted_roles" {
-  description = "A map of permitted SSO roles, with the name of the permitted SSO role as the key, and value the permissionset"
-  type        = map(string)
-  default = {
-    "network_viewer"   = "NetworkViewer"
-    "security_auditor" = "SecurityAuditor"
-  }
-}
-
 variable "guardduty" {
   description = "A collection of GuardDuty settings to apply to the account"
   type = object({
@@ -708,31 +699,8 @@ variable "ebs_snapshots_block" {
   type = object({
     ## The state of the ebs snapshot block, if enabled, all EBS volumes will have snapshot creation blocked (block-all-sharing, block-new-sharing or unblocked)
     state = optional(string, "block-all-sharing")
-  }) 
+  })
   default = null
-}
-
-variable "service_control_policies" {
-  description = "Provides the ability to associate one of more service control policies with an account"
-  type = map(object({
-    name = string
-    # The policy name to associate with the account
-    policy = string
-    # The policy document to associate with the account
-  }))
-  default = {}
-
-  ## The name must be less than or equal to 12 characters
-  validation {
-    condition     = alltrue([for policy in values(var.service_control_policies) : length(policy.name) <= 12])
-    error_message = "The name must be less than or equal to 12 characters"
-  }
-
-  ## The policy must be less than or equal to 6,144 characters
-  validation {
-    condition     = alltrue([for policy in values(var.service_control_policies) : length(policy.policy) <= 6144])
-    error_message = "The policy must be less than or equal to 6,144 characters"
-  }
 }
 
 variable "environment" {
@@ -861,17 +829,6 @@ variable "infrastructure_repository" {
     # The permissions boundary to use for the repository
   })
   default = null
-}
-
-variable "rbac" {
-  description = "Provides the ability to associate one of more groups with a sso role in the account"
-  type = map(object({
-    users = optional(list(string), [])
-    # A list of users to associate with the developer role
-    groups = optional(list(string), [])
-    # A list of groups to associate with the developer role
-  }))
-  default = {}
 }
 
 variable "notifications" {
