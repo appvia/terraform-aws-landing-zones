@@ -525,11 +525,8 @@ run "resilience_hub_with_default_tier" {
 }
 
 # Mock providers
-mock_provider "aws" {}
-
 mock_provider "aws" {
-  alias  = "tenant"
-  source = "./tests/providers/tenant"
+  source = "./tests/providers/default"
 }
 
 mock_provider "aws" {

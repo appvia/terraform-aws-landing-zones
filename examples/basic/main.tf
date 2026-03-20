@@ -173,6 +173,5 @@ module "dev_apps" {
   providers = {
     aws         = aws
     aws.network = aws.network
-    aws.tenant  = aws.tenant
   }
 }

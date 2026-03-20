@@ -117,4 +117,6 @@ run "controltower_account_lifecycle" {
   }
 }
 
-mock_provider "aws" {}
+mock_provider "aws" {
+  source = "./tests/providers/default"
+}

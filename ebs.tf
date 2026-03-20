@@ -87,8 +87,6 @@ resource "aws_ebs_snapshot_block_public_access" "ebs_snapshot_block" {
   count = local.ebs_control_snapshot_block != null ? 1 : 0
 
   state = local.ebs_control_snapshot_block
-
-  provider = aws.tenant
 }
 
 
@@ -111,10 +109,6 @@ module "ebs_kms" {
   source_policy_documents = [data.aws_iam_policy_document.ebs_encryption_key.json]
   tags                    = merge(local.tags, { "Name" = var.ebs_encryption.key_alias })
 
-  providers = {
-    aws = aws.tenant
-  }
-
   depends_on = [
     aws_iam_service_linked_role.service_linked_roles,
     module.kms_key_administrator
@@ -126,8 +120,6 @@ resource "aws_ebs_encryption_by_default" "default" {
   count = local.enable_ebs_encryption != null ? 1 : 0
 
   enabled = local.enable_ebs_encryption
-
-  provider = aws.tenant
 }
 
 ## Configure the key to be the default key for EBS encryption
@@ -135,6 +127,4 @@ resource "aws_ebs_default_kms_key" "default" {
   count = local.enable_ebs_encryption != null ? 1 : 0
 
   key_arn = local.ebs_encryption_key_arn
-
-  provider = aws.tenant
 }

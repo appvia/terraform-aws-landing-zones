@@ -46,6 +46,4 @@ resource "aws_resourcegroups_group" "resource_groups" {
       }
     }
   }
-
-  provider = aws.tenant
 }

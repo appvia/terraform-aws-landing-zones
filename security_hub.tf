@@ -30,8 +30,6 @@ resource "aws_cloudwatch_event_rule" "securityhub_findings" {
     detail-type = ["Security Hub Findings - Imported"],
     source      = ["aws.securityhub"]
   })
-
-  provider = aws.tenant
 }
 
 ## Provision a target to the event bridge rule, to publish messages to the SNS topic
@@ -40,8 +38,6 @@ resource "aws_cloudwatch_event_target" "security_hub_findings_target" {
 
   arn  = module.notifications.sns_topic_arn
   rule = aws_cloudwatch_event_rule.securityhub_findings[0].name
-
-  provider = aws.tenant
 
   depends_on = [
     module.notifications,

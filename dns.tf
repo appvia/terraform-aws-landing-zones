@@ -44,8 +44,6 @@ resource "aws_route53_zone" "zones" {
   depends_on = [
     module.networks
   ]
-
-  provider = aws.tenant
 }
 
 ## Request from spoke vpc to associate with the central dns solution if required
@@ -60,8 +58,6 @@ resource "aws_route53_vpc_association_authorization" "request_dns_authorization"
     aws_route53_zone.zones,
     module.networks,
   ]
-
-  provider = aws.tenant
 }
 
 ## Associate the hosted zone with the central dns solution if required

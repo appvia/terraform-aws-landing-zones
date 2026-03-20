@@ -1,4 +1,3 @@
-
 mock_data "aws_region" {
   defaults = {
     region = "eu-west-2"
@@ -31,7 +30,7 @@ mock_data "aws_vpc_ipam_pools" {
 mock_data "aws_caller_identity" {
   defaults = {
     account_id = "123456781000"
-    arn        = "arn:aws:iam::123456781000:role/role-name"
+    arn        = "arn:aws:iam::123456781000:role/test-role"
   }
 }
 
@@ -43,6 +42,27 @@ mock_data "aws_partition" {
 
 mock_data "aws_iam_policy_document" {
   defaults = {
-    json = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"resiliencehub.amazonaws.com\"},\"Action\":[\"sts:AssumeRole\",\"sts:TagSession\"]}]}"
+    json = <<-EOT
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AllowEC2",
+            "Effect": "Allow",
+            "Action": "kms:*",
+            "Resource": "*",
+            "Principal": {
+              "AWS": "*"
+            },
+            "Condition": {
+              "StringEquals": {
+                "kms:ViaService": "ec2.eu-west-2.amazonaws.com",
+                "kms:CallerAccount": "123456781000"
+              }
+            }
+          }
+        ]
+      }
+    EOT
   }
 }

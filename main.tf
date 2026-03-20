@@ -63,8 +63,4 @@ module "notifications" {
   sns_topic_name   = local.notifications_sns_topic_name
   tags             = local.tags
   teams            = local.notifications_teams
-
-  providers = {
-    aws = aws.tenant
-  }
 }

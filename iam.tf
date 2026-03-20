@@ -34,8 +34,6 @@ resource "aws_iam_policy" "iam_policies" {
   path        = each.value.path
   policy      = each.value.policy
   tags        = local.tags
-
-  provider = aws.tenant
 }
 
 ## Provision any IAM users required within the account
@@ -52,10 +50,6 @@ module "iam_users" {
   permissions_boundary = each.value.permissions_boundary_name != null ? format("arn:aws:iam::%s:policy/%s", local.account_id, each.value.permissions_boundary_name) : ""
   policies             = { for policy in try(each.value.permission_arns, []) : policy => policy }
   tags                 = merge(local.tags, { "Name" = each.value.name })
-
-  providers = {
-    aws = aws.tenant
-  }
 }
 
 ## Provision any IAM user policies required within the account
@@ -76,10 +70,6 @@ module "iam_groups" {
     module.iam_users,
     aws_iam_policy.iam_policies,
   ]
-
-  providers = {
-    aws = aws.tenant
-  }
 }
 
 ## Configure the service linked role for autoscaling
@@ -89,8 +79,6 @@ resource "aws_iam_service_linked_role" "service_linked_roles" {
   aws_service_name = each.key
   description      = "Enabling the service linked role for ${each.key}"
   tags             = local.tags
-
-  provider = aws.tenant
 }
 
 ## Configure the default IAM password policy for the account
@@ -106,8 +94,6 @@ resource "aws_iam_account_password_policy" "iam_account_password_policy" {
   require_numbers                = var.iam_password_policy.require_numbers
   require_symbols                = var.iam_password_policy.require_symbols
   require_uppercase_characters   = var.iam_password_policy.require_uppercase_characters
-
-  provider = aws.tenant
 }
 
 ## Configure the IAM Access Analyzer for the account
@@ -117,8 +103,6 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   analyzer_name = var.iam_access_analyzer.analyzer_name
   tags          = merge(local.tags, { "Name" = var.iam_access_analyzer.analyzer_name })
   type          = var.iam_access_analyzer.analyzer_type
-
-  provider = aws.tenant
 }
 
 ## Configure any IAM roles required within the iam_account_password_policy
@@ -157,10 +141,6 @@ module "iam_roles" {
     }
   )
 
-  providers = {
-    aws = aws.tenant
-  }
-
   depends_on = [
     aws_iam_policy.iam_policies,
     aws_iam_service_linked_role.service_linked_roles,
@@ -183,10 +163,6 @@ module "security_auditor_iam_role" {
 
   trust_policy_permissions = {
     "root" : local.iam_account_root
-  }
-
-  providers = {
-    aws = aws.tenant
   }
 }
 
@@ -217,9 +193,5 @@ module "ssm_automation_iam_role" {
     "AmazonSSMDirectoryServiceAccess" = "arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess"
     "AmazonSSMManagedInstanceCore"    = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
     "CloudWatchAgentServerPolicy"     = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-  }
-
-  providers = {
-    aws = aws.tenant
   }
 }

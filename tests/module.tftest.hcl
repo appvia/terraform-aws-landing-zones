@@ -26,11 +26,8 @@ run "validate_module" {
 }
 
 
-mock_provider "aws" {}
-
 mock_provider "aws" {
-  alias  = "tenant"
-  source = "./tests/providers/tenant"
+  source = "./tests/providers/default"
 }
 
 mock_provider "aws" {

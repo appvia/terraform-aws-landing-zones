@@ -21,8 +21,6 @@ resource "aws_oam_sink" "observability_sink" {
 
   name = "observability-sink"
   tags = merge(local.tags, { "Name" = "observability-sink" })
-
-  provider = aws.tenant
 }
 
 ## Provision a policy for the observability sink
@@ -50,8 +48,6 @@ resource "aws_oam_sink_policy" "observability_sink" {
       }
     ]
   })
-
-  provider = aws.tenant
 }
 
 ## Provision an IAM role for the cloudwatch cross-account observability
@@ -86,10 +82,6 @@ module "observability_source" {
     "aws-cloudwatch-dashboard" = "arn:aws:iam::aws:policy/CloudWatchAutomaticDashboardsAccess",
     "aws-cloudwatch"           = "arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess",
   }
-
-  providers = {
-    aws = aws.tenant
-  }
 }
 
 ## Provision the OEM for CloudWatch Cross-Account Observability
@@ -100,6 +92,4 @@ resource "aws_oam_link" "cloudwatch_cao" {
   sink_identifier = local.observability_source_sink_identifier
   resource_types  = local.observability_source.resource_types
   tags            = local.tags
-
-  provider = aws.tenant
 }
