@@ -746,9 +746,8 @@ Each service quota configuration requires:
 #### Important Notes
 
 - **Quota Increase Requests**: When you set a quota value higher than the current default, AWS will automatically create a quota increase request. These requests typically require approval and may take time to process.
-- **Regional Quotas**: Some quotas are regional, while others are account-wide. The module will apply quotas in the region where the provider is configured.
+- **Regional Quotas**: Some quotas are regional, while others are account-wide. The module will apply quotas in the region where the default provider is configured.
 - **Quota Decreases**: You cannot decrease a quota below its current value. If you need to decrease a quota, you must do so manually through the AWS Console or CLI.
-- **Provider Configuration**: Service quotas are created using the `aws.tenant` provider, which should be configured for the appropriate region.
 
 #### Use Cases
 
@@ -1547,6 +1546,17 @@ module "my_account" {
 }
 ```
 
+## Terraform Code Standards
+
+This module enforces consistent coding standards for all Terraform files. See [TERRAFORM_STANDARDS.md](./TERRAFORM_STANDARDS.md) for detailed guidelines including:
+
+- **Alphabetical ordering** of all variables, outputs, and locals
+- **Property ordering** within variables (description, type, default, validation)
+- **Property ordering** within outputs (description, value)
+- **Comment placement** above fields (not inline)
+- **Blank lines** between blocks for readability
+- **Nested standards** for complex object types
+
 ## Update Documentation
 
 The `terraform-docs` utility is used to generate this README. Follow the below steps to update:
@@ -1562,7 +1572,6 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 | <a name="provider_aws.network"></a> [aws.network](#provider\_aws.network) | >= 6.0.0 |
-| <a name="provider_aws.tenant"></a> [aws.tenant](#provider\_aws.tenant) | >= 6.0.0 |
 
 ## Inputs
 
@@ -1622,7 +1631,6 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 | <a name="output_sns_notification_arn"></a> [sns\_notification\_arn](#output\_sns\_notification\_arn) | The SNS topic ARN for notifications |
 | <a name="output_sns_notification_name"></a> [sns\_notification\_name](#output\_sns\_notification\_name) | Name of the SNS topic used to channel notifications |
 | <a name="output_tags"></a> [tags](#output\_tags) | The tags to apply to all resources |
-| <a name="output_tenant_account_id"></a> [tenant\_account\_id](#output\_tenant\_account\_id) | The account id of the tenant account |
 | <a name="output_vpc_ids"></a> [vpc\_ids](#output\_vpc\_ids) | A map of the network name to vpc id |
 <!-- END_TF_DOCS -->
 

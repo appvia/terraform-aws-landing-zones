@@ -35,10 +35,6 @@ module "networks" {
   transit_gateway_routes                 = try(each.value.transit_gateway.gateway_routes, null) != null ? each.value.transit_gateway.gateway_routes : local.transit_gateway_routes_default
   vpc_cidr                               = each.value.vpc.cidr
   vpc_netmask                            = each.value.vpc.netmask
-
-  providers = {
-    aws = aws.tenant
-  }
 }
 
 ## For each of the networks, attach them to the appropriate transit gateway routing

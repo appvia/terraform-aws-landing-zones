@@ -38,10 +38,6 @@ module "repository_permissions" {
   tags                    = var.tags
 
   depends_on = [aws_iam_policy.permissions_boundary]
-
-  providers = {
-    aws = aws.tenant
-  }
 }
 
 ## Provision a Github repository for this landing zone, if required.

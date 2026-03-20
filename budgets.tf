@@ -13,10 +13,6 @@ module "budgets" {
     sns   = local.notifications_sns
   }
 
-  providers = {
-    aws = aws.tenant
-  }
-
   depends_on = [
     module.notifications,
   ]

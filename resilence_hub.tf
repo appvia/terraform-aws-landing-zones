@@ -36,10 +36,6 @@ module "resilience_hub_iam_role" {
   policies = {
     "permissions" = "arn:aws:iam::aws:policy/AWSResilienceHubAsssessmentExecutionPolicy"
   }
-
-  providers = {
-    aws = aws.tenant
-  }
 }
 
 ## Provision any resilience hub policies
@@ -69,6 +65,4 @@ resource "aws_resiliencehub_resiliency_policy" "policies" {
       rto = each.value.policy.az.rto
     }
   }
-
-  provider = aws.tenant
 }

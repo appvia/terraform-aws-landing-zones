@@ -7,6 +7,4 @@ resource "aws_cloudwatch_log_account_policy" "cloudwatch_subscriptions" {
   policy_type        = "SUBSCRIPTION_FILTER_POLICY"
   selection_criteria = each.value.selection_criteria
   scope              = "ALL"
-
-  provider = aws.tenant
 }

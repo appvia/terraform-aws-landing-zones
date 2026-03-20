@@ -20,8 +20,6 @@ locals {
 ## Lookup the detector id for the guardduty detector if provisioned already
 data "aws_guardduty_detector" "guardduty" {
   count = local.enable_guardduty && !local.create_guardduty ? 1 : 0
-
-  provider = aws.tenant
 }
 
 # Create a new guardduty detector if required
@@ -31,8 +29,6 @@ resource "aws_guardduty_detector" "guardduty" {
   enable                       = true
   finding_publishing_frequency = try(var.guardduty.finding_publishing_frequency, "FIFTEEN_MINUTES")
   tags                         = merge(local.tags, { "Name" = "guardduty-detector" })
-
-  provider = aws.tenant
 }
 
 ## Provision the guardduty detectors
@@ -51,8 +47,6 @@ resource "aws_guardduty_detector_feature" "detectors" {
       status = additional_configuration.value.enable ? "ENABLED" : "DISABLED"
     }
   }
-
-  provider = aws.tenant
 }
 
 ## Provision the guardduty filters
@@ -80,6 +74,4 @@ resource "aws_guardduty_filter" "filters" {
       }
     }
   }
-
-  provider = aws.tenant
 }

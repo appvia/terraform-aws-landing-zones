@@ -52,9 +52,7 @@ module "app1" {
   }
 
   providers = {
-    aws         = aws
     aws.network = aws.network
-    aws.tenant  = aws.tenant
   }
 }
 
@@ -91,8 +89,6 @@ module "app2" {
   }
 
   providers = {
-    aws         = aws
     aws.network = aws.network
-    aws.tenant  = aws.tenant
   }
 }

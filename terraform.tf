@@ -8,7 +8,6 @@ terraform {
       version = ">= 6.0.0"
       configuration_aliases = [
         aws.network,
-        aws.tenant,
       ]
     }
   }

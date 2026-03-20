@@ -27,8 +27,4 @@ module "anomaly_detection" {
   monitors      = local.cost_anomaly_monitors
   sns_topic_arn = module.notifications.sns_topic_arn
   tags          = local.tags
-
-  providers = {
-    aws = aws.tenant
-  }
 }

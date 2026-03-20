@@ -101,10 +101,6 @@ module "kms_key_administrator" {
       resources = ["*"]
     }
   }
-
-  providers = {
-    aws = aws.tenant
-  }
 }
 
 ## Provision a regional account kms key for use by the tenant
@@ -129,8 +125,4 @@ module "kms_key" {
     module.kms_key_administrator,
     module.iam_roles,
   ]
-
-  providers = {
-    aws = aws.tenant
-  }
 }
