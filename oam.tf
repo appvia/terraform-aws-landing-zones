@@ -42,7 +42,7 @@ resource "aws_oam_sink_policy" "observability_sink" {
         }
         Condition = {
           "ForAllValues:StringEquals" = {
-            "oam:ResourceType" = local.observability_sink.resource_types
+            "oam:ResourceTypes" = local.observability_sink.resource_types
           }
         }
       }
