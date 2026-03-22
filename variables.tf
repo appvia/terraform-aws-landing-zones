@@ -126,6 +126,8 @@ variable "cloudwatch" {
       enable = optional(bool, false)
       # The AWS Identifier of the accounts that are allowed to access the observability sink
       identifiers = optional(list(string), null)
+      # The organization ID to restrict access to the observability sink to accounts within the organization
+      organization_id = optional(string, null)
       # The AWS resource types that are allowed to be linked to the observability sink
       resource_types = optional(list(string), [
         "AWS::CloudWatch::Metric",

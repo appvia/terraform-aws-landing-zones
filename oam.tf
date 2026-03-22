@@ -8,7 +8,7 @@ locals {
   ## Indicates if cloudwatch cross-account observability should be enabled
   enable_observability_source = try(local.observability_source.enable, false) && try(local.observability_source.account_id, null) != null
   ## The account id for the cloudwatch cross-account observability
-  observability_source_account_id = try(local.observability_source.account_id, "")
+  observability_source_account_id = local.observability_source != null && local.observability_source.account_id != null ? local.observability_source.account_id : ""
   ## The OAM sink identifier for the cloudwatch cross-account observability
   observability_source_sink_identifier = try(local.observability_source.sink_identifier, "")
   ## The account root arn for the cloudwatch cross-account observability
@@ -23,31 +23,52 @@ resource "aws_oam_sink" "observability_sink" {
   tags = merge(local.tags, { "Name" = "observability-sink" })
 }
 
+## Craft an IAM sink policy document for the observability sink
+data "aws_iam_policy_document" "observability_sink_policy" {
+  count = local.enable_observability_sink ? 1 : 0
+
+  statement {
+    sid    = "AllowCreateLink"
+    effect = "Allow"
+    actions = [
+      "oam:CreateLink",
+      "oam:UpdateLink"
+    ]
+    resources = ["*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    dynamic "condition" {
+      for_each = length(try(local.observability_sink.resource_types, [])) > 0 ? [1] : []
+
+      content {
+        test     = "ForAllValues:StringEquals"
+        variable = "oam:ResourceTypes"
+        values   = local.observability_sink.resource_types
+      }
+    }
+
+    dynamic "condition" {
+      for_each = try(length(local.observability_sink.organization_id) > 0, false) ? [1] : []
+
+      content {
+        test     = "StringEquals"
+        variable = "aws:PrincipalOrgID"
+        values   = [local.observability_sink.organization_id]
+      }
+    }
+  }
+}
+
 ## Provision a policy for the observability sink
 resource "aws_oam_sink_policy" "observability_sink" {
   count = local.enable_observability_sink ? 1 : 0
 
+  policy          = data.aws_iam_policy_document.observability_sink_policy[0].json
   sink_identifier = aws_oam_sink.observability_sink[0].arn
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "AllowCreateLink"
-        Actions   = ["oam:CreateLink", "oam:UpdateLink"]
-        Resources = ["*"]
-        Effect    = "Allow"
-        Principal = {
-          AWS = local.observability_sink.identifiers
-        }
-        Condition = {
-          "ForAllValues:StringEquals" = {
-            "oam:ResourceTypes" = local.observability_sink.resource_types
-          }
-        }
-      }
-    ]
-  })
 }
 
 ## Provision an IAM role for the cloudwatch cross-account observability
