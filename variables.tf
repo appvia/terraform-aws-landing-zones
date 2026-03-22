@@ -129,10 +129,8 @@ variable "cloudwatch" {
       # The AWS resource types that are allowed to be linked to the observability sink
       resource_types = optional(list(string), [
         "AWS::CloudWatch::Metric",
-        "AWS::CloudWatch::Dashboard",
-        "AWS::CloudWatch::Alarm",
-        "AWS::CloudWatch::LogGroup",
-        "AWS::CloudWatch::LogStream",
+        "AWS::Logs::LogGroup",
+        "AWS::XRay::Trace",
       ])
     }), null)
     observability_source = optional(object({
@@ -145,10 +143,8 @@ variable "cloudwatch" {
       # The resource types to link to the observability source
       resource_types = optional(list(string), [
         "AWS::CloudWatch::Metric",
-        "AWS::CloudWatch::Dashboard",
-        "AWS::CloudWatch::Alarm",
-        "AWS::CloudWatch::LogGroup",
-        "AWS::CloudWatch::LogStream",
+        "AWS::Logs::LogGroup",
+        "AWS::XRay::Trace",
       ])
     }), null)
     # Collection of account subscriptions to provision
