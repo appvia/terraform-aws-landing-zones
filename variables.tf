@@ -107,7 +107,7 @@ variable "central_dns" {
   description = "Configuration for the hub used to centrally resolved dns requests"
   type = object({
     enable = optional(bool, false)
-    # The domain name to use for the central DNS
+    # The VPC ID to use for central DNS resolution
     vpc_id = optional(string, null)
   })
   default = {
@@ -118,8 +118,8 @@ variable "central_dns" {
 
 variable "cloudwatch" {
   description = "Configuration for the CloudWatch service"
-  ## Indicates if cloudwatch cross-account observability should be enabled
   type = object({
+    # Indicates if CloudWatch cross-account observability should be enabled (sink and source configuration below)
     # The observability sink configuration
     observability_sink = optional(object({
       # A flag indicating if cloudwatch cross-account observability should be enabled
@@ -151,7 +151,7 @@ variable "cloudwatch" {
         "AWS::CloudWatch::LogStream",
       ])
     }), null)
-    ## Collection of account subscriptions to provision
+    # Collection of account subscriptions to provision
     account_subscriptions = optional(map(object({
       # The policy document to apply to the subscription
       policy = optional(string, null)
@@ -170,30 +170,29 @@ variable "cost_anomaly_detection" {
   description = "A collection of cost anomaly detection monitors to apply to the account"
   type = object({
     enable = optional(bool, true)
-    # A flag indicating if the default monitors should be enabled
+    # Cost anomaly detection monitors to apply to the account
     monitors = optional(list(object({
-      name = string
       # The name of the anomaly detection rule
+      name = string
+      # How often the monitor is evaluated
       frequency = optional(string, "IMMEDIATE")
       # The dimension of the anomaly detection rule, either SERVICE or DIMENSIONAL
       threshold_expression = optional(list(object({
+        # The expression to apply to the cost anomaly detection monitor
         and = object({
           dimension = object({
-            key = string
             # The key of the dimension
-            match_options = list(string)
+            key = string
             # The match options of the dimension
-            values = list(string)
+            match_options = list(string)
             # The values of the dimension
+            values = list(string)
           })
         })
-        # The expression to apply to the cost anomaly detection monitor
       })), [])
-      # The expression to apply to the anomaly detection rule
+      # The specification of the anomaly detection monitor
       # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor
       specification = optional(string, "")
-      # The specification to anomaly detection monitor
-      # see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ce_anomaly_monitor
     })), [])
   })
   default = {
@@ -211,16 +210,16 @@ variable "cost_center" {
 variable "dns" {
   description = "A collection of DNS zones to provision and associate with networks"
   type = map(object({
-    comment = optional(string, "Managed by zone created by terraform")
     # A comment associated with the DNS zone
-    network = string
+    comment = optional(string, "Managed by zone created by terraform")
     # A list of network names to associate with the DNS zone
-    private = optional(bool, true)
+    network = string
     # A flag indicating if the DNS zone is private or public
+    private = optional(bool, true)
   }))
   default = {}
 
-  ## Domain name (map key) must end with aws.appvia.local
+  # Domain name (map key) must end with aws.appvia.local
   validation {
     condition     = alltrue([for domain in keys(var.dns) : can(regex(".*aws.appvia.local$", domain))])
     error_message = "The domain name must end with aws.appvia.local"
@@ -230,16 +229,16 @@ variable "dns" {
 variable "ebs_encryption" {
   description = "A collection of EBS encryption settings to apply to the account"
   type = object({
-    enable = optional(bool, false)
     # A flag indicating if EBS encryption should be enabled
-    create_kms_key = optional(bool, true)
+    enable = optional(bool, false)
     # A flag indicating if an EBS encryption key should be created
-    key_deletion_window_in_days = optional(number, 10)
+    create_kms_key = optional(bool, true)
     # The number of days to retain the key before deletion when the key is removed
-    key_alias = optional(string, "lza/ebs/default")
+    key_deletion_window_in_days = optional(number, 10)
     # The alias of the EBS encryption key when provisioning a new key
-    key_arn = optional(string, null)
+    key_alias = optional(string, "lza/ebs/default")
     # The ARN of an existing EBS encryption key to use for EBS encryption
+    key_arn = optional(string, null)
   })
   default = null
 }
@@ -247,7 +246,7 @@ variable "ebs_encryption" {
 variable "ebs_snapshots_block" {
   description = "Configuration for blocking EBS snapshots in the account, either block for all volumes, only new volumes, or allow snapshots as normal"
   type = object({
-    ## The state of the ebs snapshot block, if enabled, all EBS volumes will have snapshot creation blocked (block-all-sharing, block-new-sharing or unblocked)
+    # The state of the EBS snapshot block — if enabled, all EBS volumes will have snapshot creation blocked (block-all-sharing, block-new-sharing or unblocked)
     state = optional(string, "block-all-sharing")
   })
   default = null
@@ -268,47 +267,46 @@ variable "guardduty" {
   type = object({
     # A flag indicating if GuardDuty should be created
     create = optional(bool, false)
-    # A flag indicating if GuardDuty should be created
-    finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")
     # The frequency of finding publishing
+    finding_publishing_frequency = optional(string, "FIFTEEN_MINUTES")
+    # Configuration for each GuardDuty detector
     detectors = optional(list(object({
-      name = string
       # The name of the detector
+      name = string
+      # A flag indicating if the detector is enabled
       enable = optional(bool, true)
-      # The frequency of finding publishing
       additional_configuration = optional(list(object({
-        name = string
         # The name of the additional configuration
+        name = string
+        # A flag indicating if the additional configuration is enabled
         enable = optional(bool, true)
-        # The status of the additional configuration
       })), [])
     })), [])
-    # Configuration for the detector
+    # GuardDuty filters (map key is the filter name)
     filters = optional(map(object({
-      # The name of the filter
-      action = string
       # The action of the filter
-      rank = number
+      action = string
       # The rank of the filter
-      description = string
+      rank = number
       # The description of the filter
-      criterion = list(object({
-        field = string
-        # The field of the criterion
-        equals = optional(string, null)
-        # The equals of the criterion
-        not_equals = optional(string, null)
-        # The not equals of the criterion
-        greater_than = optional(string, null)
-        # The greater than of the criterion
-        greater_than_or_equal = optional(string, null)
-        # The greater than or equal of the criterion
-        less_than = optional(string, null)
-        # The less than of the criterion
-        less_than_or_equal = optional(string, null)
-        # The less than or equal of the criterion
-      }))
+      description = string
       # The criterion of the filter
+      criterion = list(object({
+        # The field of the criterion
+        field = string
+        # The equals of the criterion
+        equals = optional(string, null)
+        # The not equals of the criterion
+        not_equals = optional(string, null)
+        # The greater than of the criterion
+        greater_than = optional(string, null)
+        # The greater than or equal of the criterion
+        greater_than_or_equal = optional(string, null)
+        # The less than of the criterion
+        less_than = optional(string, null)
+        # The less than or equal of the criterion
+        less_than_or_equal = optional(string, null)
+      }))
     })), {})
   })
   default = null
@@ -327,12 +325,12 @@ variable "home_region" {
 variable "iam_access_analyzer" {
   description = "The IAM access analyzer configuration to apply to the account"
   type = object({
-    enable = optional(bool, false)
     # A flag indicating if IAM access analyzer should be enabled
-    analyzer_name = optional(string, "lza-iam-access-analyzer")
+    enable = optional(bool, false)
     # The name of the IAM access analyzer
-    analyzer_type = optional(string, "ORGANIZATION")
+    analyzer_name = optional(string, "lza-iam-access-analyzer")
     # The type of the IAM access analyzer
+    analyzer_type = optional(string, "ORGANIZATION")
   })
   default = {
     analyzer_name = "lza-iam-access-analyzer"
@@ -359,16 +357,16 @@ variable "iam_access_analyzer" {
 variable "iam_groups" {
   description = "A collection of IAM groups to apply to the account"
   type = list(object({
-    enforce_mfa = optional(bool, true)
     # A flag indicating if MFA should be enforced
-    name = optional(string, null)
+    enforce_mfa = optional(bool, true)
     # The name prefix of the IAM group
-    path = optional(string, "/")
+    name = optional(string, null)
     # The path of the IAM group
-    policies = optional(list(string), [])
+    path = optional(string, "/")
     # A list of policies to apply to the IAM group
-    users = optional(list(string), [])
+    policies = optional(list(string), [])
     # A list of users to apply to the IAM group
+    users = optional(list(string), [])
   }))
   default = []
 }
@@ -376,12 +374,12 @@ variable "iam_groups" {
 variable "iam_instance_profiles" {
   description = "A collection of IAM instance profiles to apply to the account"
   type = map(object({
-    name = optional(string, null)
     # The name prefix of the IAM instance profile
-    path = optional(string, "/")
+    name = optional(string, null)
     # The path of the IAM instance profile
-    permission_arns = optional(list(string), [])
+    path = optional(string, "/")
     # A list of roles to apply to the IAM instance profile
+    permission_arns = optional(list(string), [])
   }))
   default = {}
 }
@@ -389,26 +387,26 @@ variable "iam_instance_profiles" {
 variable "iam_password_policy" {
   description = "The IAM password policy to apply to the account"
   type = object({
-    enable = optional(bool, false)
     # A flag indicating if IAM password policy should be enabled
-    allow_users_to_change_password = optional(bool, true)
+    enable = optional(bool, false)
     # A flag indicating if users can change their password
-    hard_expiry = optional(bool, false)
+    allow_users_to_change_password = optional(bool, true)
     # A flag indicating if a hard expiry should be enforced
-    max_password_age = optional(number, 90)
+    hard_expiry = optional(bool, false)
     # The maximum password age
-    minimum_password_length = optional(number, 16)
+    max_password_age = optional(number, 90)
     # The minimum password length
-    password_reuse_prevention = optional(number, 24)
+    minimum_password_length = optional(number, 16)
     # The number of passwords to prevent reuse
-    require_lowercase_characters = optional(bool, true)
+    password_reuse_prevention = optional(number, 24)
     # A flag indicating if lowercase characters are required
-    require_numbers = optional(bool, true)
+    require_lowercase_characters = optional(bool, true)
     # A flag indicating if numbers are required
-    require_symbols = optional(bool, true)
+    require_numbers = optional(bool, true)
     # A flag indicating if symbols are required
-    require_uppercase_characters = optional(bool, true)
+    require_symbols = optional(bool, true)
     # A flag indicating if uppercase characters are required
+    require_uppercase_characters = optional(bool, true)
   })
   default = {}
 }
@@ -416,16 +414,16 @@ variable "iam_password_policy" {
 variable "iam_policies" {
   description = "A collection of IAM policies to apply to the account"
   type = map(object({
-    name = optional(string, null)
     # The name of the IAM policy
-    name_prefix = optional(string, null)
+    name = optional(string, null)
     # The name prefix of the IAM policy
-    description = string
+    name_prefix = optional(string, null)
     # The description of the IAM policy
-    path = optional(string, "/")
+    description = string
     # The path of the IAM policy
-    policy = string
+    path = optional(string, "/")
     # The policy document to apply to the IAM policy
+    policy = string
   }))
   default = {}
 
@@ -438,25 +436,25 @@ variable "iam_policies" {
 variable "iam_roles" {
   description = "A collection of IAM roles to apply to the account"
   type = map(object({
-    name = optional(string, null)
     # The name of the IAM role
-    name_prefix = optional(string, null)
+    name = optional(string, null)
     # The name prefix of the IAM role
-    assume_accounts = optional(list(string), [])
+    name_prefix = optional(string, null)
     # List of accounts to assume the role
-    assume_roles = optional(list(string), [])
+    assume_accounts = optional(list(string), [])
     # List of principals to assume the role
-    assume_services = optional(list(string), [])
+    assume_roles = optional(list(string), [])
     # List of services to assume the role
-    description = string
+    assume_services = optional(list(string), [])
     # The description of the IAM role
-    path = optional(string, "/")
+    description = string
     # The path of the IAM role
+    path = optional(string, "/")
+    # The ARN of the permissions boundary to apply to the IAM role
     permission_boundary_arn = optional(string, "")
-    # A collection of tags to apply to the IAM role
-    permission_arns = optional(list(string), [])
     # A list of additional permissions to apply to the IAM role
-    policies = optional(any, [])
+    permission_arns = optional(list(string), [])
+    policies        = optional(any, [])
   }))
   default = {}
 
@@ -479,12 +477,13 @@ variable "iam_service_linked_roles" {
 variable "iam_users" {
   description = "A collection of IAM users to apply to the account"
   type = list(object({
-    name = optional(string, null)
     # The name of the IAM user
-    name_prefix = optional(string, null)
+    name = optional(string, null)
     # The name prefix of the IAM user
-    path = optional(string, "/")
+    name_prefix = optional(string, null)
     # The path of the IAM user
+    path = optional(string, "/")
+    # The name of the permissions boundary to apply to the IAM user
     permission_boundary_name = optional(string, null)
     # A list of additional permissions to apply to the IAM user
     policy_arns = optional(list(string), [])
@@ -519,37 +518,38 @@ variable "include_iam_roles" {
 variable "infrastructure_repository" {
   description = "The infrastructure repository provisions and configures a pipeline repository for the landing zone"
   type = object({
-    name = optional(string, null)
     # The name prefix of the repository
-    create = optional(bool, true)
+    name = optional(string, null)
     # A flag indicating if the repository should be created
-    visibility = optional(string, "private")
+    create = optional(bool, true)
     # The visibility of the repository
+    visibility = optional(string, "private")
+    # The default branch of the repository
     default_branch = optional(string, "main")
-    # home page url of the repository
+    # The home page URL of the repository
     homepage_url = optional(string, null)
-    # The home page url of the repository
-    enable_archived = optional(bool, false)
     # A flag indicating if the repository should be archived
+    enable_archived = optional(bool, false)
+    # A flag indicating if the repository should enable discussions
     enable_discussions = optional(bool, false)
-    # A flag indicating if the repository should enable downloads
-    enable_issues = optional(bool, true)
     # A flag indicating if the repository should enable issues
-    enable_projects = optional(bool, false)
+    enable_issues = optional(bool, true)
     # A flag indicating if the repository should enable projects
-    enable_wiki = optional(bool, false)
+    enable_projects = optional(bool, false)
     # A flag indicating if the repository should enable wiki
-    enable_vulnerability_alerts = optional(bool, null)
+    enable_wiki = optional(bool, false)
     # A flag indicating if the repository should enable vulnerability alerts
-    topics = optional(list(string), ["aws", "terraform", "landing-zone"])
+    enable_vulnerability_alerts = optional(bool, null)
     # The topics of the repository
+    topics = optional(list(string), ["aws", "terraform", "landing-zone"])
+    # The collaborators of the repository
     collaborators = optional(list(object({
       # The username of the collaborator
       username = string
       # The permission of the collaborator
       permission = optional(string, "write")
     })), [])
-    # The collaborators of the repository
+    # The repository template to create the repository from
     template = optional(object({
       # The owner of the repository template
       owner = string
@@ -558,22 +558,22 @@ variable "infrastructure_repository" {
       # Include all branches
       include_all_branches = optional(bool, false)
     }), null)
-    # Configure webhooks for the repository
+    # Webhooks to configure for the repository
     webhooks = optional(list(object({
       # The content type of the webhook
       content_type = optional(string, "json")
-      # The enable flag of the webhook
+      # A flag indicating if the webhook is enabled
       enable = optional(bool, true)
       # The events of the webhook
       events = optional(list(string), ["push", "pull_request"])
-      # The insecure SSL flag of the webhook
+      # A flag indicating if insecure SSL is allowed for the webhook
       insecure_ssl = optional(bool, false)
       # The secret of the webhook
       secret = optional(string, null)
       # The URL of the webhook
       url = string
     })), null)
-    # The branch protection to use for the repository
+    # Branch protection rules for the repository (map key is the branch name)
     branch_protection = optional(map(object({
       allows_force_pushes             = optional(bool, false)
       allows_deletions                = optional(bool, false)
@@ -616,25 +616,24 @@ variable "infrastructure_repository" {
       }
     })
 
-    # The branch protection to use for the repository
+    # IAM policy ARNs to attach for repository access (read-only and read-write)
     permissions = optional(object({
+      # The policy ARNs to associate for read-only access
       read_only_policy_arns = list(string)
-      # The policy ARNs to associate with the repository
+      # The policy ARNs to associate for read-write access
       read_write_policy_arns = list(string)
-      # The policy ARNs to associate with the repository
       }), {
       read_only_policy_arns  = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
       read_write_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
     })
 
-    # The permissions to use for the repository
-    permissions_boundary = optional(object({
-      arn = optional(string, null)
-      # The ARN of the permissions boundary to use for the repository
-      policy = optional(string, null)
-      # The policy of the permissions boundary to use for the repository
-    }), null)
     # The permissions boundary to use for the repository
+    permissions_boundary = optional(object({
+      # The ARN of the permissions boundary to use for the repository
+      arn = optional(string, null)
+      # The policy of the permissions boundary to use for the repository
+      policy = optional(string, null)
+    }), null)
   })
   default = null
 }
@@ -642,10 +641,10 @@ variable "infrastructure_repository" {
 variable "inspector" {
   description = "Configuration for the AWS Inspector service"
   type = object({
-    enable = optional(bool, false)
     # A flag indicating if AWS Inspector should be enabled
-    delegate_account_id = optional(string, null)
+    enable = optional(bool, false)
     # The account ID we should associate the service to
+    delegate_account_id = optional(string, null)
   })
   default = null
 }
@@ -653,21 +652,20 @@ variable "inspector" {
 variable "kms_administrator" {
   description = "Configuration for the default kms administrator role to use for the account"
   type = object({
-    # The domain name to use for the central DNS
+    # A list of account IDs that can assume the KMS administrator role
     assume_accounts = optional(list(string), [])
-    # A list of roles to assume the kms administrator role
+    # A list of IAM role ARNs that can assume the KMS administrator role
     assume_roles = optional(list(string), [])
-    # A list of roles to assume the kms administrator role
+    # A list of services that can assume the KMS administrator role
     assume_services = optional(list(string), [])
-    # A list of services to assume the kms administrator role
+    # The description of the default KMS administrator role
     description = optional(string, "Provides access to administer the KMS keys for the account")
-    # The description of the default kms administrator role
+    # A flag indicating if the default KMS administrator role should be enabled
     enable = optional(bool, false)
-    # A flag indicating if the default kms administrator role should be enabled
+    # A flag indicating if the account root can administer KMS keys
     enable_account_root = optional(bool, false)
-    # A flag indicating if the account root should be enabled
+    # The name of the default KMS administrator role
     name = optional(string, "lza-kms-adminstrator")
-    # The name of the default kms administrator role
   })
   default = {
     assume_accounts     = []
@@ -683,18 +681,18 @@ variable "kms_administrator" {
 variable "kms_key" {
   description = "Configuration for the default kms encryption key to use for the account (per region)"
   type = object({
-    enable = optional(bool, false)
     # A flag indicating if account encryption should be enabled
-    key_deletion_window_in_days = optional(number, 7)
+    enable = optional(bool, false)
     # The number of days to retain the key before deletion when the key is removed
-    key_alias = optional(string, null)
+    key_deletion_window_in_days = optional(number, 7)
     # The alias of the account encryption key when provisioning a new key
+    key_alias = optional(string, null)
+    # A list of ARNs of the key administrators
     key_administrators = optional(list(string), [])
-    # A list of ARN of the key administrators
+    # A list of ARNs of the key owners
     key_owners = optional(list(string), [])
-    # A list of ARN of the key owners
+    # A list of ARNs of the key users — if unset, it will default to the account
     key_users = optional(list(string), [])
-    # A list of ARN of the key users - if unset, it will default to the account
   })
   default = {
     enable                      = false
@@ -709,12 +707,12 @@ variable "kms_key" {
 variable "macie" {
   description = "A collection of Macie settings to apply to the account"
   type = object({
-    enable = optional(bool, false)
     # A flag indicating if Macie should be enabled
+    enable = optional(bool, false)
+    # The frequency of Macie findings publication
     frequency = optional(string, "FIFTEEN_MINUTES")
-    # The frequency of Macie findings
+    # When set, the member account will accept invitations from the management account
     admin_account_id = optional(string, null)
-    # Is defined the member account will accept any invitations from the management account
   })
   default = null
 }
@@ -723,114 +721,116 @@ variable "networks" {
   description = "A collection of networks to provision within the designated region"
   type = map(object({
     firewall = optional(object({
-      capacity = number
       # The capacity of the firewall rule group
+      capacity = number
+      # The content of the suricata rules
       rules_source = string
-      # The content of the suracata rules
-      ip_sets = map(list(string))
       # A map of IP sets to apply to the firewall rule ie. WEBSERVERS = ["100.0.0.0/16"]
-      port_sets = map(list(number))
+      ip_sets = map(list(string))
       # A map of port sets to apply to the firewall rule ie. WEBSERVERS = [80, 443]
+      port_sets         = map(list(number))
       domains_whitelist = list(string)
     }), null)
 
-    private_subnet_tags = optional(map(string), {})
     # Additional tags to apply to the private subnet
-    public_subnet_tags = optional(map(string), {})
+    private_subnet_tags = optional(map(string), {})
     # Additional tags to apply to the public subnet
+    public_subnet_tags = optional(map(string), {})
 
     subnets = map(object({
-      cidr = optional(string, null)
       # The CIDR block of the subnet
+      cidr = optional(string, null)
+      # The netmask length of the subnet
       netmask = optional(number, 0)
       # Additional tags to apply to the subnet
       tags = optional(map(string), {})
     }))
 
+    # A collection of tags to apply to the network — these will be merged with the global tags
     tags = optional(map(string), {})
-    # A collection of tags to apply to the network - these will be merged with the global tags
 
+    # Configuration for the transit gateway for this network
     transit_gateway = optional(object({
-      gateway_id = optional(string, null)
       # The transit gateway ID to associate with the network
+      gateway_id = optional(string, null)
+      # Optional ID of the transit gateway route table to associate with the network
       gateway_route_table_id = optional(string, null)
-      ## Optional id of the transit gateway route table to associate with the network
+      # A map used to associate routes with subnets provisioned by the module — e.g. ensure
+      # all private subnets push traffic via the transit gateway
       gateway_routes = optional(map(string), null)
-      # A map used to associate routes with subnets provisioned by the module - i.e ensure
-      # all private subnets push
       }), {
       gateway_id             = null
       gateway_route_table_id = null
       gateway_routes         = null
     })
-    ## Configuration for the transit gateway for this network
 
     vpc = object({
+      # The number of availability zones in which to provision the network (defaults to 2)
       availability_zones = optional(string, 2)
-      # The availability zone in which to provision the network, defaults to 2
-      cidr = optional(string, null)
       # The CIDR block of the VPC network if not using IPAM
-      enable_private_endpoints = optional(list(string), [])
+      cidr = optional(string, null)
       # An optional list of private endpoints to associate with the network i.e ["s3", "dynamodb"]
-      enable_shared_endpoints = optional(bool, true)
+      enable_private_endpoints = optional(list(string), [])
       # Indicates if the network should accept shared endpoints
-      enable_transit_gateway = optional(bool, true)
+      enable_shared_endpoints = optional(bool, true)
       # A flag indicating if the network should be associated with the transit gateway
-      enable_transit_gateway_appliance_mode = optional(bool, false)
+      enable_transit_gateway = optional(bool, true)
       # A flag indicating if the transit gateway should be in appliance mode
-      enable_default_route_table_association = optional(bool, true)
+      enable_transit_gateway_appliance_mode = optional(bool, false)
       # A flag indicating if the default route table should be associated with the network
-      enable_default_route_table_propagation = optional(bool, true)
+      enable_default_route_table_association = optional(bool, true)
       # A flag indicating if the default route table should be propagated to the network
+      enable_default_route_table_propagation = optional(bool, true)
       flow_logs = optional(object({
-        destination_type = optional(string, "none")
         # The destination type of the flow logs
-        destination_arn = optional(string, null)
+        destination_type = optional(string, "none")
         # The ARN of the destination of the flow logs
-        log_format = optional(string, "plain-text")
+        destination_arn = optional(string, null)
         # The format of the flow logs
-        traffic_type = optional(string, "ALL")
+        log_format = optional(string, "plain-text")
         # The type of traffic to capture
-        destination_options = optional(object({
-          file_format = optional(string, "plain-text")
-          # The format of the flow logs
-          hive_compatible_partitions = optional(bool, false)
-          # Whether to use hive compatible partitions
-          per_hour_partition = optional(bool, false)
-          # Whether to partition the flow logs per hour
-        }), null)
+        traffic_type = optional(string, "ALL")
         # The destination options of the flow logs
+        destination_options = optional(object({
+          # The format of the flow logs
+          file_format = optional(string, "plain-text")
+          # Whether to use hive compatible partitions
+          hive_compatible_partitions = optional(bool, false)
+          # Whether to partition the flow logs per hour
+          per_hour_partition = optional(bool, false)
+        }), null)
       }), null)
-      ipam_pool_name = optional(string, null)
       # The name of the IPAM pool to use for the network
-      nat_gateway_mode = optional(string, "none")
+      ipam_pool_name = optional(string, null)
       # The NAT gateway mode to use for the network, defaults to none
-      netmask = optional(number, null)
+      nat_gateway_mode = optional(string, "none")
       # The netmask of the VPC network if using IPAM
+      netmask = optional(number, null)
+      # Routes to associate with the transit gateway for this VPC
       transit_gateway_routes = optional(map(string), null)
     })
   }))
   default = {}
 
-  ## The availability zone must be greater than 0
+  # The availability zone must be greater than 0
   validation {
     condition     = alltrue([for network in var.networks : network.vpc.availability_zones > 0])
     error_message = "The availability zone must be greater than 0"
   }
 
-  ## We must have a private subnet defined in subnets
+  # We must have a private subnet defined in subnets
   validation {
     condition     = alltrue([for network in var.networks : contains(keys(network.subnets), "private")])
     error_message = "We must have a 'private' subnet defined in subnets"
   }
 
-  ## The private subnet netmask must be between 0 and 32
+  # The private subnet netmask must be between 0 and 32
   validation {
     condition     = alltrue([for network in var.networks : network.subnets["private"].netmask >= 0 && network.subnets["private"].netmask <= 32])
     error_message = "The private subnet netmask must be between 0 and 32"
   }
 
-  ## The nat mode can only be none, single or all_azs
+  # The nat mode can only be none, single or all_azs
   validation {
     condition     = alltrue([for network in var.networks : contains(["none", "single_az", "all_azs"], network.vpc.nat_gateway_mode)])
     error_message = "The nat mode can only be none, single_az or all_azs"
@@ -841,36 +841,34 @@ variable "notifications" {
   description = "Configuration for the notifications to the owner of the account"
   type = object({
     email = optional(object({
-      addresses = optional(list(string), [])
       # A list of email addresses to send notifications to
+      addresses = optional(list(string), [])
       }), {
       addresses = []
     })
 
     slack = optional(object({
-      # The slack webhook_arn to a secret in secrets manager containing the webhook_url
+      # The Slack webhook_arn to a secret in Secrets Manager containing the webhook_url
       webhook_arn = optional(string, null)
-      # The slack webhook_url to send notifications to
+      # The Slack webhook_url to send notifications to
       webhook_url = optional(string, null)
     }), null)
 
     teams = optional(object({
-      # The teams webhook_arn to a secret in secrets manager containing the webhook_url
+      # The Teams webhook_arn to a secret in Secrets Manager containing the webhook_url
       webhook_arn = optional(string, null)
-      # The teams webhook_url to send notifications to
+      # The Teams webhook_url to send notifications to
       webhook_url = optional(string, null)
     }), null)
 
     # The services to configure for notifications
     services = optional(object({
-      # The security hub notifications to configure
       securityhub = object({
-        # A flag indicating if security hub notifications should be enabled
+        # A flag indicating if Security Hub notifications should be enabled
         enable = optional(bool, false)
-        # The sns topic name which is created per region in the account,
-        # this is used to receive notifications, and forward them on via email or other means.
+        # The SNS topic name created per region in the account to receive notifications and forward them via email or other means
         eventbridge_rule_name = optional(string, "lza-securityhub-eventbridge")
-        # The severity of the security hub events to forward
+        # The severity of the Security Hub events to forward
         severity = optional(list(string), ["CRITICAL"])
       })
       }), {
@@ -933,7 +931,7 @@ variable "product" {
 variable "resilience_hub" {
   description = "Configuration for the resilience hub service"
   type = object({
-    # Enable the service within the account, creating the IAM Role
+    # Enable the service within the account, creating the IAM role
     enable = optional(bool, false)
     # A collection of policies to apply to the resilience hub
     policies = optional(map(object({
@@ -941,7 +939,7 @@ variable "resilience_hub" {
       name = optional(string, null)
       # The description of the policy
       description = string
-      # The tier associated the policy (MissionCritical, Critical, Important, CoreServices, NonCritical, and NotApplicable)
+      # The tier associated with the policy (MissionCritical, Critical, Important, CoreServices, NonCritical, and NotApplicable)
       tier = optional(string, "Important")
       # The policy document to apply to the policy
       policy = optional(object({
@@ -952,21 +950,21 @@ variable "resilience_hub" {
           # The RTO or recommended recovery time
           rto = optional(string, "1h")
         }), {})
-        # The policy associated the hardware
+        # The policy associated with hardware recovery
         hardware = optional(object({
           # The RPO or recommended recovery point objective
           rpo = optional(string, "1h")
           # The RTO or recommended recovery time
           rto = optional(string, "1h")
         }), {})
-        # The policy associated the software recovery
+        # The policy associated with software recovery
         software = optional(object({
           # The RPO or recommended recovery point objective
           rpo = optional(string, "1h")
           # The RTO or recommended recovery time
           rto = optional(string, "1h")
         }), {})
-        # The policy associated the regional recovery
+        # The policy associated with regional recovery
         region = optional(object({
           # The RPO or recommended recovery point objective
           rpo = optional(string, "1 hour")
@@ -984,13 +982,13 @@ variable "resilience_hub" {
 variable "resource_groups" {
   description = "Configuration for the resource groups service"
   type = map(object({
-    # The name of the resource group
+    # The description of the resource group
     description = string
-    # The type of the of group configuration
+    # The type of the group configuration
     type = optional(string, "TAG_FILTERS_1_0")
     # An optional configuration for the resource group
     configuration = optional(object({
-      # The type of the of group configuration
+      # The type of the group configuration
       type = string
       # The parameters of the group configuration
       parameters = optional(list(object({
@@ -1007,7 +1005,7 @@ variable "resource_groups" {
       # A collection of tag filters to scope the resource query
       tag_filters = optional(map(list(string)), {})
     }), null)
-    # The resource query in json format https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/resourcegroups_group
+    # The resource query in JSON format https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/resourcegroups_group
     resource_query = optional(string, null)
   }))
   default = {}
@@ -1016,16 +1014,16 @@ variable "resource_groups" {
 variable "s3_block_public_access" {
   description = "A collection of S3 public block access settings to apply to the account"
   type = object({
+    # A flag indicating if S3 Block Public Access should be enabled for the account
     enable = optional(bool, false)
-    # A flag indicating if S3 block public access should be enabled
+    # A flag indicating if S3 block public bucket policies should be enabled
     enable_block_public_policy = optional(bool, true)
-    # A flag indicating if S3 block public policy should be enabled
-    enable_block_public_acls = optional(bool, true)
     # A flag indicating if S3 block public ACLs should be enabled
-    enable_ignore_public_acls = optional(bool, true)
+    enable_block_public_acls = optional(bool, true)
     # A flag indicating if S3 ignore public ACLs should be enabled
-    enable_restrict_public_buckets = optional(bool, true)
+    enable_ignore_public_acls = optional(bool, true)
     # A flag indicating if S3 restrict public buckets should be enabled
+    enable_restrict_public_buckets = optional(bool, true)
   })
   default = {
     enable                         = false
@@ -1043,7 +1041,7 @@ variable "service_quotas" {
     service_code = string
     # The quota code of the service quota
     quota_code = string
-    # The value of the service quota
+    # The desired value of the service quota
     value = number
   }))
   default = []
