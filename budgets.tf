@@ -2,7 +2,7 @@
 ## Provision one or more budgets within the account region
 module "budgets" {
   count   = length(var.budgets) > 0 ? 1 : 0
-  source  = "appvia/budgets/aws//modules/budgets"
+  source  = "appvia/budgets/aws"
   version = "4.0.0"
 
   budgets = var.budgets
