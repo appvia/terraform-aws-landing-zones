@@ -931,6 +931,9 @@ variable "landing_zone_tags" {
   type        = map(string)
   default = {
     "LandingZone" = "true"
+    "Owner"       = "Engineering"
+    "Product"     = "LandingZone"
+    "Provisioner" = "Terraform"
   }
 }
 
