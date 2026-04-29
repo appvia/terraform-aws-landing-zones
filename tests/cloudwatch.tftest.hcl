@@ -31,15 +31,15 @@ run "cloudwatch_observability_sink_enabled" {
 
     cloudwatch = {
       observability_sink = {
-        enable       = true
-        identifiers  = ["arn:aws:iam::111111111111:root", "arn:aws:iam::222222222222:root"]
+        enable      = true
+        identifiers = ["arn:aws:iam::111111111111:root", "arn:aws:iam::222222222222:root"]
         resource_types = [
           "AWS::CloudWatch::Metric",
           "AWS::Logs::LogGroup",
           "AWS::XRay::Trace",
         ]
       }
-      observability_source = null
+      observability_source  = null
       account_subscriptions = {}
     }
   }
@@ -92,7 +92,7 @@ run "cloudwatch_observability_sink_disabled_no_identifiers" {
         enable      = true
         identifiers = []
       }
-      observability_source = null
+      observability_source  = null
       account_subscriptions = {}
     }
   }
@@ -132,7 +132,7 @@ run "cloudwatch_observability_sink_disabled" {
         enable      = false
         identifiers = ["arn:aws:iam::111111111111:root"]
       }
-      observability_source = null
+      observability_source  = null
       account_subscriptions = {}
     }
   }
@@ -169,7 +169,7 @@ run "cloudwatch_observability_sink_with_organization" {
         organization_id = "o-xxxxxxxxxx"
         resource_types  = ["AWS::CloudWatch::Metric", "AWS::Logs::LogGroup"]
       }
-      observability_source = null
+      observability_source  = null
       account_subscriptions = {}
     }
   }
@@ -211,7 +211,7 @@ run "cloudwatch_observability_source_enabled" {
         enable          = true
         account_id      = "999999999999"
         sink_identifier = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234-1234-1234-1234-123456789012"
-        resource_types  = [
+        resource_types = [
           "AWS::CloudWatch::Metric",
           "AWS::Logs::LogGroup",
           "AWS::XRay::Trace",
@@ -267,8 +267,8 @@ run "cloudwatch_observability_source_disabled_no_account_id" {
     cloudwatch = {
       observability_sink = null
       observability_source = {
-        enable = true
-        account_id = null
+        enable          = true
+        account_id      = null
         sink_identifier = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234"
       }
       account_subscriptions = {}
@@ -351,11 +351,11 @@ run "cloudwatch_account_subscriptions" {
       observability_source = null
       account_subscriptions = {
         "kinesis-destination" = {
-          policy = "{\"SourceAccount\": \"123456789012\", \"DestinationArn\": \"arn:aws:logs:eu-west-2:111111111111:destination:kinesis\", \"FilterName\": \"\"}"
+          policy             = "{\"SourceAccount\": \"123456789012\", \"DestinationArn\": \"arn:aws:logs:eu-west-2:111111111111:destination:kinesis\", \"FilterName\": \"\"}"
           selection_criteria = "ALL"
         }
         "lambda-destination" = {
-          policy = "{\"SourceAccount\": \"123456789012\", \"DestinationArn\": \"arn:aws:lambda:eu-west-2:111111111111:function:log-processor\", \"FilterName\": \"\"}"
+          policy             = "{\"SourceAccount\": \"123456789012\", \"DestinationArn\": \"arn:aws:lambda:eu-west-2:111111111111:function:log-processor\", \"FilterName\": \"\"}"
           selection_criteria = "ALL"
         }
       }
@@ -408,8 +408,8 @@ run "cloudwatch_default_disabled" {
     # Use default cloudwatch config (observability_sink=null, observability_source=null, account_subscriptions={})
     cloudwatch = {
       account_subscriptions = {}
-      observability_sink   = null
-      observability_source = null
+      observability_sink    = null
+      observability_source  = null
     }
   }
 
@@ -458,8 +458,8 @@ run "cloudwatch_combined_sink_and_source" {
 
     cloudwatch = {
       observability_sink = {
-        enable      = true
-        identifiers = ["arn:aws:iam::111111111111:root"]
+        enable         = true
+        identifiers    = ["arn:aws:iam::111111111111:root"]
         resource_types = ["AWS::CloudWatch::Metric", "AWS::Logs::LogGroup", "AWS::XRay::Trace"]
       }
       observability_source = {
@@ -470,7 +470,7 @@ run "cloudwatch_combined_sink_and_source" {
       }
       account_subscriptions = {
         "test-sub" = {
-          policy = "{\"SourceAccount\": \"123456789012\"}"
+          policy             = "{\"SourceAccount\": \"123456789012\"}"
           selection_criteria = "ALL"
         }
       }

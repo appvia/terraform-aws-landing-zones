@@ -926,6 +926,14 @@ variable "product" {
   }
 }
 
+variable "landing_zone_tags" {
+  description = "A collection of tags to apply to resources for protection"
+  type        = map(string)
+  default = {
+    "LandingZone" = "true"
+  }
+}
+
 variable "resilience_hub" {
   description = "Configuration for the resilience hub service"
   type = object({

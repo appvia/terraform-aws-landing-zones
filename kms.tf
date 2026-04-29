@@ -50,7 +50,7 @@ module "kms_key_administrator" {
   description          = var.kms_administrator.description
   create_inline_policy = true
   name                 = var.kms_administrator.name
-  tags                 = local.tags
+  tags                 = merge(local.tags, { "Name" = var.kms_administrator.name })
   use_name_prefix      = false
 
   trust_policy_permissions = merge(
