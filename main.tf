@@ -50,7 +50,7 @@ module "tagging" {
 #trivy:ignore:AVD-DS-0026
 module "notifications" {
   source  = "appvia/notify/aws"
-  version = "0.1.3"
+  version = "0.1.4"
 
   allowed_aws_services = [
     "budgets.amazonaws.com",
