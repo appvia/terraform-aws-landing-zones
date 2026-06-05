@@ -40,6 +40,13 @@ mock_data "aws_partition" {
   }
 }
 
+mock_data "aws_iam_openid_connect_provider" {
+  defaults = {
+    url = "https://token.actions.githubusercontent.com"
+    arn = "arn:aws:iam::123456781000:oidc-provider/token.actions.githubusercontent.com"
+  }
+}
+
 mock_data "aws_iam_policy_document" {
   defaults = {
     json = <<-EOT

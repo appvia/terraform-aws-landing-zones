@@ -7,6 +7,8 @@ locals {
   enable_permissions_boundary_policy = local.enable_permissions_boundary ? var.infrastructure_repository.permissions_boundary.policy != null ? true : false : false
   ## The infrastructure repository configuration
   repository = var.infrastructure_repository
+  ## The IAM role name bound to the infrastructure repository
+  infrastructure_repository_role_name = local.enable_infrastructure_repository ? coalesce(local.repository.role_name, basename(local.repository.name)) : null
 }
 
 ## Provision a prefixed permissions boundary for the repository
@@ -27,8 +29,7 @@ module "repository_permissions" {
   source  = "appvia/oidc/aws//modules/role"
   version = "3.0.3"
 
-  name                    = local.repository.name
-  account_id              = local.account_id
+  name                    = local.infrastructure_repository_role_name
   description             = format("Used to configure and provision the infrastructure with the %s landing zone.", local.repository.name)
   permission_boundary_arn = local.enable_permissions_boundary ? coalesce(try(local.repository.permissions_boundary.arn, null), try(aws_iam_policy.permissions_boundary[0].arn, null), null) : null
   read_only_policy_arns   = try(local.repository.permissions.read_only_policy_arns, null)

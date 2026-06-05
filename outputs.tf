@@ -9,6 +9,11 @@ output "environment" {
   value       = var.environment
 }
 
+output "infrastructure_repository_role_name" {
+  description = "The IAM role name used for infrastructure repository OIDC permissions"
+  value       = local.infrastructure_repository_role_name
+}
+
 output "infrastructure_repository_git_clone_url" {
   description = "The URL of the infrastructure repository for the landing zone"
   value       = local.enable_infrastructure_repository ? module.github_repository[0].repository_git_clone_url : null
