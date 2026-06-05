@@ -9,6 +9,8 @@ locals {
   repository = var.infrastructure_repository
   ## The IAM role name bound to the infrastructure repository
   infrastructure_repository_role_name = local.enable_infrastructure_repository ? coalesce(local.repository.role_name, basename(local.repository.name)) : null
+  ## The infrastructure repository name
+  infrastructure_repository_name = try(element(split("/", local.repository.name), length(split("/", local.repository.name)) - 1), "")
 }
 
 ## Provision a prefixed permissions boundary for the repository
@@ -47,7 +49,7 @@ module "github_repository" {
   source  = "appvia/repository/github"
   version = "1.2.5"
 
-  repository         = local.repository.name
+  repository         = local.infrastructure_repository_name
   description        = try(local.repository.description, format("Infrastructure repository for the %s landing zone.", local.repository.name))
   allow_auto_merge   = try(local.repository.allow_auto_merge, false)
   allow_merge_commit = try(local.repository.allow_merge_commit, true)
