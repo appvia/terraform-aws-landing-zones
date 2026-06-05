@@ -536,6 +536,8 @@ variable "infrastructure_repository" {
     enable_projects = optional(bool, false)
     # A flag indicating if the repository should enable wiki
     enable_wiki = optional(bool, false)
+    # Name of the IAM role used to bind to the repository
+    role_name = optional(string, null)
     # The topics of the repository
     topics = optional(list(string), ["aws", "terraform", "landing-zone"])
     # The collaborators of the repository
