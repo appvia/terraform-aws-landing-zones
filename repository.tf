@@ -29,7 +29,7 @@ resource "aws_iam_policy" "permissions_boundary" {
 module "repository_permissions" {
   count   = local.enable_infrastructure_repository ? 1 : 0
   source  = "appvia/oidc/aws//modules/role"
-  version = "3.0.3"
+  version = "3.1.0"
 
   name                    = local.infrastructure_repository_role_name
   description             = format("Used to configure and provision the infrastructure with the %s landing zone.", local.repository.name)
