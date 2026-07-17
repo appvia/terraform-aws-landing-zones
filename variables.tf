@@ -734,6 +734,8 @@ variable "networks" {
     private_subnet_tags = optional(map(string), {})
     # Additional tags to apply to the public subnet
     public_subnet_tags = optional(map(string), {})
+    # The route53 profile id
+    route53_profile_id = optional(string, null)
 
     subnets = map(object({
       # The CIDR block of the subnet

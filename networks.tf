@@ -14,7 +14,7 @@ locals {
 module "networks" {
   for_each = var.networks
   source   = "appvia/network/aws"
-  version  = "0.6.14"
+  version  = "0.6.15"
 
   availability_zones                     = each.value.vpc.availability_zones
   enable_default_route_table_association = each.value.vpc.enable_default_route_table_association
@@ -29,6 +29,7 @@ module "networks" {
   private_subnet_tags                    = each.value.private_subnet_tags
   public_subnet_netmask                  = coalesce(try(each.value.subnets["public"].netmask, null), 0)
   public_subnet_tags                     = each.value.public_subnet_tags
+  route53_profile_id                     = each.value.route53_profile_id
   subnets                                = { for k, v in each.value.subnets : k => v if !contains(["public", "private"], k) }
   tags                                   = merge(local.tags, each.value.tags)
   transit_gateway_id                     = try(each.value.transit_gateway.gateway_id, null)
