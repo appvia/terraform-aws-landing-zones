@@ -12,3 +12,6 @@ data "aws_vpc_ipam_pools" "current" {
     values = ["ipv4"]
   }
 }
+
+## Get the current organization
+data "aws_organizations_organization" "current" {}

@@ -29,7 +29,7 @@ module "networks" {
   private_subnet_tags                    = each.value.private_subnet_tags
   public_subnet_netmask                  = coalesce(try(each.value.subnets["public"].netmask, null), 0)
   public_subnet_tags                     = each.value.public_subnet_tags
-  route53_profile_id                     = each.value.route53_profile_id
+  route53_profile_name                   = each.value.route53_profile_name
   subnets                                = { for k, v in each.value.subnets : k => v if !contains(["public", "private"], k) }
   tags                                   = merge(local.tags, each.value.tags)
   transit_gateway_id                     = try(each.value.transit_gateway.gateway_id, null)

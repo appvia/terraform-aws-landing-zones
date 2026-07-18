@@ -37,8 +37,8 @@ locals {
     )
   )
 
-  ## The arns who wil be users for the kms key
-  kms_key_users = length(var.kms_key.key_users) > 0 ? var.kms_key.key_users : [format("arn:aws:iam::%s:root", local.account_id)]
+  ## The arns who wil be users for the kms key 
+  kms_key_users = try(var.kms_key.key_users, null)
 }
 
 ## Provision the key administrator role for the account if required
@@ -54,10 +54,6 @@ module "kms_key_administrator" {
   use_name_prefix      = false
 
   trust_policy_permissions = merge(
-    ## Allow the account
-    {
-      "root" = local.iam_account_root
-    },
     ## Allow the KMS administrators
     {
       "kms_admin" = {
@@ -93,12 +89,15 @@ module "kms_key_administrator" {
     }
   )
 
+  # Permissions for the key administrator role
   inline_policy_permissions = {
     "kms" : {
       sid       = "AllowKMSKeyActions"
       effect    = "Allow"
       actions   = ["kms:*"]
-      resources = ["*"]
+      resources = [
+        "arn:aws:kms:${local.region}:${local.account_id}:key/*"
+      ]
     }
   }
 }
@@ -111,7 +110,7 @@ module "kms_key" {
 
   aliases                 = [var.kms_key.key_alias]
   deletion_window_in_days = var.kms_key.key_deletion_window_in_days
-  description             = "Default regional KMS key which can be used by the tenant"
+  description             = format("Default regional KMS key which can be used by the tenant in the %s region", local.region)
   enable_key_rotation     = true
   is_enabled              = true
   key_administrators      = local.kms_key_administrators
@@ -120,6 +119,105 @@ module "kms_key" {
   key_usage               = "ENCRYPT_DECRYPT"
   multi_region            = false
   tags                    = merge(local.tags, { "Name" = var.kms_key.key_alias })
+
+  key_statements = var.kms_key.key_statements != null ? var.kms_key.key_statements : compact([
+    local.enable_kms_key_administrator ? {
+      "Sid": "AllowKeyAdministration",
+      effect = "Allow"
+      principals = [
+        {
+          type = "AWS"
+          identifiers = [local.kms_key_administrator_role_arn]
+        }
+      ]
+      actions = [
+        "kms:Create*", 
+        "kms:Delete*", 
+        "kms:Describe*", 
+        "kms:Disable*",
+        "kms:Enable*", 
+        "kms:Get*", 
+        "kms:List*",
+        "kms:Put*", 
+        "kms:Revoke*", 
+        "kms:ScheduleKeyDeletion", 
+        "kms:TagResource", 
+        "kms:UntagResource",
+        "kms:Update*", 
+      ]
+      resources = ["*"]
+    } : null,
+    {
+      sid = "AllowUseViaAWSServices"
+      effect = "Allow"
+      actions = [
+        "kms:Decrypt", 
+        "kms:DescribeKey",
+        "kms:Encrypt", 
+        "kms:GenerateDataKey*", 
+        "kms:ReEncrypt*",
+      ]
+      resources = ["*"]
+      condition = [
+        {
+          test     = "StringEquals"
+          variable = "kms:CallerAccount"
+          values = [local.account_id]
+        },
+        {
+          test     = "StringLike"
+          variable = "kms:ViaService"
+          values = ["*.${local.region}.amazonaws.com"]
+        }
+      ]
+    },
+    {
+      sid = "AllowGrantsForAWSResources"
+      effect = "Allow"
+      actions = [
+        "kms:CreateGrant", 
+        "kms:ListGrants", 
+        "kms:RevokeGrant"
+      ]
+      resources = ["*"]
+      condition = [
+        {
+          test     = "StringEquals"
+          variable = "kms:CallerAccount"
+          values = [local.account_id]
+        },
+        {
+          test     = "Bool"
+          variable = "kms:GrantIsForAWSResource"
+          values = ["true"]
+        }
+      ]
+    },
+    {
+      sid = "DenyAccessOutsideOrg"
+      effect = "Deny"
+      principals = [
+        {
+          type = "AWS"
+          identifiers = ["*"]
+        }
+      ]
+      actions = ["kms:*"]
+      resources = ["*"]
+      condition = [
+        {
+          test     = "StringNotEquals"
+          variable = "aws:PrincipalOrgID"
+          values = [local.organization_id]
+        },
+        {
+          test     = "Bool"
+          variable = "aws:PrincipalIsAWSService"
+          values = ["false"]
+        }
+      ]
+    }
+  ])
 
   depends_on = [
     module.kms_key_administrator,

@@ -663,7 +663,7 @@ variable "kms_administrator" {
     # A flag indicating if the account root can administer KMS keys
     enable_account_root = optional(bool, false)
     # The name of the default KMS administrator role
-    name = optional(string, "lza-kms-adminstrator")
+    name = optional(string, "lza-kms-administrator")
   })
   default = {
     assume_accounts     = []
@@ -672,7 +672,7 @@ variable "kms_administrator" {
     description         = "Provides access to administer the KMS keys for the account"
     enable              = false
     enable_account_root = false
-    name                = "lza-kms-adminstrator"
+    name                = "lza-kms-administrator"
   }
 }
 
@@ -690,7 +690,9 @@ variable "kms_key" {
     # A list of ARNs of the key owners
     key_owners = optional(list(string), [])
     # A list of ARNs of the key users — if unset, it will default to the account
-    key_users = optional(list(string), [])
+    key_users = optional(list(string), null)
+    # Collection of key statements which override the default key statements
+    key_statements = optional(list(any), null)
   })
   default = {
     enable                      = false
@@ -698,7 +700,8 @@ variable "kms_key" {
     key_alias                   = "lza/account/default"
     key_deletion_window_in_days = 7
     key_owners                  = []
-    key_users                   = []
+    key_users                   = null
+    key_statements              = null
   }
 }
 
@@ -734,8 +737,8 @@ variable "networks" {
     private_subnet_tags = optional(map(string), {})
     # Additional tags to apply to the public subnet
     public_subnet_tags = optional(map(string), {})
-    # The route53 profile id
-    route53_profile_id = optional(string, null)
+    # The route53 profile name
+    route53_profile_name = optional(string, null)
 
     subnets = map(object({
       # The CIDR block of the subnet

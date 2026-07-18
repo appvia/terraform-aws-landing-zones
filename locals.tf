@@ -4,6 +4,9 @@
 ##
 
 locals {
+  ## The organization id
+  organization_id = data.aws_organizations_organization.current.id
+
   ## The account id for the tenant we are provisioning resources for
   account_id = data.aws_caller_identity.current.account_id
 
