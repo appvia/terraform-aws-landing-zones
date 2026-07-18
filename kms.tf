@@ -246,6 +246,7 @@ module "kms_key" {
   aliases                 = [var.kms_key.key_alias]
   deletion_window_in_days = var.kms_key.key_deletion_window_in_days
   description             = format("Default regional KMS key which can be used by the tenant in the %s region", local.region)
+  enable_default_policy   = false 
   enable_key_rotation     = true
   is_enabled              = true
   key_administrators      = local.kms_key_administrators
