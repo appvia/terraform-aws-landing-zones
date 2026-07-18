@@ -110,9 +110,20 @@ locals {
       actions   = local.kms_key_administrator_actions
       resources = ["*"]
     }] : [],
+    ## Note both statements below name the account root as the principal. A KMS key policy
+    ## requires every statement to carry a principal, and the account root is the standard
+    ## way to express "principals in this account". It does not grant on its own - the caller
+    ## still needs the action allowed in their IAM policy - and the conditions narrow the
+    ## statement to calls made through an AWS service in this account.
     [{
       sid    = "AllowUseViaAWSServices"
       effect = "Allow"
+      principals = [
+        {
+          type        = "AWS"
+          identifiers = [local.account_root_arn]
+        }
+      ]
       actions = [
         "kms:Decrypt",
         "kms:DescribeKey",
@@ -137,6 +148,12 @@ locals {
       {
         sid    = "AllowGrantsForAWSResources"
         effect = "Allow"
+        principals = [
+          {
+            type        = "AWS"
+            identifiers = [local.account_root_arn]
+          }
+        ]
         actions = [
           "kms:CreateGrant",
           "kms:ListGrants",
