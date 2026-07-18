@@ -122,6 +122,7 @@ locals {
       ]
       actions = [
         "kms:DescribeKey",
+        "kms:GetKeyLastUsage",
         "kms:GetKeyPolicy",
         "kms:GetKeyRotationStatus",
         "kms:ListGrants",
