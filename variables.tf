@@ -867,7 +867,6 @@ variable "networks" {
 
 variable "notifications" {
   description = "Configuration for the notifications to the owner of the account"
-  sensitive   = true
   type = object({
     email = optional(object({
       # A list of email addresses to send notifications to

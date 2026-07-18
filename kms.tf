@@ -179,8 +179,8 @@ module "kms_key" {
   ## The organization guardrail is appended unconditionally - a tenant supplying key_statements
   ## replaces the default statements, but can never remove the deny outside the organization.
   key_statements = concat(
-    var.kms_key.key_statements != null ? var.kms_key.key_statements : compact([
-      local.enable_kms_key_administrator ? {
+    var.kms_key.key_statements != null ? var.kms_key.key_statements : concat(
+      local.enable_kms_key_administrator ? [{
         sid    = "AllowKeyAdministration"
         effect = "Allow"
         principals = [
@@ -191,8 +191,8 @@ module "kms_key" {
         ]
         actions   = local.kms_key_administrator_actions
         resources = ["*"]
-      } : null,
-      {
+      }] : [],
+      [{
         sid    = "AllowUseViaAWSServices"
         effect = "Allow"
         actions = [
@@ -215,30 +215,30 @@ module "kms_key" {
             values   = ["*.${local.region}.amazonaws.com"]
           }
         ]
-      },
-      {
-        sid    = "AllowGrantsForAWSResources"
-        effect = "Allow"
-        actions = [
-          "kms:CreateGrant",
-          "kms:ListGrants",
-          "kms:RevokeGrant"
-        ]
-        resources = ["*"]
-        condition = [
-          {
-            test     = "StringEquals"
-            variable = "kms:CallerAccount"
-            values   = [local.account_id]
-          },
-          {
-            test     = "Bool"
-            variable = "kms:GrantIsForAWSResource"
-            values   = ["true"]
-          }
-        ]
-      },
-    ]),
+        },
+        {
+          sid    = "AllowGrantsForAWSResources"
+          effect = "Allow"
+          actions = [
+            "kms:CreateGrant",
+            "kms:ListGrants",
+            "kms:RevokeGrant"
+          ]
+          resources = ["*"]
+          condition = [
+            {
+              test     = "StringEquals"
+              variable = "kms:CallerAccount"
+              values   = [local.account_id]
+            },
+            {
+              test     = "Bool"
+              variable = "kms:GrantIsForAWSResource"
+              values   = ["true"]
+            }
+          ]
+      }],
+    ),
     [local.kms_key_organization_statement],
   )
 
