@@ -120,23 +120,54 @@ module "iam_roles" {
   tags                           = merge(local.tags, { "Name" = each.value.name })
   use_name_prefix                = each.value.name_prefix != null ? true : false
 
-  policies = merge(
-    try(toset(each.value.permission_arns), {}),
-  )
+  ## Note this must be a map of name => arn; merge() over a set fails
+  policies = { for policy in try(each.value.permission_arns, []) : policy => policy }
 
-  ## Build out the trust policy permissions
+  ## Build out the trust policy permissions. Note the account root statement delegates to
+  ## account IAM - any principal in the account holding sts:AssumeRole can assume the role -
+  ## so it is gated behind enable_account_root for operators who need a tightly scoped trust.
   trust_policy_permissions = merge(
-    ## Allow the account
-    { "root" : local.iam_account_root },
+    ## Allow the account root, unless the caller has opted out
+    each.value.enable_account_root ? { "root" : local.iam_account_root } : {},
+    ## Allow the nominated accounts to assume the role
+    length(each.value.assume_accounts) > 0 ? {
+      "accounts" : {
+        sid     = "AllowAccountsAssumeRole"
+        effect  = "Allow"
+        actions = ["sts:AssumeRole", "sts:TagSession"]
+        principals = [
+          {
+            type        = "AWS"
+            identifiers = [for x in each.value.assume_accounts : format("arn:aws:iam::%s:root", x)]
+          }
+        ]
+      }
+    } : {},
+    ## Allow the nominated role principals to assume the role
+    length(each.value.assume_roles) > 0 ? {
+      "roles" : {
+        sid     = "AllowRolesAssumeRole"
+        effect  = "Allow"
+        actions = ["sts:AssumeRole", "sts:TagSession"]
+        principals = [
+          {
+            type        = "AWS"
+            identifiers = each.value.assume_roles
+          }
+        ]
+      }
+    } : {},
     {
       for service in each.value.assume_services : service => {
         sid     = "AllowServiceAssumeRole${replace(service, ".", "")}"
         effect  = "Allow"
         actions = ["sts:AssumeRole", "sts:TagSession"]
-        principals = {
-          type        = "Service"
-          identifiers = [service]
-        }
+        principals = [
+          {
+            type        = "Service"
+            identifiers = [service]
+          }
+        ]
       }
     }
   )

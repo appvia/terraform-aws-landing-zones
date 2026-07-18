@@ -2,8 +2,13 @@ AVD-DS-0002  # (Dockerfile) Least Privilege User (HIGH) - https://avd.aquasec.co
 AVD-DS-0013  # (Dockerfile) Use Workdir Over Cd (MEDIUM) - https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0013/
 AVD-DS-0015  # (Dockerfile) Use COPY instead of ADD (MEDIUM) - https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0015/
 AVD-DS-0026  # (Dockerfile) Add HEALTHCHECK instruction in your Dockerfile (LOW) - https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0013/
+# (IAM) User addition to groups - groups and their membership are a deliberate input of this
+# module (var.iam_groups.users), so the finding is the module doing its job.
 AVD-AWS-0067
+# (SNS) Topic encryption with a CMK - notification topics carry no tenant data beyond alarm
+# metadata and are encrypted with the AWS managed key.
 AVD-AWS-0095 # https://avd.aquasec.com/misconfig/aws/sns/avd-aws-0095/
 AVD-DS-0001  # https://avd.aquasec.com/misconfig/dockerfile/general/avd-ds-0001/
 AVD-GIT-0001  # https://avd.aquasec.com/misconfig/git/general/avd-git-0001/
+# (Lambda) X-Ray tracing - tracing is a tenant workload concern, not set by the landing zone.
 AVD-AWS-0066 # https://avd.aquasec.com/misconfig/aws/lambda/avd-aws-0066/

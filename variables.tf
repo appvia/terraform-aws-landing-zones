@@ -457,6 +457,10 @@ variable "iam_roles" {
     assume_roles = optional(list(string), [])
     # List of services to assume the role
     assume_services = optional(list(string), [])
+    # A flag indicating if the account root is trusted to assume the role. Note this delegates
+    # to account IAM - any principal in the account holding sts:AssumeRole can then assume the
+    # role. Set to false when the role should only be assumable by the nominated principals.
+    enable_account_root = optional(bool, true)
     # The description of the IAM role
     description = string
     # The path of the IAM role
@@ -530,6 +534,9 @@ variable "include_iam_roles" {
 
 variable "infrastructure_repository" {
   description = "The infrastructure repository provisions and configures a pipeline repository for the landing zone"
+  ## Marked sensitive as webhooks[].secret is a credential. Terraform has no per-attribute
+  ## sensitivity inside an object type constraint, so the whole variable must be redacted.
+  sensitive = true
   type = object({
     # The name prefix of the repository
     name = optional(string, null)
@@ -675,7 +682,10 @@ variable "kms_administrator" {
     description = optional(string, "Provides access to administer the KMS keys for the account")
     # A flag indicating if the default KMS administrator role should be enabled
     enable = optional(bool, false)
-    # A flag indicating if the account root can administer KMS keys
+    # A flag indicating if the account root ARN is trusted to assume the KMS administrator role.
+    # This is not limited to the root user - it delegates to account IAM, so any principal in the
+    # account holding sts:AssumeRole on this role can assume it. Prefer assume_roles for a
+    # tightly scoped trust.
     enable_account_root = optional(bool, false)
     # The name of the default KMS administrator role
     name = optional(string, "lza-kms-administrator")

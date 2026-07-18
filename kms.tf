@@ -65,6 +65,12 @@ locals {
 
   ## The organization guardrail statement. This is always appended to the key policy, even when
   ## the tenant supplies their own key_statements, so the guardrail cannot be removed by input.
+  ##
+  ## Note the Sid reads more absolutely than the statement behaves. The Bool test on
+  ## aws:PrincipalIsAWSService does not match when the key is absent from the request context,
+  ## so the Deny only fires when the key is explicitly present and false. This is the standard
+  ## pattern - it is what prevents the deny from breaking legitimate AWS service access - but it
+  ## does mean the statement is not an unconditional deny of every principal outside the org.
   kms_key_organization_statement = {
     sid    = "DenyAccessOutsideOrg"
     effect = "Deny"

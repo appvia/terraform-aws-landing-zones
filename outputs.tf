@@ -9,19 +9,24 @@ output "environment" {
   value       = var.environment
 }
 
+## Note the nonsensitive() calls below. var.infrastructure_repository is marked sensitive as a
+## whole because it carries webhooks[].secret and Terraform cannot mark a single attribute of an
+## object type. That sensitivity propagates to anything derived from the variable, including
+## these values. None of them contain the secret - they are a role name and repository URLs - so
+## the marking is unwrapped here rather than redacting outputs consumers legitimately need.
 output "infrastructure_repository_role_name" {
   description = "The IAM role name used for infrastructure repository OIDC permissions"
-  value       = local.infrastructure_repository_role_name
+  value       = nonsensitive(local.infrastructure_repository_role_name)
 }
 
 output "infrastructure_repository_git_clone_url" {
   description = "The URL of the infrastructure repository for the landing zone"
-  value       = local.enable_infrastructure_repository ? module.github_repository[0].repository_git_clone_url : null
+  value       = nonsensitive(local.enable_infrastructure_repository ? module.github_repository[0].repository_git_clone_url : null)
 }
 
 output "infrastructure_repository_url" {
   description = "The HTML URL of the infrastructure repository for the landing zone"
-  value       = local.enable_infrastructure_repository ? module.github_repository[0].repository_html_url : null
+  value       = nonsensitive(local.enable_infrastructure_repository ? module.github_repository[0].repository_html_url : null)
 }
 
 output "ipam_pools_by_name" {
