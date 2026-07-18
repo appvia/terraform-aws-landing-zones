@@ -715,7 +715,7 @@ variable "kms_key" {
     # A list of ARNs of the key owners
     key_owners = optional(list(string), [])
     # A list of ARNs of the key users — if unset, it will default to the account
-    key_users = optional(list(string), null)
+    key_users = optional(list(string), [])
     # Collection of key statements which override the default key statements
     key_statements = optional(list(object({
       # The statement ID
@@ -761,7 +761,7 @@ variable "kms_key" {
     key_alias                   = "lza/account/default"
     key_deletion_window_in_days = 7
     key_owners                  = []
-    key_users                   = null
+    key_users                   = []
     key_statements              = null
   }
 }
