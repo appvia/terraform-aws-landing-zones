@@ -717,7 +717,43 @@ variable "kms_key" {
     # A list of ARNs of the key users — if unset, it will default to the account
     key_users = optional(list(string), null)
     # Collection of key statements which override the default key statements
-    key_statements = optional(list(any), null)
+    key_statements = optional(list(object({
+      # The statement ID
+      sid = optional(string)
+      # The actions of the statement
+      actions = optional(list(string))
+      # The not actions of the statement
+      not_actions = optional(list(string))
+      # The effect of the statement
+      effect = optional(string)
+      # The resources of the statement
+      resources = optional(list(string))
+      # The not resources of the statement
+      not_resources = optional(list(string))
+      # The principals of the statement
+      principals = optional(list(object({
+        # The type of the principal
+        type = string
+        # The identifiers of the principal
+        identifiers = list(string)
+      })))
+      # The not principals of the statement
+      not_principals = optional(list(object({
+        # The type of the principal
+        type = string
+        # The identifiers of the principal
+        identifiers = list(string)
+      })))
+      # The condition of the statement
+      condition = optional(list(object({
+        # The test of the condition
+        test = string
+        # The values of the condition
+        values = list(string)
+        # The variable of the condition
+        variable = string
+      })))
+    })), null)
   })
   default = {
     enable                      = false

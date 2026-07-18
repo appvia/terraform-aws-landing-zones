@@ -95,6 +95,68 @@ locals {
       }
     ]
   }
+
+  ## The default key policy statements, used when the tenant has not supplied their own
+  kms_key_default_statements = concat(
+    local.enable_kms_key_administrator ? [{
+      sid    = "AllowKeyAdministration"
+      effect = "Allow"
+      principals = [
+        {
+          type        = "AWS"
+          identifiers = [local.kms_key_administrator_role_arn]
+        }
+      ]
+      actions   = local.kms_key_administrator_actions
+      resources = ["*"]
+    }] : [],
+    [{
+      sid    = "AllowUseViaAWSServices"
+      effect = "Allow"
+      actions = [
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:ReEncrypt*",
+      ]
+      resources = ["*"]
+      condition = [
+        {
+          test     = "StringEquals"
+          variable = "kms:CallerAccount"
+          values   = [local.account_id]
+        },
+        {
+          test     = "StringLike"
+          variable = "kms:ViaService"
+          values   = ["*.${local.region}.amazonaws.com"]
+        }
+      ]
+      },
+      {
+        sid    = "AllowGrantsForAWSResources"
+        effect = "Allow"
+        actions = [
+          "kms:CreateGrant",
+          "kms:ListGrants",
+          "kms:RevokeGrant"
+        ]
+        resources = ["*"]
+        condition = [
+          {
+            test     = "StringEquals"
+            variable = "kms:CallerAccount"
+            values   = [local.account_id]
+          },
+          {
+            test     = "Bool"
+            variable = "kms:GrantIsForAWSResource"
+            values   = ["true"]
+          }
+        ]
+    }],
+  )
 }
 
 ## Provision the key administrator role for the account if required
@@ -178,66 +240,15 @@ module "kms_key" {
 
   ## The organization guardrail is appended unconditionally - a tenant supplying key_statements
   ## replaces the default statements, but can never remove the deny outside the organization.
+  ##
+  ## Note we cannot select between the tenant statements and the defaults with a conditional -
+  ## the defaults are a tuple of differently shaped objects, which Terraform refuses to unify
+  ## with the typed list from the variable. Instead each side is concatenated in, with the
+  ## unused side sliced down to zero elements.
   key_statements = concat(
-    var.kms_key.key_statements != null ? var.kms_key.key_statements : concat(
-      local.enable_kms_key_administrator ? [{
-        sid    = "AllowKeyAdministration"
-        effect = "Allow"
-        principals = [
-          {
-            type        = "AWS"
-            identifiers = [local.kms_key_administrator_role_arn]
-          }
-        ]
-        actions   = local.kms_key_administrator_actions
-        resources = ["*"]
-      }] : [],
-      [{
-        sid    = "AllowUseViaAWSServices"
-        effect = "Allow"
-        actions = [
-          "kms:Decrypt",
-          "kms:DescribeKey",
-          "kms:Encrypt",
-          "kms:GenerateDataKey*",
-          "kms:ReEncrypt*",
-        ]
-        resources = ["*"]
-        condition = [
-          {
-            test     = "StringEquals"
-            variable = "kms:CallerAccount"
-            values   = [local.account_id]
-          },
-          {
-            test     = "StringLike"
-            variable = "kms:ViaService"
-            values   = ["*.${local.region}.amazonaws.com"]
-          }
-        ]
-        },
-        {
-          sid    = "AllowGrantsForAWSResources"
-          effect = "Allow"
-          actions = [
-            "kms:CreateGrant",
-            "kms:ListGrants",
-            "kms:RevokeGrant"
-          ]
-          resources = ["*"]
-          condition = [
-            {
-              test     = "StringEquals"
-              variable = "kms:CallerAccount"
-              values   = [local.account_id]
-            },
-            {
-              test     = "Bool"
-              variable = "kms:GrantIsForAWSResource"
-              values   = ["true"]
-            }
-          ]
-      }],
+    var.kms_key.key_statements == null ? [] : var.kms_key.key_statements,
+    slice(local.kms_key_default_statements, 0,
+      var.kms_key.key_statements == null ? length(local.kms_key_default_statements) : 0,
     ),
     [local.kms_key_organization_statement],
   )
