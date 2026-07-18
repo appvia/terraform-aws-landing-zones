@@ -69,8 +69,11 @@ run "cloudwatch_observability_sink_enabled" {
   }
 }
 
-# Test 2: CloudWatch observability sink disabled (no identifiers)
-run "cloudwatch_observability_sink_disabled_no_identifiers" {
+# Test 2: An enabled sink with neither identifiers nor an organization_id is rejected.
+# Previously this combination was silently ignored - the sink was simply not created, which
+# left an operator believing they had configured a restriction they had not. The variable
+# validation now rejects it outright, so the contract under test is the failure itself.
+run "cloudwatch_observability_sink_rejects_unrestricted" {
   command = plan
 
   variables {
@@ -97,16 +100,9 @@ run "cloudwatch_observability_sink_disabled_no_identifiers" {
     }
   }
 
-  # Test that OAM sink is NOT created when identifiers is empty
-  assert {
-    condition     = length(aws_oam_sink.observability_sink) == 0
-    error_message = "OAM observability sink should not be created when identifiers is empty"
-  }
-
-  assert {
-    condition     = length(aws_oam_sink_policy.observability_sink) == 0
-    error_message = "OAM sink policy should not be created when sink is disabled"
-  }
+  expect_failures = [
+    var.cloudwatch,
+  ]
 }
 
 # Test 3: CloudWatch observability sink disabled (enable=false)
