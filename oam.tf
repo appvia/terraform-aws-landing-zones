@@ -4,7 +4,10 @@ locals {
   ## The observability sink configuration
   observability_sink = try(var.cloudwatch.observability_sink, {})
   ## Indicates if the observability sink should be enabled
-  enable_observability_sink = try(local.observability_sink.enable, false) && length(try(local.observability_sink.identifiers, [])) > 0
+  enable_observability_sink = try(local.observability_sink.enable, false)
+  ## The AWS principals permitted to link into the observability sink. The cloudwatch variable
+  ## validation guarantees this is non-empty whenever no organization_id has been configured.
+  observability_sink_identifiers = coalesce(try(local.observability_sink.identifiers, null), [])
   ## Indicates if cloudwatch cross-account observability should be enabled
   enable_observability_source = try(local.observability_source.enable, false) && try(local.observability_source.account_id, null) != null
   ## The account id for the cloudwatch cross-account observability
@@ -36,9 +39,11 @@ data "aws_iam_policy_document" "observability_sink_policy" {
     ]
     resources = ["*"]
 
+    ## Where identifiers have been configured we scope the policy to those principals, otherwise
+    ## we fall back to the organization, which the variable validation guarantees is set.
     principals {
       type        = "AWS"
-      identifiers = ["*"]
+      identifiers = length(local.observability_sink_identifiers) > 0 ? local.observability_sink_identifiers : ["*"]
     }
 
     dynamic "condition" {

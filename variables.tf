@@ -162,6 +162,17 @@ variable "cloudwatch" {
     observability_sink    = null
     observability_source  = null
   }
+
+  ## An enabled sink with neither identifiers nor an organization_id would permit any AWS
+  ## account to link into it, so we make that combination unrepresentable.
+  validation {
+    condition = (
+      try(var.cloudwatch.observability_sink.enable, false) == false ||
+      try(length(var.cloudwatch.observability_sink.identifiers), 0) > 0 ||
+      try(length(var.cloudwatch.observability_sink.organization_id), 0) > 0
+    )
+    error_message = "When the observability sink is enabled you must set at least one of identifiers or organization_id, otherwise any AWS account can link into the sink"
+  }
 }
 
 variable "cost_anomaly_detection" {
@@ -210,6 +221,8 @@ variable "dns" {
   type = map(object({
     # A comment associated with the DNS zone
     comment = optional(string, "Managed by zone created by terraform")
+    # A flag indicating if the zone can be destroyed while it still contains records
+    force_destroy = optional(bool, true)
     # A list of network names to associate with the DNS zone
     network = string
     # A flag indicating if the DNS zone is private or public
@@ -324,7 +337,7 @@ variable "iam_access_analyzer" {
   description = "The IAM access analyzer configuration to apply to the account"
   type = object({
     # A flag indicating if IAM access analyzer should be enabled
-    enable = optional(bool, false)
+    enable = optional(bool, true)
     # The name of the IAM access analyzer
     analyzer_name = optional(string, "lza-iam-access-analyzer")
     # The type of the IAM access analyzer
@@ -475,6 +488,8 @@ variable "iam_service_linked_roles" {
 variable "iam_users" {
   description = "A collection of IAM users to apply to the account"
   type = list(object({
+    # A flag indicating if the user can be destroyed while it still has attached resources
+    force_destroy = optional(bool, true)
     # The name of the IAM user
     name = optional(string, null)
     # The name prefix of the IAM user
@@ -842,6 +857,7 @@ variable "networks" {
 
 variable "notifications" {
   description = "Configuration for the notifications to the owner of the account"
+  sensitive   = true
   type = object({
     email = optional(object({
       # A list of email addresses to send notifications to

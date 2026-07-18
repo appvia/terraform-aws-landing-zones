@@ -9,12 +9,35 @@ locals {
   enable_kms_key_administrator = var.kms_administrator.enable
 
   ## Is a list of roles and or accounts whom should have a assume trust into the kms
-  ## key administrator role.
+  ## key administrator role. Note this is deliberately distinct from
+  ## var.kms_key.key_administrators, which controls who is named in the key policy - being
+  ## a principal in the key policy does not imply permission to assume the administrator role.
   kms_key_administrator_roles = concat(
     var.kms_administrator.enable_account_root ? [format("arn:aws:iam::%s:root", local.account_id)] : [],
-    var.kms_key.key_administrators,
+    var.kms_administrator.assume_roles,
     [for x in var.kms_administrator.assume_accounts : format("arn:aws:iam::%s:root", x)],
   )
+
+  ## The administrative actions permitted to the kms key administrator role. Note this list
+  ## deliberately excludes kms:PutKeyPolicy (and the kms:Put* wildcard which would cover it),
+  ## so that a key administrator cannot rewrite the key policy to grant themselves the ability
+  ## to perform cryptographic operations with the key.
+  kms_key_administrator_actions = [
+    "kms:Create*",
+    "kms:Delete*",
+    "kms:Describe*",
+    "kms:Disable*",
+    "kms:Enable*",
+    "kms:Get*",
+    "kms:List*",
+    "kms:Revoke*",
+    "kms:ScheduleKeyDeletion",
+    "kms:TagResource",
+    "kms:UntagResource",
+    "kms:UpdateAlias",
+    "kms:UpdateKeyDescription",
+    "kms:UpdatePrimaryRegion",
+  ]
 
   ## If we are using the kms key administrator role, this WOULD be the ARN for the provisioned
   kms_key_administrator_role_arn = format("arn:aws:iam::%s:role/%s", local.account_id, var.kms_administrator.name)
@@ -37,8 +60,35 @@ locals {
     )
   )
 
-  ## The arns who wil be users for the kms key 
+  ## The arns who wil be users for the kms key
   kms_key_users = try(var.kms_key.key_users, null)
+
+  ## The organization guardrail statement. This is always appended to the key policy, even when
+  ## the tenant supplies their own key_statements, so the guardrail cannot be removed by input.
+  kms_key_organization_statement = {
+    sid    = "DenyAccessOutsideOrg"
+    effect = "Deny"
+    principals = [
+      {
+        type        = "AWS"
+        identifiers = ["*"]
+      }
+    ]
+    actions   = ["kms:*"]
+    resources = ["*"]
+    condition = [
+      {
+        test     = "StringNotEquals"
+        variable = "aws:PrincipalOrgID"
+        values   = [local.organization_id]
+      },
+      {
+        test     = "Bool"
+        variable = "aws:PrincipalIsAWSService"
+        values   = ["false"]
+      }
+    ]
+  }
 }
 
 ## Provision the key administrator role for the account if required
@@ -92,9 +142,9 @@ module "kms_key_administrator" {
   # Permissions for the key administrator role
   inline_policy_permissions = {
     "kms" : {
-      sid       = "AllowKMSKeyActions"
-      effect    = "Allow"
-      actions   = ["kms:*"]
+      sid     = "AllowKMSKeyActions"
+      effect  = "Allow"
+      actions = local.kms_key_administrator_actions
       resources = [
         "arn:aws:kms:${local.region}:${local.account_id}:key/*"
       ]
@@ -120,104 +170,71 @@ module "kms_key" {
   multi_region            = false
   tags                    = merge(local.tags, { "Name" = var.kms_key.key_alias })
 
-  key_statements = var.kms_key.key_statements != null ? var.kms_key.key_statements : compact([
-    local.enable_kms_key_administrator ? {
-      "Sid": "AllowKeyAdministration",
-      effect = "Allow"
-      principals = [
-        {
-          type = "AWS"
-          identifiers = [local.kms_key_administrator_role_arn]
-        }
-      ]
-      actions = [
-        "kms:Create*", 
-        "kms:Delete*", 
-        "kms:Describe*", 
-        "kms:Disable*",
-        "kms:Enable*", 
-        "kms:Get*", 
-        "kms:List*",
-        "kms:Put*", 
-        "kms:Revoke*", 
-        "kms:ScheduleKeyDeletion", 
-        "kms:TagResource", 
-        "kms:UntagResource",
-        "kms:Update*", 
-      ]
-      resources = ["*"]
-    } : null,
-    {
-      sid = "AllowUseViaAWSServices"
-      effect = "Allow"
-      actions = [
-        "kms:Decrypt", 
-        "kms:DescribeKey",
-        "kms:Encrypt", 
-        "kms:GenerateDataKey*", 
-        "kms:ReEncrypt*",
-      ]
-      resources = ["*"]
-      condition = [
-        {
-          test     = "StringEquals"
-          variable = "kms:CallerAccount"
-          values = [local.account_id]
-        },
-        {
-          test     = "StringLike"
-          variable = "kms:ViaService"
-          values = ["*.${local.region}.amazonaws.com"]
-        }
-      ]
-    },
-    {
-      sid = "AllowGrantsForAWSResources"
-      effect = "Allow"
-      actions = [
-        "kms:CreateGrant", 
-        "kms:ListGrants", 
-        "kms:RevokeGrant"
-      ]
-      resources = ["*"]
-      condition = [
-        {
-          test     = "StringEquals"
-          variable = "kms:CallerAccount"
-          values = [local.account_id]
-        },
-        {
-          test     = "Bool"
-          variable = "kms:GrantIsForAWSResource"
-          values = ["true"]
-        }
-      ]
-    },
-    {
-      sid = "DenyAccessOutsideOrg"
-      effect = "Deny"
-      principals = [
-        {
-          type = "AWS"
-          identifiers = ["*"]
-        }
-      ]
-      actions = ["kms:*"]
-      resources = ["*"]
-      condition = [
-        {
-          test     = "StringNotEquals"
-          variable = "aws:PrincipalOrgID"
-          values = [local.organization_id]
-        },
-        {
-          test     = "Bool"
-          variable = "aws:PrincipalIsAWSService"
-          values = ["false"]
-        }
-      ]
-    }
-  ])
+  ## The organization guardrail is appended unconditionally - a tenant supplying key_statements
+  ## replaces the default statements, but can never remove the deny outside the organization.
+  key_statements = concat(
+    var.kms_key.key_statements != null ? var.kms_key.key_statements : compact([
+      local.enable_kms_key_administrator ? {
+        sid    = "AllowKeyAdministration"
+        effect = "Allow"
+        principals = [
+          {
+            type        = "AWS"
+            identifiers = [local.kms_key_administrator_role_arn]
+          }
+        ]
+        actions   = local.kms_key_administrator_actions
+        resources = ["*"]
+      } : null,
+      {
+        sid    = "AllowUseViaAWSServices"
+        effect = "Allow"
+        actions = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:Encrypt",
+          "kms:GenerateDataKey*",
+          "kms:ReEncrypt*",
+        ]
+        resources = ["*"]
+        condition = [
+          {
+            test     = "StringEquals"
+            variable = "kms:CallerAccount"
+            values   = [local.account_id]
+          },
+          {
+            test     = "StringLike"
+            variable = "kms:ViaService"
+            values   = ["*.${local.region}.amazonaws.com"]
+          }
+        ]
+      },
+      {
+        sid    = "AllowGrantsForAWSResources"
+        effect = "Allow"
+        actions = [
+          "kms:CreateGrant",
+          "kms:ListGrants",
+          "kms:RevokeGrant"
+        ]
+        resources = ["*"]
+        condition = [
+          {
+            test     = "StringEquals"
+            variable = "kms:CallerAccount"
+            values   = [local.account_id]
+          },
+          {
+            test     = "Bool"
+            variable = "kms:GrantIsForAWSResource"
+            values   = ["true"]
+          }
+        ]
+      },
+    ]),
+    [local.kms_key_organization_statement],
+  )
 
   depends_on = [
     module.kms_key_administrator,

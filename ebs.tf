@@ -22,9 +22,15 @@ locals {
 ## Additional IAM policy document for EBS encryption kms key
 data "aws_iam_policy_document" "ebs_encryption_key" {
   statement {
-    sid       = "AllowEC2"
-    effect    = "Allow"
-    actions   = ["kms:*"]
+    sid    = "AllowEC2"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:ReEncrypt*",
+    ]
     resources = ["*"]
 
     principals {

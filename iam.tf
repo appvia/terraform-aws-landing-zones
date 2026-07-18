@@ -44,7 +44,7 @@ module "iam_users" {
 
   create_access_key    = false
   create_login_profile = false
-  force_destroy        = true
+  force_destroy        = each.value.force_destroy
   name                 = each.value.name
   path                 = each.value.path
   permissions_boundary = each.value.permissions_boundary_name != null ? format("arn:aws:iam::%s:policy/%s", local.account_id, each.value.permissions_boundary_name) : ""
@@ -98,7 +98,7 @@ resource "aws_iam_account_password_policy" "iam_account_password_policy" {
 
 ## Configure the IAM Access Analyzer for the account
 resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
-  count = var.iam_access_analyzer.enable ? 1 : 0
+  count = local.home_region && var.iam_access_analyzer.enable ? 1 : 0
 
   analyzer_name = var.iam_access_analyzer.analyzer_name
   tags          = merge(local.tags, { "Name" = var.iam_access_analyzer.analyzer_name })
