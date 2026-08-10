@@ -100,7 +100,7 @@ resource "aws_ebs_snapshot_block_public_access" "ebs_snapshot_block" {
 module "ebs_kms" {
   count   = local.ebs_create_kms_key ? 1 : 0
   source  = "terraform-aws-modules/kms/aws"
-  version = "4.2.0"
+  version = "4.2.1"
 
   aliases                 = [var.ebs_encryption.key_alias]
   deletion_window_in_days = var.ebs_encryption.key_deletion_window_in_days
