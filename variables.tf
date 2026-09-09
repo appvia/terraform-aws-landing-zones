@@ -375,7 +375,7 @@ variable "iam_groups" {
     # The path of the IAM group
     path = optional(string, "/")
     # A list of policies to apply to the IAM group
-    policies = optional(list(string), [])
+    policies = optional(map(string), {})
     # A list of users to apply to the IAM group
     users = optional(list(string), [])
   }))
