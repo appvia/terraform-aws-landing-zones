@@ -47,7 +47,7 @@ module "iam_users" {
   force_destroy        = each.value.force_destroy
   name                 = each.value.name
   path                 = each.value.path
-  permissions_boundary = each.value.permissions_boundary_name != null ? format("arn:aws:iam::%s:policy/%s", local.account_id, each.value.permissions_boundary_name) : ""
+  permissions_boundary = each.value.permission_boundary_name != null ? format("arn:aws:iam::%s:policy/%s", local.account_id, each.value.permission_boundary_name) : ""
   policies             = { for policy in try(each.value.permission_arns, []) : policy => policy }
   tags                 = merge(local.tags, { "Name" = each.value.name })
 }
