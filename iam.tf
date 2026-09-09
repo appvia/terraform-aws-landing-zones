@@ -62,6 +62,7 @@ module "iam_groups" {
   enable_self_management_permissions = true
   name                               = each.value.name
   path                               = each.value.path
+  policies                           = each.value.policies
   tags                               = merge(local.tags, { "Name" = each.value.name })
   users                              = each.value.users
   users_account_id                   = local.account_id
