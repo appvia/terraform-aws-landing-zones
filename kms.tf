@@ -111,7 +111,7 @@ locals {
       actions   = local.kms_key_administrator_actions
       resources = ["*"]
     }] : [],
-    ## Allow the account root to describe the key, 
+    ## Allow the account root to describe the key,
     [{
       sid    = "AllowAccountDescribeKey"
       effect = "Allow"
@@ -265,7 +265,7 @@ module "kms_key_administrator" {
         "kms:ListAliases",
       ]
       resources = ["*"]
-    },
+    }
     "allow-tagging" : {
       sid    = "AllowTagging"
       effect = "Allow"
