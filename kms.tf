@@ -30,6 +30,7 @@ locals {
     "kms:Enable*",
     "kms:Get*",
     "kms:List*",
+    "kms:Put*",
     "kms:Revoke*",
     "kms:ScheduleKeyDeletion",
     "kms:TagResource",
