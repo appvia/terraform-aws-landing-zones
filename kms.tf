@@ -257,6 +257,25 @@ module "kms_key_administrator" {
         "arn:aws:kms:${local.region}:${local.account_id}:key/*"
       ]
     }
+    "allow-list-keys" : {
+      sid    = "AllowListKeys"
+      effect = "Allow"
+      actions = [
+        "kms:ListKeys",
+        "kms:ListAliases",
+      ]
+      resources = ["*"]
+    },
+    "allow-tagging" : {
+      sid    = "AllowTagging"
+      effect = "Allow"
+      actions = [
+        "tag:GetResources",
+        "tag:GetTagKeys",
+        "tag:GetTagValues",
+      ]
+      resources = ["*"]
+    }
   }
 }
 
