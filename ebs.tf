@@ -15,7 +15,7 @@ locals {
   ## Indicates if EBS encryption is enabled
   enable_ebs_encryption = local.ebs_managed ? try(var.ebs_encryption.enable, null) : null
 
-  ## The state of the 
+  ## The state of the
   ebs_control_snapshot_block = try(var.ebs_snapshots_block.state, null)
 }
 
@@ -25,11 +25,12 @@ data "aws_iam_policy_document" "ebs_encryption_key" {
     sid    = "AllowEC2"
     effect = "Allow"
     actions = [
+      "kms:CreateGrant",
       "kms:Decrypt",
       "kms:DescribeKey",
       "kms:Encrypt",
       "kms:GenerateDataKey*",
-      "kms:ReEncrypt*",
+      "kms:ReEncrypt*"
     ]
     resources = ["*"]
 
