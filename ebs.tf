@@ -56,6 +56,7 @@ data "aws_iam_policy_document" "ebs_encryption_key" {
     sid    = "AllowAutoscaling"
     effect = "Allow"
     actions = [
+      "kms:CreateGrant",
       "kms:Decrypt",
       "kms:DescribeKey",
       "kms:Encrypt",
