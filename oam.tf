@@ -87,7 +87,7 @@ resource "aws_observabilityadmin_telemetry_enrichment" "source_telemetry_enrichm
 module "observability_source" {
   count   = local.enable_observability_source ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role"
-  version = "6.8.1"
+  version = "6.8.2"
 
   name            = "cloudwatch-cao-"
   description     = "IAM role used for cross account observability of the cloudwatch service"
