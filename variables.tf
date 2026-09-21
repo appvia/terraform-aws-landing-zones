@@ -138,6 +138,8 @@ variable "cloudwatch" {
     observability_source = optional(object({
       # A flag indicating if cloudwatch cross-account observability should be enabled
       enable = optional(bool, false)
+      # Enable telemetry enrichment
+      telemetry_enrichment = optional(bool, false)
       # The name of the cloudwatch cross-account observability
       account_id = optional(string, null)
       # The OAM sink identifier i.e. arn:aws:oam:region:account-id:sink/sink-id

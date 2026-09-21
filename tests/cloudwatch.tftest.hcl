@@ -490,6 +490,233 @@ run "cloudwatch_combined_sink_and_source" {
   }
 }
 
+# Test 11: Telemetry enrichment enabled on an observability source
+run "cloudwatch_telemetry_enrichment_enabled" {
+  command = plan
+
+  variables {
+    environment    = "Production"
+    owner          = "Support"
+    product        = "LandingZone"
+    home_region    = "eu-west-2"
+    tags           = {}
+    git_repository = "test"
+
+    notifications = {
+      email = {
+        addresses = ["info@appvia.io"]
+      }
+    }
+
+    cloudwatch = {
+      observability_sink = null
+      observability_source = {
+        enable               = true
+        telemetry_enrichment = true
+        account_id           = "999999999999"
+        sink_identifier      = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234-1234-1234-1234-123456789012"
+        resource_types       = ["AWS::CloudWatch::Metric", "AWS::Logs::LogGroup"]
+      }
+      account_subscriptions = {}
+    }
+  }
+
+  # Test that telemetry enrichment is created when enabled on an active source
+  assert {
+    condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 1
+    error_message = "Telemetry enrichment should be created when observability source is enabled and telemetry_enrichment=true"
+  }
+
+  # Test that the observability source is still provisioned alongside the enrichment
+  assert {
+    condition     = length(aws_oam_link.cloudwatch_cao) == 1
+    error_message = "OAM link should be created when observability source is enabled"
+  }
+}
+
+# Test 12: Telemetry enrichment defaults to disabled on an observability source
+run "cloudwatch_telemetry_enrichment_default_disabled" {
+  command = plan
+
+  variables {
+    environment    = "Production"
+    owner          = "Support"
+    product        = "LandingZone"
+    home_region    = "eu-west-2"
+    tags           = {}
+    git_repository = "test"
+
+    notifications = {
+      email = {
+        addresses = ["info@appvia.io"]
+      }
+    }
+
+    cloudwatch = {
+      observability_sink = null
+      observability_source = {
+        enable          = true
+        account_id      = "999999999999"
+        sink_identifier = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234-1234-1234-1234-123456789012"
+      }
+      account_subscriptions = {}
+    }
+  }
+
+  # Test that telemetry enrichment is NOT created when the flag is omitted
+  assert {
+    condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 0
+    error_message = "Telemetry enrichment should not be created when telemetry_enrichment is not set"
+  }
+
+  # Test that the observability source is unaffected by the default
+  assert {
+    condition     = length(aws_oam_link.cloudwatch_cao) == 1
+    error_message = "OAM link should still be created when telemetry enrichment is disabled"
+  }
+}
+
+# Test 13: Telemetry enrichment explicitly disabled on an observability source
+run "cloudwatch_telemetry_enrichment_explicitly_disabled" {
+  command = plan
+
+  variables {
+    environment    = "Production"
+    owner          = "Support"
+    product        = "LandingZone"
+    home_region    = "eu-west-2"
+    tags           = {}
+    git_repository = "test"
+
+    notifications = {
+      email = {
+        addresses = ["info@appvia.io"]
+      }
+    }
+
+    cloudwatch = {
+      observability_sink = null
+      observability_source = {
+        enable               = true
+        telemetry_enrichment = false
+        account_id           = "999999999999"
+        sink_identifier      = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234-1234-1234-1234-123456789012"
+      }
+      account_subscriptions = {}
+    }
+  }
+
+  assert {
+    condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 0
+    error_message = "Telemetry enrichment should not be created when telemetry_enrichment is false"
+  }
+}
+
+# Test 14: Telemetry enrichment ignored when the observability source is disabled
+run "cloudwatch_telemetry_enrichment_source_disabled" {
+  command = plan
+
+  variables {
+    environment    = "Production"
+    owner          = "Support"
+    product        = "LandingZone"
+    home_region    = "eu-west-2"
+    tags           = {}
+    git_repository = "test"
+
+    notifications = {
+      email = {
+        addresses = ["info@appvia.io"]
+      }
+    }
+
+    cloudwatch = {
+      observability_sink = null
+      observability_source = {
+        enable               = false
+        telemetry_enrichment = true
+        account_id           = "999999999999"
+        sink_identifier      = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234"
+      }
+      account_subscriptions = {}
+    }
+  }
+
+  # Test that telemetry enrichment requires an enabled observability source
+  assert {
+    condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 0
+    error_message = "Telemetry enrichment should not be created when the observability source is disabled"
+  }
+}
+
+# Test 15: Telemetry enrichment ignored when the observability source has no account_id
+run "cloudwatch_telemetry_enrichment_no_account_id" {
+  command = plan
+
+  variables {
+    environment    = "Production"
+    owner          = "Support"
+    product        = "LandingZone"
+    home_region    = "eu-west-2"
+    tags           = {}
+    git_repository = "test"
+
+    notifications = {
+      email = {
+        addresses = ["info@appvia.io"]
+      }
+    }
+
+    cloudwatch = {
+      observability_sink = null
+      observability_source = {
+        enable               = true
+        telemetry_enrichment = true
+        account_id           = null
+        sink_identifier      = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234"
+      }
+      account_subscriptions = {}
+    }
+  }
+
+  # Test that telemetry enrichment requires a resolvable observability source
+  assert {
+    condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 0
+    error_message = "Telemetry enrichment should not be created when the observability source has no account_id"
+  }
+}
+
+# Test 16: Telemetry enrichment is not created with the default cloudwatch configuration
+run "cloudwatch_telemetry_enrichment_no_source" {
+  command = plan
+
+  variables {
+    environment    = "Production"
+    owner          = "Support"
+    product        = "LandingZone"
+    home_region    = "eu-west-2"
+    tags           = {}
+    git_repository = "test"
+
+    notifications = {
+      email = {
+        addresses = ["info@appvia.io"]
+      }
+    }
+
+    cloudwatch = {
+      account_subscriptions = {}
+      observability_sink    = null
+      observability_source  = null
+    }
+  }
+
+  assert {
+    condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 0
+    error_message = "Telemetry enrichment should not be created when observability_source is null"
+  }
+}
+
 # Mock providers
 mock_provider "aws" {
   source = "./tests/providers/default"

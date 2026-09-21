@@ -10,6 +10,8 @@ locals {
   observability_sink_identifiers = coalesce(try(local.observability_sink.identifiers, null), [])
   ## Indicates if cloudwatch cross-account observability should be enabled
   enable_observability_source = try(local.observability_source.enable, false) && try(local.observability_source.account_id, null) != null
+  ## Indicates if telemetry enrichment should be enabled
+  enable_telemetry_enrichment = local.enable_observability_source && try(local.observability_source.telemetry_enrichment, false)
   ## The account id for the cloudwatch cross-account observability
   observability_source_account_id = local.observability_source != null && local.observability_source.account_id != null ? local.observability_source.account_id : ""
   ## The OAM sink identifier for the cloudwatch cross-account observability
@@ -74,6 +76,11 @@ resource "aws_oam_sink_policy" "observability_sink" {
 
   policy          = data.aws_iam_policy_document.observability_sink_policy[0].json
   sink_identifier = aws_oam_sink.observability_sink[0].arn
+}
+
+resource "aws_observabilityadmin_telemetry_enrichment" "source_telemetry_enrichment" {
+  count = local.enable_telemetry_enrichment ? 1 : 0
+  # Accepts no additional block arguments as it acts as an account-level toggle
 }
 
 ## Provision an IAM role for the cloudwatch cross-account observability
