@@ -283,7 +283,7 @@ module "kms_key_administrator" {
 module "kms_key" {
   count   = local.enable_kms_key ? 1 : 0
   source  = "terraform-aws-modules/kms/aws"
-  version = "4.2.1"
+  version = "4.2.2"
 
   aliases                 = [var.kms_key.key_alias]
   deletion_window_in_days = var.kms_key.key_deletion_window_in_days
