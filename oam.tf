@@ -11,7 +11,7 @@ locals {
   ## Indicates if cloudwatch cross-account observability should be enabled
   enable_observability_source = try(local.observability_source.enable, false) && try(local.observability_source.account_id, null) != null
   ## Indicates if telemetry enrichment should be enabled
-  enable_telemetry_enrichment = local.enable_observability_source && try(local.observability_source.telemetry_enrichment, false)
+  enable_telemetry_enrichment = local.enable_observability_source && try(local.observability_source.enable_telemetry_enrichment, false)
   ## The account id for the cloudwatch cross-account observability
   observability_source_account_id = local.observability_source != null && local.observability_source.account_id != null ? local.observability_source.account_id : ""
   ## The OAM sink identifier for the cloudwatch cross-account observability
