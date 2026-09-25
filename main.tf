@@ -49,7 +49,7 @@ module "tagging" {
 #trivy:ignore:AVD-DS-0015
 #trivy:ignore:AVD-DS-0026
 module "notifications" {
-  source = "github.com/hmt-aws-platform/terraform-aws-landing-zone-account?ref=v0.1.8"
+  source = "github.com/appvia/terraform-aws-notify?ref=v0.1.8"
 
   allowed_aws_services = [
     "budgets.amazonaws.com",
