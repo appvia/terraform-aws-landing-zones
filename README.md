@@ -1636,9 +1636,6 @@ The `terraform-docs` utility is used to generate this README. Follow the below s
 |------|-------------|
 | <a name="output_account_id"></a> [account\_id](#output\_account\_id) | The account id where the pipeline is running |
 | <a name="output_environment"></a> [environment](#output\_environment) | The environment name for the tenant |
-| <a name="output_infrastructure_repository_git_clone_url"></a> [infrastructure\_repository\_git\_clone\_url](#output\_infrastructure\_repository\_git\_clone\_url) | The URL of the infrastructure repository for the landing zone |
-| <a name="output_infrastructure_repository_role_name"></a> [infrastructure\_repository\_role\_name](#output\_infrastructure\_repository\_role\_name) | The IAM role name used for infrastructure repository OIDC permissions |
-| <a name="output_infrastructure_repository_url"></a> [infrastructure\_repository\_url](#output\_infrastructure\_repository\_url) | The HTML URL of the infrastructure repository for the landing zone |
 | <a name="output_ipam_pools_by_name"></a> [ipam\_pools\_by\_name](#output\_ipam\_pools\_by\_name) | A map of the ipam pool name to id |
 | <a name="output_networks"></a> [networks](#output\_networks) | A map of the network name to network details |
 | <a name="output_private_hosted_zones"></a> [private\_hosted\_zones](#output\_private\_hosted\_zones) | A map of the private hosted zones |

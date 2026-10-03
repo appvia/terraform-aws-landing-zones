@@ -511,11 +511,11 @@ run "cloudwatch_telemetry_enrichment_enabled" {
     cloudwatch = {
       observability_sink = null
       observability_source = {
-        enable               = true
-        telemetry_enrichment = true
-        account_id           = "999999999999"
-        sink_identifier      = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234-1234-1234-1234-123456789012"
-        resource_types       = ["AWS::CloudWatch::Metric", "AWS::Logs::LogGroup"]
+        enable                      = true
+        enable_telemetry_enrichment = true
+        account_id                  = "999999999999"
+        sink_identifier             = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234-1234-1234-1234-123456789012"
+        resource_types              = ["AWS::CloudWatch::Metric", "AWS::Logs::LogGroup"]
       }
       account_subscriptions = {}
     }
@@ -524,7 +524,7 @@ run "cloudwatch_telemetry_enrichment_enabled" {
   # Test that telemetry enrichment is created when enabled on an active source
   assert {
     condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 1
-    error_message = "Telemetry enrichment should be created when observability source is enabled and telemetry_enrichment=true"
+    error_message = "Telemetry enrichment should be created when observability source is enabled and enable_telemetry_enrichment=true"
   }
 
   # Test that the observability source is still provisioned alongside the enrichment
@@ -566,7 +566,7 @@ run "cloudwatch_telemetry_enrichment_default_disabled" {
   # Test that telemetry enrichment is NOT created when the flag is omitted
   assert {
     condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 0
-    error_message = "Telemetry enrichment should not be created when telemetry_enrichment is not set"
+    error_message = "Telemetry enrichment should not be created when enable_telemetry_enrichment is not set"
   }
 
   # Test that the observability source is unaffected by the default
@@ -597,10 +597,10 @@ run "cloudwatch_telemetry_enrichment_explicitly_disabled" {
     cloudwatch = {
       observability_sink = null
       observability_source = {
-        enable               = true
-        telemetry_enrichment = false
-        account_id           = "999999999999"
-        sink_identifier      = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234-1234-1234-1234-123456789012"
+        enable                      = true
+        enable_telemetry_enrichment = false
+        account_id                  = "999999999999"
+        sink_identifier             = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234-1234-1234-1234-123456789012"
       }
       account_subscriptions = {}
     }
@@ -608,7 +608,7 @@ run "cloudwatch_telemetry_enrichment_explicitly_disabled" {
 
   assert {
     condition     = length(aws_observabilityadmin_telemetry_enrichment.source_telemetry_enrichment) == 0
-    error_message = "Telemetry enrichment should not be created when telemetry_enrichment is false"
+    error_message = "Telemetry enrichment should not be created when enable_telemetry_enrichment is false"
   }
 }
 
@@ -633,10 +633,10 @@ run "cloudwatch_telemetry_enrichment_source_disabled" {
     cloudwatch = {
       observability_sink = null
       observability_source = {
-        enable               = false
-        telemetry_enrichment = true
-        account_id           = "999999999999"
-        sink_identifier      = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234"
+        enable                      = false
+        enable_telemetry_enrichment = true
+        account_id                  = "999999999999"
+        sink_identifier             = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234"
       }
       account_subscriptions = {}
     }
@@ -670,10 +670,10 @@ run "cloudwatch_telemetry_enrichment_no_account_id" {
     cloudwatch = {
       observability_sink = null
       observability_source = {
-        enable               = true
-        telemetry_enrichment = true
-        account_id           = null
-        sink_identifier      = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234"
+        enable                      = true
+        enable_telemetry_enrichment = true
+        account_id                  = null
+        sink_identifier             = "arn:aws:oam:eu-west-2:999999999999:sink/abcd1234"
       }
       account_subscriptions = {}
     }
