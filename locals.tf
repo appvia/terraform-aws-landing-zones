@@ -35,7 +35,13 @@ locals {
   product = lower(var.product)
 
   ## The tags associated with all resources within the account
-  tags = merge(var.tags, module.tagging.tags, var.landing_zone_tags)
+  ## The tagging module emits null values for unset optional tags (e.g. Application, Team), which
+  ## would otherwise override the caller supplied tags when merged, so we strip them out first
+  tags = merge(
+    var.tags,
+    { for k, v in module.tagging.tags : k => v if v != null },
+    var.landing_zone_tags,
+  )
 
   ## The ipam pools found in the account
   ipam_pools = data.aws_vpc_ipam_pools.current.ipam_pools
