@@ -106,6 +106,81 @@ resource "aws_accessanalyzer_analyzer" "iam_access_analyzer" {
   type          = var.iam_access_analyzer.analyzer_type
 }
 
+## Provision the access analyzer role if required
+module "access_analyzer_iam_role" {
+  count   = local.home_region && try(var.include_iam_roles.access_analyzer.enable, false) ? 1 : 0
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role"
+  version = "6.8.2"
+
+  description          = "Used by the access analyzer to analyze the account cloudtrail logs"
+  name                 = var.include_iam_roles.access_analyzer.name
+  create_inline_policy = true
+
+  ## Attach the inline policy to the role
+  inline_policy_permissions = {
+    cloudtrail_read = {
+      sid    = "CloudTrailRead"
+      effect = "Allow"
+      actions = [
+        "cloudtrail:GetTrail",
+        "cloudtrail:ListTrails",
+      ]
+      resources = ["*"]
+    }
+    service_last_accessed = {
+      sid    = "ServiceLastAccessed"
+      effect = "Allow"
+      actions = [
+        "iam:GetServiceLastAccessedDetails",
+        "iam:GenerateServiceLastAccessedDetails",
+      ]
+      resources = ["*"]
+    }
+    read_trail_logs = {
+      sid    = "ReadTrailLogs"
+      effect = "Allow"
+      actions = [
+        "s3:GetObject",
+        "s3:ListBucket",
+      ]
+      resources = [
+        var.include_iam_roles.access_analyzer.logs_bucket_arn,
+        format("%s/*", var.include_iam_roles.access_analyzer.logs_bucket_arn),
+      ]
+    }
+    decrypt_trail_logs = {
+      sid    = "DecryptTrailLogs"
+      effect = "Allow"
+      actions = [
+        "kms:Decrypt",
+      ]
+      resources = [var.include_iam_roles.access_analyzer.kms_key_arn]
+      condition = [
+        {
+          test     = "StringLike"
+          variable = "kms:ViaService"
+          values   = ["s3.*.amazonaws.com"]
+        }
+      ]
+    }
+  }
+
+  ## Allow the access analyzer service to assume the role
+  trust_policy_permissions = {
+    "access_analyzer" = {
+      sid     = "AllowAccessAnalyzerAssumeRole"
+      effect  = "Allow"
+      actions = ["sts:AssumeRole", "sts:TagSession"]
+      principals = [
+        {
+          type        = "Service"
+          identifiers = ["access-analyzer.amazonaws.com"]
+        }
+      ]
+    }
+  }
+}
+
 ## Configure any IAM roles required within the iam_account_password_policy
 module "iam_roles" {
   for_each = local.home_region ? var.iam_roles : {}

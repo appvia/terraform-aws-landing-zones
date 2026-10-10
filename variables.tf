@@ -513,13 +513,31 @@ variable "iam_users" {
 variable "include_iam_roles" {
   description = "Collection of IAM roles to include in the account"
   type = object({
+    ## The security auditor role is used to audit the account for security best practices
     security_auditor = optional(object({
+      # If the security auditor role should be enabled
       enable = optional(bool, false)
-      name   = optional(string, "lza-security-auditor")
+      # The name of the security auditor role
+      name = optional(string, "lza-security-auditor")
     }), {})
+    ## The SSM instance role is used to manage the SSM agent on the instance
     ssm_instance = optional(object({
+      # If the SSM instance role should be enabled
       enable = optional(bool, false)
-      name   = optional(string, "lza-ssm-instance")
+      # The name of the SSM instance role
+      name = optional(string, "lza-ssm-instance")
+    }), {})
+    ## The access analyzer role is used to run access analyzer within an account
+    ## against the cloudtrail logs
+    access_analyzer = optional(object({
+      # If the access analyzer role should be enabled
+      enable = optional(bool, false)
+      # The name of the access analyzer role
+      name = optional(string, "lza-access-analyzer")
+      # ARN for the cloudtrail logs bucket to analyze (required when enabled)
+      logs_bucket_arn = optional(string, null)
+      # ARN for the cloudtrail KMS key to decrypt the logs bucket (required when enabled)
+      kms_key_arn = optional(string, null)
     }), {})
   })
   default = {
@@ -531,6 +549,23 @@ variable "include_iam_roles" {
       enable = false
       name   = "lza-ssm-instance"
     }
+    access_analyzer = {
+      enable          = false
+      name            = "lza-access-analyzer"
+      logs_bucket_arn = null
+      kms_key_arn     = null
+    }
+  }
+
+  validation {
+    condition = (
+      try(var.include_iam_roles.access_analyzer.enable, false) == false ||
+      (
+        can(regex("^arn:aws[a-z-]*:s3:::[^/]+$", var.include_iam_roles.access_analyzer.logs_bucket_arn)) &&
+        can(regex("^arn:aws[a-z-]*:kms:", var.include_iam_roles.access_analyzer.kms_key_arn))
+      )
+    )
+    error_message = "When the access analyzer role is enabled you must set logs_bucket_arn to an S3 bucket ARN and kms_key_arn to a KMS key ARN"
   }
 }
 
