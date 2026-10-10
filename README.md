@@ -1105,69 +1105,6 @@ module "account" {
 
 **Note**: Resource groups are dynamic and automatically update as resources are created, modified, or deleted based on the resource query criteria. Ensure your resources are properly tagged to be included in the appropriate resource groups. When using the `query` object, if `resource_type_filters` is not specified, it defaults to `["AWS::AllSupported"]`.
 
-## Infrastructure Repository
-
-This module can provision the tenant's GitHub infrastructure repository and the AWS permissions used to deploy it through GitHub OIDC.
-
-### Infrastructure Repository Features
-
-- **Repository Creation**: Create a GitHub repository for the landing zone when `create = true`
-- **Security Defaults**: Apply branch protection and vulnerability alert settings
-- **Bootstrap from a Template**: Seed the repository from an existing GitHub template repository
-- **Deployment Access**: Provision read-only and read-write AWS OIDC roles for the repository
-
-### Basic Infrastructure Repository Usage
-
-```hcl
-infrastructure_repository = {
-  name       = "my-product-infrastructure"
-  create     = true
-  visibility = "private"
-}
-```
-
-### Advanced Infrastructure Repository Configuration
-
-```hcl
-infrastructure_repository = {
-  name                        = "enterprise-critical-system"
-  create                      = true
-  visibility                  = "private"
-  enable_issues               = true
-  enable_vulnerability_alerts = true
-  topics                      = ["enterprise", "terraform", "aws", "landing-zone"]
-
-  branch_protection = {
-    main = {
-      enforce_admins                  = true
-      require_conversation_resolution = true
-      require_signed_commits          = true
-
-      required_status_checks = {
-        strict   = true
-        contexts = ["terraform-plan", "terraform-apply"]
-      }
-
-      required_pull_request_reviews = {
-        dismiss_stale_reviews           = true
-        require_code_owner_reviews      = true
-        required_approving_review_count = 2
-      }
-    }
-  }
-
-  permissions = {
-    read_only_policy_arns  = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
-    read_write_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
-  }
-
-  template = {
-    owner      = "appvia"
-    repository = "terraform-repository-template"
-  }
-}
-```
-
 ## Cost Management Features
 
 Tenants are able to receive budgets notifications related to the services. Once notifications have been configured they will automatically receive daily, weekly or monthly reports and notifications on where they sit in the budget.
